@@ -1,0 +1,13 @@
+rules,threads,depth,nodes,seconds,ns_per_node_thread
+descent+pm1+oee(root),16,40,8668508363,8.91,16.44
+descent+pm1+oee(root),1,35,374942095,2.86,7.62
+descent+pm1+oee(root)+pm_inf,16,40,8575357203,11.55,21.56
+descent+pm1+oee(root)+pm_inf,1,35,371843607,3.74,10.05
+descent+pm1+oee(root)+pm_inf+mix(3^12),16,40,8215855922,15.58,30.35
+descent+pm1+oee(root)+pm_inf+mix(3^12),1,35,358124046,5.42,15.14
+descent+pm1+oee(root)+pm_inf+mix(3^13),16,40,8201389745,16.88,32.93
+descent+pm1+oee(root)+pm_inf+mix(3^13),1,35,357590755,6.01,16.79
+descent+pm1+oee(root)+pm_inf+mix(3^14),16,40,8188319348,20.50,40.07
+descent+pm1+oee(root)+pm_inf+mix(3^14),1,35,357126013,10.14,28.39
+descent+pm1+oee(root)+pm_inf+mix(3^16),16,40,8169736415,40.83,79.97
+descent+pm1+oee(root)+pm_inf+mix(3^16),1,35,356491417,17.09,47.93

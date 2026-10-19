@@ -1,0 +1,2 @@
+N=54 A=10 B=28 rules=descent+pm1+oee(root)+pm_inf+mix(3^13) backend=gpu units=172927 tree_nodes=101513615194 endpoints=44845477535 cases=5344896148408 iters=37429248841369 hash=3C73E7B4 flagged=0 rechecked=0 seconds=280.15
+wall=280.39 user=4069.05

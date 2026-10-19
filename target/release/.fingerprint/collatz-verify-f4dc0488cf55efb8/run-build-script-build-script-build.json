@@ -1,0 +1,1 @@
+{"rustc":4758242423518056681,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[879734890282101239,"build_script_build",false,5126343702259932200]],"local":[{"RerunIfChanged":{"output":"release/build/collatz-verify-f4dc0488cf55efb8/output","paths":["build.rs","cuda/kernel.cu"]}}],"rustflags":[],"config":0,"compile_kind":0}

@@ -1,0 +1,7 @@
+{
+  "verifier": "Independent Python arbitrary-precision forward iteration and slope checks",
+  "records_checked": 21101,
+  "sha256": "04f228be11a3eb7c46529cd8e381f363ea6e444c6e60a6135c5ac339c418ec30",
+  "all_passed": true,
+  "seconds": 0.09777463891077787
+}

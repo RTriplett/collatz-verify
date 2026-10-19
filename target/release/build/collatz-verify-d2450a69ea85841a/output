@@ -1,0 +1,7 @@
+cargo:rerun-if-changed=build.rs
+cargo:rerun-if-changed=cuda/kernel.cu
+cargo:rustc-link-search=native=/home/ryan/Projects/Collatz/distributed/target/release/build/collatz-verify-d2450a69ea85841a/out
+cargo:rustc-link-lib=static=cvkernel
+cargo:rustc-link-search=native=/usr/local/cuda/lib64
+cargo:rustc-link-lib=dylib=cudart
+cargo:rustc-link-lib=dylib=stdc++

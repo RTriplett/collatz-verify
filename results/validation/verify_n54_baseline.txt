@@ -1,0 +1,2 @@
+N=54 A=10 B=24 rules=descent+pm1+oee(root) backend=gpu units=178304 tree_nodes=107616088127 endpoints=47565349641 cases=6941716164126 iters=44741678841285 hash=DCCB97B2 flagged=0 rechecked=0 seconds=286.92
+wall=287.01 user=1914.18

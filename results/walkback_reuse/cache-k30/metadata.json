@@ -1,0 +1,43 @@
+{
+  "binary_bytes": 675232,
+  "binary_sha256": "04f228be11a3eb7c46529cd8e381f363ea6e444c6e60a6135c5ac339c418ec30",
+  "certificate_count": 21101,
+  "checkpoint_depth": 30,
+  "checkpoint_survivors_before_walkback": 6936282,
+  "elapsed_seconds": 3.102639728,
+  "enumerate_and_search_seconds": 2.996320041,
+  "independent_queries": {
+    "a": 10,
+    "baseline_uniform_draws": 20000,
+    "cache_hits": 39,
+    "endpoint_depth": 62,
+    "improved_survivor_draws": 18623,
+    "mismatches_vs_fresh_search": 0,
+    "n": 72,
+    "sampling_and_ancestor_seconds": 0.013738441,
+    "seed_hex": "643a51ce9b12a809",
+    "single_thread_fresh_search_seconds": 0.04854672,
+    "single_thread_lookup_seconds": 0.000681041,
+    "timing_note": "single pass on the same sampled ancestors; includes neither production integration nor tail work",
+    "unique_ancestors": 18577
+  },
+  "purpose": "Scratch proof of concept: positive walkback certificate reuse, not an end-to-end verification benchmark",
+  "record_format": "sorted n0:u64 little-endian, p:u128 little-endian, s:u32 little-endian, o:u32 little-endian; no header; 32 bytes/record",
+  "retained_checkpoint_survivors": 6915181,
+  "rules": "descent+pm1+oee(root)+pm_inf+mix(3^13)",
+  "rules_setup_seconds": 0.023630752,
+  "sort_seconds": 0.000593014,
+  "split_depth": 16,
+  "threads": 8,
+  "verification": {
+    "exact_slope_inequalities": true,
+    "forward_orbit_matches": true,
+    "odd_counts_match": true,
+    "positive_smaller_partners": true,
+    "records_checked": 21101,
+    "translated_members_per_record": 3
+  },
+  "verify_all_records_seconds": 0.011132271,
+  "walkback_max_states": 65536,
+  "write_seconds": 0.000378367
+}

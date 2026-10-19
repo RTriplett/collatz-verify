@@ -1,0 +1,10 @@
+{
+  "cpu": "AMD Ryzen 7 7700X",
+  "physical_cores": 8,
+  "logical_threads": 16,
+  "checkpoint_search_timing_threads": 1,
+  "cache_demo_threads": 8,
+  "gpu_timing_performed": false,
+  "gpu_model": "saved RTX 4090 timings in results/gpu_fit.json",
+  "notes": "Sampled search timings and complete K30 cache construction measured on this CPU. GPU savings and deeper CPU tree savings are modeled, not end-to-end timings."
+}
