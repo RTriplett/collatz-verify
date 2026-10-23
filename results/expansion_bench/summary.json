@@ -1,0 +1,1769 @@
+{
+  "notes": "Speedup is reference/variant; greater than one is faster. Paired ratios use the same repetition, not simultaneous executions. Ranges are observed extrema, not confidence intervals.",
+  "runs": [
+    {
+      "file": "controlled/early-t1.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 1,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 16115831,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.647545713,
+          "minimum_seconds": 0.630745805,
+          "maximum_seconds": 0.680641291,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0354062231279109
+        },
+        {
+          "variant": "control",
+          "median_seconds": 0.670216023,
+          "minimum_seconds": 0.650900271,
+          "maximum_seconds": 0.698636313,
+          "ratio_of_medians_vs_reference": 0.9661746224769083,
+          "paired_speedup_median_vs_reference": 0.9658045100202794,
+          "paired_speedup_range_vs_reference": [
+            0.9413198784604887,
+            1.0310993230216496
+          ],
+          "repetitions_faster_than_reference": 1,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "compact",
+          "median_seconds": 0.689001633,
+          "minimum_seconds": 0.65948533,
+          "maximum_seconds": 0.716729841,
+          "ratio_of_medians_vs_reference": 0.9398318987728728,
+          "paired_speedup_median_vs_reference": 0.9409038425885312,
+          "paired_speedup_range_vs_reference": [
+            0.9016828952976175,
+            1.0094496987040702
+          ],
+          "repetitions_faster_than_reference": 1,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 0.9747554420578394
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.6548524,
+          "minimum_seconds": 0.621997456,
+          "maximum_seconds": 0.678429689,
+          "ratio_of_medians_vs_reference": 0.9888422383425639,
+          "paired_speedup_median_vs_reference": 0.9805974934198912,
+          "paired_speedup_range_vs_reference": [
+            0.9619274769091068,
+            1.0725954140707787
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0351760789661324
+        }
+      ]
+    },
+    {
+      "file": "controlled/early-t8.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 16115831,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.075509516,
+          "minimum_seconds": 0.073053432,
+          "maximum_seconds": 0.088278995,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0295022597818815
+        },
+        {
+          "variant": "control",
+          "median_seconds": 0.077915415,
+          "minimum_seconds": 0.074949445,
+          "maximum_seconds": 0.082843173,
+          "ratio_of_medians_vs_reference": 0.9691216558366531,
+          "paired_speedup_median_vs_reference": 0.9713431811328592,
+          "paired_speedup_range_vs_reference": [
+            0.9392669232377451,
+            1.1579309175901624
+          ],
+          "repetitions_faster_than_reference": 2,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "compact",
+          "median_seconds": 0.078839456,
+          "minimum_seconds": 0.077950041,
+          "maximum_seconds": 0.087551837,
+          "ratio_of_medians_vs_reference": 0.9577630266753743,
+          "paired_speedup_median_vs_reference": 0.942930768331923,
+          "paired_speedup_range_vs_reference": [
+            0.8624549591118231,
+            1.1137761535514603
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 0.9650178598410416
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.074346001,
+          "minimum_seconds": 0.073268028,
+          "maximum_seconds": 0.082268875,
+          "ratio_of_medians_vs_reference": 1.0156500011345602,
+          "paired_speedup_median_vs_reference": 1.0098301118129354,
+          "paired_speedup_range_vs_reference": [
+            0.9718551153154822,
+            1.184784172960703
+          ],
+          "repetitions_faster_than_reference": 5,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0231907231792605
+        }
+      ]
+    },
+    {
+      "file": "controlled/late-t1.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 1,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 16584387,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.747476483,
+          "minimum_seconds": 0.656018284,
+          "maximum_seconds": 0.7659287,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0184678131203622
+        },
+        {
+          "variant": "control",
+          "median_seconds": 0.729778826,
+          "minimum_seconds": 0.700613283,
+          "maximum_seconds": 0.842303365,
+          "ratio_of_medians_vs_reference": 1.024250713187998,
+          "paired_speedup_median_vs_reference": 0.9818670625792475,
+          "paired_speedup_range_vs_reference": [
+            0.8731238369409592,
+            1.0696814479322396
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "compact",
+          "median_seconds": 0.770573341,
+          "minimum_seconds": 0.726389362,
+          "maximum_seconds": 1.019247557,
+          "ratio_of_medians_vs_reference": 0.9700263988239894,
+          "paired_speedup_median_vs_reference": 0.9030251268451293,
+          "paired_speedup_range_vs_reference": [
+            0.7514648377028194,
+            1.0317235771963302
+          ],
+          "repetitions_faster_than_reference": 2,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 0.9645147900720495
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.708182176,
+          "minimum_seconds": 0.663214832,
+          "maximum_seconds": 0.766168344,
+          "ratio_of_medians_vs_reference": 1.0554861564321552,
+          "paired_speedup_median_vs_reference": 0.9996872175653344,
+          "paired_speedup_range_vs_reference": [
+            0.9126577681333539,
+            1.1185913426930254
+          ],
+          "repetitions_faster_than_reference": 4,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0854410301709556
+        }
+      ]
+    },
+    {
+      "file": "controlled/late-t8.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 16584387,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.081288829,
+          "minimum_seconds": 0.078572481,
+          "maximum_seconds": 0.084122319,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0290055920023757
+        },
+        {
+          "variant": "control",
+          "median_seconds": 0.083295011,
+          "minimum_seconds": 0.079920074,
+          "maximum_seconds": 0.090389525,
+          "ratio_of_medians_vs_reference": 0.9759147399596358,
+          "paired_speedup_median_vs_reference": 0.9718120171281744,
+          "paired_speedup_range_vs_reference": [
+            0.9306644658216757,
+            0.9861791234506475
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "compact",
+          "median_seconds": 0.082994862,
+          "minimum_seconds": 0.081328494,
+          "maximum_seconds": 0.087274071,
+          "ratio_of_medians_vs_reference": 0.9794441130584687,
+          "paired_speedup_median_vs_reference": 0.9895093385419449,
+          "paired_speedup_range_vs_reference": [
+            0.9079786366330957,
+            0.9995122865548206
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.003616476885039
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.080451341,
+          "minimum_seconds": 0.077150896,
+          "maximum_seconds": 0.103578139,
+          "ratio_of_medians_vs_reference": 1.010409869985884,
+          "paired_speedup_median_vs_reference": 0.995085313722704,
+          "paired_speedup_range_vs_reference": [
+            0.785286777550618,
+            1.049136013167566
+          ],
+          "repetitions_faster_than_reference": 4,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0413737948107373
+        }
+      ]
+    },
+    {
+      "file": "full/full-t1.jsonl",
+      "case": "full",
+      "seed": 17391,
+      "roots": 64,
+      "threads": 1,
+      "statistics": false,
+      "repetitions": 5,
+      "endpoints": 240406574,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 10.485321025,
+          "minimum_seconds": 10.210711098,
+          "maximum_seconds": 10.763392436,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0533091501602356
+        },
+        {
+          "variant": "control",
+          "median_seconds": 11.044284578,
+          "minimum_seconds": 10.187418576,
+          "maximum_seconds": 11.550129331,
+          "ratio_of_medians_vs_reference": 0.949388885350397,
+          "paired_speedup_median_vs_reference": 0.949388885350397,
+          "paired_speedup_range_vs_reference": [
+            0.9318850142319675,
+            1.002286400801757
+          ],
+          "repetitions_faster_than_reference": 1,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "compact",
+          "median_seconds": 10.741949726,
+          "minimum_seconds": 10.436558168,
+          "maximum_seconds": 11.786618354,
+          "ratio_of_medians_vs_reference": 0.9761096721222916,
+          "paired_speedup_median_vs_reference": 0.9783600046716092,
+          "paired_speedup_range_vs_reference": [
+            0.9131874904855344,
+            0.9885670815674221
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 0.9799358038160503
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 10.29559497,
+          "minimum_seconds": 9.727108739,
+          "maximum_seconds": 10.825211911,
+          "ratio_of_medians_vs_reference": 1.0184278864458864,
+          "paired_speedup_median_vs_reference": 0.994289305788353,
+          "paired_speedup_range_vs_reference": [
+            0.9845762750542711,
+            1.0779483715402516
+          ],
+          "repetitions_faster_than_reference": 2,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0532584522059159
+        }
+      ]
+    },
+    {
+      "file": "full/full-t8.jsonl",
+      "case": "full",
+      "seed": 17391,
+      "roots": 64,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 5,
+      "endpoints": 240406574,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 1.251269217,
+          "minimum_seconds": 1.18781709,
+          "maximum_seconds": 1.48351243,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0977360648151255
+        },
+        {
+          "variant": "control",
+          "median_seconds": 1.381788432,
+          "minimum_seconds": 1.333400226,
+          "maximum_seconds": 1.590494905,
+          "ratio_of_medians_vs_reference": 0.9055432713305562,
+          "paired_speedup_median_vs_reference": 0.9109657886373755,
+          "paired_speedup_range_vs_reference": [
+            0.8848936600229589,
+            0.9384048334487083
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "compact",
+          "median_seconds": 1.492780381,
+          "minimum_seconds": 1.310984737,
+          "maximum_seconds": 1.568721182,
+          "ratio_of_medians_vs_reference": 0.8382138678442345,
+          "paired_speedup_median_vs_reference": 0.8973410062617488,
+          "paired_speedup_range_vs_reference": [
+            0.8382138678442345,
+            0.9671578074304319
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 0.9850435850110171
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 1.293628416,
+          "minimum_seconds": 1.230724935,
+          "maximum_seconds": 1.453366149,
+          "ratio_of_medians_vs_reference": 0.9672555128844664,
+          "paired_speedup_median_vs_reference": 0.9685638027062649,
+          "paired_speedup_range_vs_reference": [
+            0.8721214884847244,
+            1.1467840468340484
+          ],
+          "repetitions_faster_than_reference": 1,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.090680343613904
+        }
+      ]
+    },
+    {
+      "file": "initial/early-t1.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 1,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 16115831,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.625758307,
+          "minimum_seconds": 0.613599159,
+          "maximum_seconds": 0.681653852,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "gated",
+          "median_seconds": 0.922613312,
+          "minimum_seconds": 0.882219524,
+          "maximum_seconds": 1.022254674,
+          "ratio_of_medians_vs_reference": 0.6782454782096186,
+          "paired_speedup_median_vs_reference": 0.6705856763132075,
+          "paired_speedup_range_vs_reference": [
+            0.6002409914146305,
+            0.7092999984434712
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "early",
+          "median_seconds": 0.683528073,
+          "minimum_seconds": 0.653140754,
+          "maximum_seconds": 0.763283243,
+          "ratio_of_medians_vs_reference": 0.915482965101274,
+          "paired_speedup_median_vs_reference": 0.9370243714920543,
+          "paired_speedup_range_vs_reference": [
+            0.8638502469845003,
+            0.9579222819519296
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.626158253,
+          "minimum_seconds": 0.602921713,
+          "maximum_seconds": 0.650818666,
+          "ratio_of_medians_vs_reference": 0.9993612700973215,
+          "paired_speedup_median_vs_reference": 0.9942612340501,
+          "paired_speedup_range_vs_reference": [
+            0.9789709049360953,
+            1.078721852748822
+          ],
+          "repetitions_faster_than_reference": 3
+        },
+        {
+          "variant": "block4",
+          "median_seconds": 0.86642488,
+          "minimum_seconds": 0.846130154,
+          "maximum_seconds": 1.045196673,
+          "ratio_of_medians_vs_reference": 0.7222303069136242,
+          "paired_speedup_median_vs_reference": 0.7216854012002626,
+          "paired_speedup_range_vs_reference": [
+            0.6127865496946525,
+            0.7867431646238044
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "block6",
+          "median_seconds": 0.884652124,
+          "minimum_seconds": 0.863832148,
+          "maximum_seconds": 0.93175461,
+          "ratio_of_medians_vs_reference": 0.7073495784654895,
+          "paired_speedup_median_vs_reference": 0.7107559928413315,
+          "paired_speedup_range_vs_reference": [
+            0.6697337388665454,
+            0.7701771041647795
+          ],
+          "repetitions_faster_than_reference": 0
+        }
+      ]
+    },
+    {
+      "file": "initial/early-t8.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 16115831,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.074107259,
+          "minimum_seconds": 0.072267423,
+          "maximum_seconds": 0.07513152,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "gated",
+          "median_seconds": 0.107371903,
+          "minimum_seconds": 0.106027676,
+          "maximum_seconds": 0.109372474,
+          "ratio_of_medians_vs_reference": 0.6901922842887491,
+          "paired_speedup_median_vs_reference": 0.6873081043481515,
+          "paired_speedup_range_vs_reference": [
+            0.6734336789599294,
+            0.6944403094876586
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "early",
+          "median_seconds": 0.079193657,
+          "minimum_seconds": 0.07822939,
+          "maximum_seconds": 0.090494942,
+          "ratio_of_medians_vs_reference": 0.9357726591663773,
+          "paired_speedup_median_vs_reference": 0.9315384026387014,
+          "paired_speedup_range_vs_reference": [
+            0.8090128617354106,
+            0.9487062833832764
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.075017924,
+          "minimum_seconds": 0.073882663,
+          "maximum_seconds": 0.083207052,
+          "ratio_of_medians_vs_reference": 0.9878607011305724,
+          "paired_speedup_median_vs_reference": 0.9781377669075084,
+          "paired_speedup_range_vs_reference": [
+            0.8798722012167911,
+            1.011241104491988
+          ],
+          "repetitions_faster_than_reference": 1
+        },
+        {
+          "variant": "block4",
+          "median_seconds": 0.10238289,
+          "minimum_seconds": 0.100301284,
+          "maximum_seconds": 0.108544886,
+          "ratio_of_medians_vs_reference": 0.7238246449186968,
+          "paired_speedup_median_vs_reference": 0.7183794201877899,
+          "paired_speedup_range_vs_reference": [
+            0.6713690868863228,
+            0.7490584068694474
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "block6",
+          "median_seconds": 0.100473831,
+          "minimum_seconds": 0.099761683,
+          "maximum_seconds": 0.102632132,
+          "ratio_of_medians_vs_reference": 0.7375777181224432,
+          "paired_speedup_median_vs_reference": 0.738533085908929,
+          "paired_speedup_range_vs_reference": [
+            0.7041403271248423,
+            0.7531099891328015
+          ],
+          "repetitions_faster_than_reference": 0
+        }
+      ]
+    },
+    {
+      "file": "initial/late-t1.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 1,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 16584387,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.790007327,
+          "minimum_seconds": 0.70154381,
+          "maximum_seconds": 0.995105877,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "gated",
+          "median_seconds": 1.161265948,
+          "minimum_seconds": 0.99885511,
+          "maximum_seconds": 1.310126627,
+          "ratio_of_medians_vs_reference": 0.6802983660724717,
+          "paired_speedup_median_vs_reference": 0.7062192858075967,
+          "paired_speedup_range_vs_reference": [
+            0.5982251027098618,
+            0.909678817955534
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "early",
+          "median_seconds": 0.804447395,
+          "minimum_seconds": 0.754342638,
+          "maximum_seconds": 1.106001288,
+          "ratio_of_medians_vs_reference": 0.9820497050649285,
+          "paired_speedup_median_vs_reference": 1.033089466326493,
+          "paired_speedup_range_vs_reference": [
+            0.7519009819885603,
+            1.1416748556089453
+          ],
+          "repetitions_faster_than_reference": 4
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.740161078,
+          "minimum_seconds": 0.677303142,
+          "maximum_seconds": 0.88956776,
+          "ratio_of_medians_vs_reference": 1.0673451367298188,
+          "paired_speedup_median_vs_reference": 1.118639772871265,
+          "paired_speedup_range_vs_reference": [
+            0.8139945838361118,
+            1.215644083084304
+          ],
+          "repetitions_faster_than_reference": 6
+        },
+        {
+          "variant": "block4",
+          "median_seconds": 1.177248891,
+          "minimum_seconds": 1.015117223,
+          "maximum_seconds": 1.357585067,
+          "ratio_of_medians_vs_reference": 0.6710622817651904,
+          "paired_speedup_median_vs_reference": 0.7063685567798313,
+          "paired_speedup_range_vs_reference": [
+            0.5617888729538909,
+            0.8652871098020962
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "block6",
+          "median_seconds": 1.0845335,
+          "minimum_seconds": 0.980623147,
+          "maximum_seconds": 1.345673896,
+          "ratio_of_medians_vs_reference": 0.7284305436392697,
+          "paired_speedup_median_vs_reference": 0.7394851605265886,
+          "paired_speedup_range_vs_reference": [
+            0.6119846058190737,
+            0.8957241634435945
+          ],
+          "repetitions_faster_than_reference": 0
+        }
+      ]
+    },
+    {
+      "file": "initial/late-t8.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 8192,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 16584387,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.080602278,
+          "minimum_seconds": 0.076693371,
+          "maximum_seconds": 0.095478578,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "gated",
+          "median_seconds": 0.113723622,
+          "minimum_seconds": 0.111223494,
+          "maximum_seconds": 0.119594537,
+          "ratio_of_medians_vs_reference": 0.7087558115234845,
+          "paired_speedup_median_vs_reference": 0.6898166476615324,
+          "paired_speedup_range_vs_reference": [
+            0.6809157018272608,
+            0.8220220507685899
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "early",
+          "median_seconds": 0.085084201,
+          "minimum_seconds": 0.081724484,
+          "maximum_seconds": 0.088654417,
+          "ratio_of_medians_vs_reference": 0.9473236752849098,
+          "paired_speedup_median_vs_reference": 0.9384381184957986,
+          "paired_speedup_range_vs_reference": [
+            0.9132994027643954,
+            1.0769748561992123
+          ],
+          "repetitions_faster_than_reference": 1
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.078135564,
+          "minimum_seconds": 0.076552003,
+          "maximum_seconds": 0.083882514,
+          "ratio_of_medians_vs_reference": 1.0315696703744277,
+          "paired_speedup_median_vs_reference": 1.0018466923719815,
+          "paired_speedup_range_vs_reference": [
+            0.9206651102517026,
+            1.2371785518194731
+          ],
+          "repetitions_faster_than_reference": 5
+        },
+        {
+          "variant": "block4",
+          "median_seconds": 0.107904164,
+          "minimum_seconds": 0.105409747,
+          "maximum_seconds": 0.109357779,
+          "ratio_of_medians_vs_reference": 0.7469802370184714,
+          "paired_speedup_median_vs_reference": 0.7437570389123626,
+          "paired_speedup_range_vs_reference": [
+            0.701306955036093,
+            0.8968236799318239
+          ],
+          "repetitions_faster_than_reference": 0
+        },
+        {
+          "variant": "block6",
+          "median_seconds": 0.110056101,
+          "minimum_seconds": 0.107139084,
+          "maximum_seconds": 0.115316651,
+          "ratio_of_medians_vs_reference": 0.7323744641834985,
+          "paired_speedup_median_vs_reference": 0.7349532896164319,
+          "paired_speedup_range_vs_reference": [
+            0.6938265002283182,
+            0.8443212993530748
+          ],
+          "repetitions_faster_than_reference": 0
+        }
+      ]
+    },
+    {
+      "file": "ternary-isolated/early-t8.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 32768,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 64023607,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.307779823,
+          "minimum_seconds": 0.29840179,
+          "maximum_seconds": 0.336837891,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.011980620143323
+        },
+        {
+          "variant": "control",
+          "median_seconds": 0.311364406,
+          "minimum_seconds": 0.305384102,
+          "maximum_seconds": 0.3612472,
+          "ratio_of_medians_vs_reference": 0.9884874991138198,
+          "paired_speedup_median_vs_reference": 0.9881612158327436,
+          "paired_speedup_range_vs_reference": [
+            0.8519922728812847,
+            1.0855220795925666
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "ternary_only",
+          "median_seconds": 0.296079739,
+          "minimum_seconds": 0.289771474,
+          "maximum_seconds": 0.30921407,
+          "ratio_of_medians_vs_reference": 1.0395166654750394,
+          "paired_speedup_median_vs_reference": 1.0427561254110116,
+          "paired_speedup_range_vs_reference": [
+            1.0196401680516765,
+            1.0954319695851489
+          ],
+          "repetitions_faster_than_reference": 9,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0684901469294668
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.303275356,
+          "minimum_seconds": 0.302214846,
+          "maximum_seconds": 0.322850193,
+          "ratio_of_medians_vs_reference": 1.01485273007148,
+          "paired_speedup_median_vs_reference": 1.0118035359409656,
+          "paired_speedup_range_vs_reference": [
+            0.9843646229367418,
+            1.0647498632007233
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0266722957865393
+        }
+      ]
+    },
+    {
+      "file": "ternary-isolated/late-t8.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 32768,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 66853256,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.330789149,
+          "minimum_seconds": 0.322122344,
+          "maximum_seconds": 0.357773477,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0165142224706132
+        },
+        {
+          "variant": "control",
+          "median_seconds": 0.334672589,
+          "minimum_seconds": 0.330983046,
+          "maximum_seconds": 0.348966447,
+          "ratio_of_medians_vs_reference": 0.9883963009590845,
+          "paired_speedup_median_vs_reference": 0.98375406648962,
+          "paired_speedup_range_vs_reference": [
+            0.9533145634531301,
+            1.025237469320367
+          ],
+          "repetitions_faster_than_reference": 2,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "ternary_only",
+          "median_seconds": 0.315147436,
+          "minimum_seconds": 0.309041133,
+          "maximum_seconds": 0.335583555,
+          "ratio_of_medians_vs_reference": 1.0496330009805315,
+          "paired_speedup_median_vs_reference": 1.050280434233576,
+          "paired_speedup_range_vs_reference": [
+            0.9725578865150292,
+            1.1576888601427693
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.068165812397725
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 0.330417564,
+          "minimum_seconds": 0.318683216,
+          "maximum_seconds": 0.3930281,
+          "ratio_of_medians_vs_reference": 1.001124592153945,
+          "paired_speedup_median_vs_reference": 1.004291557311147,
+          "paired_speedup_range_vs_reference": [
+            0.8304099197996276,
+            1.0526059088014652
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0352761485966233
+        }
+      ]
+    },
+    {
+      "file": "ternary-isolated-full/full-t8.jsonl",
+      "case": "full",
+      "seed": 17392,
+      "roots": 64,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 232009458,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 1.44307305,
+          "minimum_seconds": 1.294170818,
+          "maximum_seconds": 1.5746774989999999,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0346165848925202
+        },
+        {
+          "variant": "control",
+          "median_seconds": 1.489049689,
+          "minimum_seconds": 1.26849666,
+          "maximum_seconds": 1.546536656,
+          "ratio_of_medians_vs_reference": 0.9691235024998551,
+          "paired_speedup_median_vs_reference": 0.9665416296259003,
+          "paired_speedup_range_vs_reference": [
+            0.8909506582912451,
+            1.1426849322567392
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "ternary_only",
+          "median_seconds": 1.430812651,
+          "minimum_seconds": 1.256192256,
+          "maximum_seconds": 1.651327812,
+          "ratio_of_medians_vs_reference": 1.0085688360327476,
+          "paired_speedup_median_vs_reference": 1.0093751502033028,
+          "paired_speedup_range_vs_reference": [
+            0.7936384761135608,
+            1.1584136083067844
+          ],
+          "repetitions_faster_than_reference": 4,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 0.9539196720620475
+        },
+        {
+          "variant": "ternary",
+          "median_seconds": 1.341707156,
+          "minimum_seconds": 1.287699713,
+          "maximum_seconds": 1.543972389,
+          "ratio_of_medians_vs_reference": 1.0755499391552772,
+          "paired_speedup_median_vs_reference": 1.019887084910817,
+          "paired_speedup_range_vs_reference": [
+            0.9645702582807123,
+            1.1256444381920896
+          ],
+          "repetitions_faster_than_reference": 4,
+          "matched_control_variant": "control",
+          "paired_speedup_median_vs_control": 1.0326511949693442
+        }
+      ]
+    },
+    {
+      "file": "ternary-round2-full/full-t8.jsonl",
+      "case": "full",
+      "seed": 17393,
+      "roots": 256,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 9,
+      "endpoints": 902846623,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 4.544807256,
+          "minimum_seconds": 4.383908208,
+          "maximum_seconds": 4.932485166,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 0.9938029332873388
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 4.570854684,
+          "minimum_seconds": 4.444360542,
+          "maximum_seconds": 4.909906799,
+          "ratio_of_medians_vs_reference": 0.9943014097360877,
+          "paired_speedup_median_vs_reference": 1.0062357098224317,
+          "paired_speedup_range_vs_reference": [
+            0.8928699438638775,
+            1.0555300940149863
+          ],
+          "repetitions_faster_than_reference": 6,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 4.203560098,
+          "minimum_seconds": 3.8929463,
+          "maximum_seconds": 4.548708135,
+          "ratio_of_medians_vs_reference": 1.0811805112914554,
+          "paired_speedup_median_vs_reference": 1.1000430623556654,
+          "paired_speedup_range_vs_reference": [
+            0.999142420466597,
+            1.197146788386061
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0637759327213026
+        }
+      ]
+    },
+    {
+      "file": "ternary-round2-short/early-t8.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 32768,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 64023607,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.29646447,
+          "minimum_seconds": 0.290930701,
+          "maximum_seconds": 0.306810132,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.040377599440056
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 0.30920024,
+          "minimum_seconds": 0.305426312,
+          "maximum_seconds": 0.314405872,
+          "ratio_of_medians_vs_reference": 0.9588106076502397,
+          "paired_speedup_median_vs_reference": 0.9611894763384105,
+          "paired_speedup_range_vs_reference": [
+            0.9371562490194895,
+            0.9840504683954967
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_screen",
+          "median_seconds": 0.292210812,
+          "minimum_seconds": 0.288931838,
+          "maximum_seconds": 0.305523894,
+          "ratio_of_medians_vs_reference": 1.0145568124974103,
+          "paired_speedup_median_vs_reference": 1.0074766774885797,
+          "paired_speedup_range_vs_reference": [
+            0.9634323035958687,
+            1.045001753726637
+          ],
+          "repetitions_faster_than_reference": 5,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0570877689152414
+        },
+        {
+          "variant": "pm_fused",
+          "median_seconds": 0.28264462,
+          "minimum_seconds": 0.277785241,
+          "maximum_seconds": 0.350352961,
+          "ratio_of_medians_vs_reference": 1.0488947923367513,
+          "paired_speedup_median_vs_reference": 1.0473223845611006,
+          "paired_speedup_range_vs_reference": [
+            0.8757172513235874,
+            1.0876430525366398
+          ],
+          "repetitions_faster_than_reference": 6,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0949091014760177
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 0.269706622,
+          "minimum_seconds": 0.268301416,
+          "maximum_seconds": 0.273759941,
+          "ratio_of_medians_vs_reference": 1.0992109418803961,
+          "paired_speedup_median_vs_reference": 1.1003754159463721,
+          "paired_speedup_range_vs_reference": [
+            1.0785127873503244,
+            1.1340552932452657
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.1469530115832882
+        },
+        {
+          "variant": "pm_lookup",
+          "median_seconds": 0.278676855,
+          "minimum_seconds": 0.276446847,
+          "maximum_seconds": 0.290815718,
+          "ratio_of_medians_vs_reference": 1.0638288206604025,
+          "paired_speedup_median_vs_reference": 1.0649265173207059,
+          "paired_speedup_range_vs_reference": [
+            1.0505712729786545,
+            1.0746956972799195
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.1029159462927072
+        },
+        {
+          "variant": "pm_carry",
+          "median_seconds": 0.305397819,
+          "minimum_seconds": 0.302525542,
+          "maximum_seconds": 0.308653029,
+          "ratio_of_medians_vs_reference": 0.9707484846183527,
+          "paired_speedup_median_vs_reference": 0.9731263550632694,
+          "paired_speedup_range_vs_reference": [
+            0.957696413233291,
+            0.9940292275570054
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0186385437999377
+        }
+      ]
+    },
+    {
+      "file": "ternary-round2-short/late-t8.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 32768,
+      "threads": 8,
+      "statistics": false,
+      "repetitions": 7,
+      "endpoints": 66853256,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.31672701,
+          "minimum_seconds": 0.314786872,
+          "maximum_seconds": 0.320465691,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.027430785049301
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 0.325381521,
+          "minimum_seconds": 0.323050621,
+          "maximum_seconds": 0.330545556,
+          "ratio_of_medians_vs_reference": 0.973401959111255,
+          "paired_speedup_median_vs_reference": 0.9733015737425226,
+          "paired_speedup_range_vs_reference": [
+            0.9581947306531023,
+            0.991385184033504
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_screen",
+          "median_seconds": 0.309077651,
+          "minimum_seconds": 0.305722997,
+          "maximum_seconds": 0.350408403,
+          "ratio_of_medians_vs_reference": 1.0247489877551839,
+          "paired_speedup_median_vs_reference": 1.0237871226735833,
+          "paired_speedup_range_vs_reference": [
+            0.9130023374467993,
+            1.0367286350727454
+          ],
+          "repetitions_faster_than_reference": 5,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0466824802411239
+        },
+        {
+          "variant": "pm_fused",
+          "median_seconds": 0.299290095,
+          "minimum_seconds": 0.298275512,
+          "maximum_seconds": 0.300639744,
+          "ratio_of_medians_vs_reference": 1.058260915717909,
+          "paired_speedup_median_vs_reference": 1.0594251467356814,
+          "paired_speedup_range_vs_reference": [
+            1.0489060653050295,
+            1.0725777951225175
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.083829579670217
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 0.286144172,
+          "minimum_seconds": 0.28543049,
+          "maximum_seconds": 0.298423653,
+          "ratio_of_medians_vs_reference": 1.1068791224585905,
+          "paired_speedup_median_vs_reference": 1.1068791224585905,
+          "paired_speedup_range_vs_reference": [
+            1.0720453549303615,
+            1.121934866567375
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.1370626448651027
+        },
+        {
+          "variant": "pm_lookup",
+          "median_seconds": 0.29791273,
+          "minimum_seconds": 0.292921313,
+          "maximum_seconds": 0.305452275,
+          "ratio_of_medians_vs_reference": 1.0631536624836406,
+          "paired_speedup_median_vs_reference": 1.0636310075208935,
+          "paired_speedup_range_vs_reference": [
+            1.0468999584304948,
+            1.09075611095504
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0928072410599705
+        },
+        {
+          "variant": "pm_carry",
+          "median_seconds": 0.323551181,
+          "minimum_seconds": 0.321543651,
+          "maximum_seconds": 0.327825456,
+          "ratio_of_medians_vs_reference": 0.9789085269943736,
+          "paired_speedup_median_vs_reference": 0.9812926741786663,
+          "paired_speedup_range_vs_reference": [
+            0.966145258713527,
+            0.9889400883624714
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0082974032376546
+        }
+      ]
+    },
+    {
+      "file": "ternary-round2-stats/full-t8.jsonl",
+      "case": "full",
+      "seed": 17394,
+      "roots": 256,
+      "threads": 8,
+      "statistics": true,
+      "repetitions": 9,
+      "endpoints": 1113119517,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 5.827274978,
+          "minimum_seconds": 5.656372295,
+          "maximum_seconds": 6.240074151,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.2806181715585878
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 7.337213189,
+          "minimum_seconds": 7.099304342,
+          "maximum_seconds": 8.793408169,
+          "ratio_of_medians_vs_reference": 0.7942082133767479,
+          "paired_speedup_median_vs_reference": 0.7808728801520448,
+          "paired_speedup_range_vs_reference": [
+            0.709630899768597,
+            0.8210505828741382
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 6.539142941,
+          "minimum_seconds": 6.41729062,
+          "maximum_seconds": 6.886484368,
+          "ratio_of_medians_vs_reference": 0.8911374213069064,
+          "paired_speedup_median_vs_reference": 0.8971841812743334,
+          "paired_speedup_range_vs_reference": [
+            0.8452231773150776,
+            0.9169131757099506
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.1248913730823056
+        }
+      ]
+    },
+    {
+      "file": "ternary-scalar-full-a/full-t8.jsonl",
+      "case": "full",
+      "seed": 17393,
+      "roots": 256,
+      "threads": 8,
+      "statistics": true,
+      "repetitions": 9,
+      "endpoints": 902846623,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 5.020596274,
+          "minimum_seconds": 4.729706788,
+          "maximum_seconds": 5.623600781,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 0.9783623873088587
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 4.984650229,
+          "minimum_seconds": 4.740875678,
+          "maximum_seconds": 5.502441067,
+          "ratio_of_medians_vs_reference": 1.0072113475065654,
+          "paired_speedup_median_vs_reference": 1.0221161534537924,
+          "paired_speedup_range_vs_reference": [
+            0.8838097462171328,
+            1.1317840696889672
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 4.478703053,
+          "minimum_seconds": 4.374936334,
+          "maximum_seconds": 4.6269107720000004,
+          "ratio_of_medians_vs_reference": 1.1209933354784527,
+          "paired_speedup_median_vs_reference": 1.1209933354784527,
+          "paired_speedup_range_vs_reference": [
+            1.0587684199879495,
+            1.2633007407950172
+          ],
+          "repetitions_faster_than_reference": 9,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.080579224921178
+        }
+      ]
+    },
+    {
+      "file": "ternary-scalar-full-b/full-t8.jsonl",
+      "case": "full",
+      "seed": 17394,
+      "roots": 256,
+      "threads": 8,
+      "statistics": true,
+      "repetitions": 9,
+      "endpoints": 1113119517,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 5.97265751,
+          "minimum_seconds": 5.836711011,
+          "maximum_seconds": 6.380759663,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 0.9812637247597318
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 5.96678641,
+          "minimum_seconds": 5.727352787,
+          "maximum_seconds": 6.369933063,
+          "ratio_of_medians_vs_reference": 1.0009839634933404,
+          "paired_speedup_median_vs_reference": 1.019094026170035,
+          "paired_speedup_range_vs_reference": [
+            0.9376326958115792,
+            1.0505508220811122
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 5.500168249,
+          "minimum_seconds": 5.398228078,
+          "maximum_seconds": 5.980208406,
+          "ratio_of_medians_vs_reference": 1.0859045104821847,
+          "paired_speedup_median_vs_reference": 1.0777570951720898,
+          "paired_speedup_range_vs_reference": [
+            0.9987373523651075,
+            1.1611189660755004
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.063959958421617
+        }
+      ]
+    },
+    {
+      "file": "ternary-scalar-short/early-t8.jsonl",
+      "case": "early",
+      "seed": 17391,
+      "roots": 32768,
+      "threads": 8,
+      "statistics": true,
+      "repetitions": 9,
+      "endpoints": 64023607,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.319901963,
+          "minimum_seconds": 0.314797902,
+          "maximum_seconds": 0.35943765,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0069293234241434
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 0.321944447,
+          "minimum_seconds": 0.317063692,
+          "maximum_seconds": 0.339011842,
+          "ratio_of_medians_vs_reference": 0.9936557874532931,
+          "paired_speedup_median_vs_reference": 0.9931183616735089,
+          "paired_speedup_range_vs_reference": [
+            0.9481580498890065,
+            1.0721120287797983
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_screen",
+          "median_seconds": 0.324120902,
+          "minimum_seconds": 0.316396834,
+          "maximum_seconds": 0.335889685,
+          "ratio_of_medians_vs_reference": 0.9869834405187482,
+          "paired_speedup_median_vs_reference": 0.994946434893846,
+          "paired_speedup_range_vs_reference": [
+            0.9440506129266816,
+            1.09406829269825
+          ],
+          "repetitions_faster_than_reference": 3,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.002579652436573
+        },
+        {
+          "variant": "pm_fused",
+          "median_seconds": 0.307989782,
+          "minimum_seconds": 0.301680484,
+          "maximum_seconds": 0.359380091,
+          "ratio_of_medians_vs_reference": 1.0386771954661795,
+          "paired_speedup_median_vs_reference": 1.032230487061759,
+          "paired_speedup_range_vs_reference": [
+            0.8997772193693573,
+            1.0603999263008341
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.050991724078512
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 0.299270139,
+          "minimum_seconds": 0.29533358,
+          "maximum_seconds": 0.320032138,
+          "ratio_of_medians_vs_reference": 1.0689404698675935,
+          "paired_speedup_median_vs_reference": 1.0641008703318522,
+          "paired_speedup_range_vs_reference": [
+            0.9908281867616683,
+            1.135889088060886
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.073437329883167
+        },
+        {
+          "variant": "pm_lookup",
+          "median_seconds": 0.30517047,
+          "minimum_seconds": 0.300407071,
+          "maximum_seconds": 0.318099298,
+          "ratio_of_medians_vs_reference": 1.0482729964009951,
+          "paired_speedup_median_vs_reference": 1.0433176658964192,
+          "paired_speedup_range_vs_reference": [
+            1.035807474576721,
+            1.1299542383774768
+          ],
+          "repetitions_faster_than_reference": 9,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0572154974341466
+        },
+        {
+          "variant": "pm_carry",
+          "median_seconds": 0.314779606,
+          "minimum_seconds": 0.311736759,
+          "maximum_seconds": 0.353133227,
+          "ratio_of_medians_vs_reference": 1.0162728363031246,
+          "paired_speedup_median_vs_reference": 1.0168072069955592,
+          "paired_speedup_range_vs_reference": [
+            0.9792424599593095,
+            1.0512607831120786
+          ],
+          "repetitions_faster_than_reference": 7,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0216665513782086
+        },
+        {
+          "variant": "pm_reuse",
+          "median_seconds": 0.306430406,
+          "minimum_seconds": 0.303194676,
+          "maximum_seconds": 0.351459222,
+          "ratio_of_medians_vs_reference": 1.0439628598736381,
+          "paired_speedup_median_vs_reference": 1.0329161534702298,
+          "paired_speedup_range_vs_reference": [
+            0.9967657878699524,
+            1.0871206392819377
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0508286692028548
+        },
+        {
+          "variant": "pm_bit0",
+          "median_seconds": 0.301357471,
+          "minimum_seconds": 0.298490193,
+          "maximum_seconds": 0.311512119,
+          "ratio_of_medians_vs_reference": 1.0615365264994543,
+          "paired_speedup_median_vs_reference": 1.0621368277259535,
+          "paired_speedup_range_vs_reference": [
+            1.0454050014467897,
+            1.1538480465987906
+          ],
+          "repetitions_faster_than_reference": 9,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0681689228384859
+        }
+      ]
+    },
+    {
+      "file": "ternary-scalar-short/late-t8.jsonl",
+      "case": "late",
+      "seed": 17391,
+      "roots": 32768,
+      "threads": 8,
+      "statistics": true,
+      "repetitions": 9,
+      "endpoints": 66853256,
+      "variants": [
+        {
+          "variant": "reference",
+          "median_seconds": 0.342244749,
+          "minimum_seconds": 0.337043452,
+          "maximum_seconds": 0.346542516,
+          "ratio_of_medians_vs_reference": 1.0,
+          "paired_speedup_median_vs_reference": 1.0,
+          "paired_speedup_range_vs_reference": [
+            1.0,
+            1.0
+          ],
+          "repetitions_faster_than_reference": 0,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0017352865213225
+        },
+        {
+          "variant": "pm_control",
+          "median_seconds": 0.342725092,
+          "minimum_seconds": 0.340475773,
+          "maximum_seconds": 0.347321831,
+          "ratio_of_medians_vs_reference": 0.9985984597824544,
+          "paired_speedup_median_vs_reference": 0.9982677194817121,
+          "paired_speedup_range_vs_reference": [
+            0.9781146221760013,
+            1.01781842786212
+          ],
+          "repetitions_faster_than_reference": 2,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0
+        },
+        {
+          "variant": "pm_screen",
+          "median_seconds": 0.339487208,
+          "minimum_seconds": 0.336022255,
+          "maximum_seconds": 0.348494535,
+          "ratio_of_medians_vs_reference": 1.0081226654054076,
+          "paired_speedup_median_vs_reference": 1.0030390754921874,
+          "paired_speedup_range_vs_reference": [
+            0.9872065052612662,
+            1.0207822499161736
+          ],
+          "repetitions_faster_than_reference": 6,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0045973848182002
+        },
+        {
+          "variant": "pm_fused",
+          "median_seconds": 0.330275323,
+          "minimum_seconds": 0.323356648,
+          "maximum_seconds": 0.345106591,
+          "ratio_of_medians_vs_reference": 1.0362407517802958,
+          "paired_speedup_median_vs_reference": 1.04008900964554,
+          "paired_speedup_range_vs_reference": [
+            0.9968980047674604,
+            1.0653000029059294
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0417565226330883
+        },
+        {
+          "variant": "pm_threshold",
+          "median_seconds": 0.32108558,
+          "minimum_seconds": 0.316607623,
+          "maximum_seconds": 0.34694802,
+          "ratio_of_medians_vs_reference": 1.0658988454106224,
+          "paired_speedup_median_vs_reference": 1.0658988454106224,
+          "paired_speedup_range_vs_reference": [
+            0.9861171595675916,
+            1.0849260577573447
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0667274251307082
+        },
+        {
+          "variant": "pm_lookup",
+          "median_seconds": 0.324993463,
+          "minimum_seconds": 0.321331017,
+          "maximum_seconds": 0.354389833,
+          "ratio_of_medians_vs_reference": 1.0530819476821294,
+          "paired_speedup_median_vs_reference": 1.0575616701203794,
+          "paired_speedup_range_vs_reference": [
+            0.9603457726734503,
+            1.0630201794136966
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.058492448861677
+        },
+        {
+          "variant": "pm_carry",
+          "median_seconds": 0.337436889,
+          "minimum_seconds": 0.333997037,
+          "maximum_seconds": 0.342106149,
+          "ratio_of_medians_vs_reference": 1.0142481754565962,
+          "paired_speedup_median_vs_reference": 1.0162416642660492,
+          "paired_speedup_range_vs_reference": [
+            0.9993919375075435,
+            1.032720123035786
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.016570511520026
+        },
+        {
+          "variant": "pm_reuse",
+          "median_seconds": 0.331259429,
+          "minimum_seconds": 0.326986919,
+          "maximum_seconds": 0.353140621,
+          "ratio_of_medians_vs_reference": 1.0331622862273304,
+          "paired_speedup_median_vs_reference": 1.041157504122317,
+          "paired_speedup_range_vs_reference": [
+            0.9688248127082497,
+            1.0493497544740014
+          ],
+          "repetitions_faster_than_reference": 8,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0297658964972445
+        },
+        {
+          "variant": "pm_bit0",
+          "median_seconds": 0.322360656,
+          "minimum_seconds": 0.318489812,
+          "maximum_seconds": 0.33635367,
+          "ratio_of_medians_vs_reference": 1.0616827538655957,
+          "paired_speedup_median_vs_reference": 1.0582550502431771,
+          "paired_speedup_range_vs_reference": [
+            1.010327513298725,
+            1.075014923657433
+          ],
+          "repetitions_faster_than_reference": 9,
+          "matched_control_variant": "pm_control",
+          "paired_speedup_median_vs_control": 1.0637292705959527
+        }
+      ]
+    }
+  ]
+}

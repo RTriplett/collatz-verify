@@ -1,0 +1,95 @@
+{
+  "cpu": "AMD Ryzen 7 7700X",
+  "physical_cores": 8,
+  "logical_threads": 16,
+  "affinity": {
+    "1": "0",
+    "8": "0-7"
+  },
+  "rustc": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+  "governor": "powersave",
+  "binary_sha256": "b3b4dc11078d80a654a62d457391bc72eea0b1ba9a3eeaec546cadcf3d95ba47",
+  "source_sha256": {
+    "main.rs": "2a5c68e70d63296bac787aa1a9f4df2dcf4408bb1f76139128996e930a402317",
+    "gating.rs": "480ffb9292493448d206ec12fa3d22ac0ef749b7db32528b369ef00e5599d404",
+    "blocks.rs": "bc0123193334c6b20c9598a72bf5535de3ed47a73a6192e7b5bc669bfda48778",
+    "Cargo.toml": "611a0b9793b3ef2960cb73bdba5fe4e44d057c9ae3f6a5205feba4861e195f8a",
+    "Cargo.lock": "609bae226558d99285a4381d5aba4365922c9d7fca98f560db9acb8c23903c83"
+  },
+  "roots": 8192,
+  "repetitions": 7,
+  "seed": 17391,
+  "production_statistics": false,
+  "gpu_measured": false,
+  "notes": "Commands run serially; snapshot Rust files can replace corresponding experimental package files to reproduce this revision. Root cv dependency is unchanged.",
+  "commands": [
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0",
+        "BINARY",
+        "8192",
+        "7",
+        "1",
+        "17391",
+        "early",
+        "improved",
+        "64",
+        "all"
+      ],
+      "output": "early-t1.jsonl"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0-7",
+        "BINARY",
+        "8192",
+        "7",
+        "8",
+        "17391",
+        "early",
+        "improved",
+        "64",
+        "all"
+      ],
+      "output": "early-t8.jsonl"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0",
+        "BINARY",
+        "8192",
+        "7",
+        "1",
+        "17391",
+        "late",
+        "improved",
+        "64",
+        "all"
+      ],
+      "output": "late-t1.jsonl"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0-7",
+        "BINARY",
+        "8192",
+        "7",
+        "8",
+        "17391",
+        "late",
+        "improved",
+        "64",
+        "all"
+      ],
+      "output": "late-t8.jsonl"
+    }
+  ]
+}

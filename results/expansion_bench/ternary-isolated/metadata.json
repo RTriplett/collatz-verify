@@ -1,0 +1,76 @@
+{
+  "cpu": "AMD Ryzen 7 7700X",
+  "physical_cores": 8,
+  "logical_threads": 16,
+  "affinity": {
+    "1": "0",
+    "8": "0-7"
+  },
+  "rustc": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+  "governor": "powersave",
+  "binary_sha256": "7cafbc0dc7cbec2406aa82cd8728acae20c1885d85ce6fe34993c3c3f5bd065f",
+  "source_sha256": {
+    "main.rs": "76b6f3bcf32a5ea404075447c520c2fc4a6fd2142f9fce3c97a34a9b91f56a0d",
+    "gating.rs": "e4cf9cf367d3cf238e4fcfa51820a74d38b2b26f6ac826c41e4ed3d90b5d8645",
+    "blocks.rs": "bc0123193334c6b20c9598a72bf5535de3ed47a73a6192e7b5bc669bfda48778",
+    "tests.rs": "a1dae612471336a266a67a78d37df2907ebb017a9375e9e514f53e8e01019768",
+    "run.py": "4a48599abb0eeef9f56f0e749d089e66e04343b030ad2fd76f4c348814851886",
+    "Cargo.toml": "611a0b9793b3ef2960cb73bdba5fe4e44d057c9ae3f6a5205feba4861e195f8a",
+    "Cargo.lock": "609bae226558d99285a4381d5aba4365922c9d7fca98f560db9acb8c23903c83",
+    "src/arith.rs": "c70ab25082bcf2131ef3fc9e5cf72ce508060ecbf32fc2ec0bfebe834529c529",
+    "src/dp.rs": "4579c0d4f4070095e9eb4493cacd6872021ea70ab6da1021d8bc67ef4d3a2c8a",
+    "src/gpu.rs": "b068020aa482ed7fbab643d063b4f66721738f3f350d97c42722169e8e1671e4",
+    "src/lib.rs": "d33d85761e6ff302cf9413e394ffa78c366ba91cd83cc1c83362910b17c499ae",
+    "src/lookahead.rs": "edc7c4c06d7433809c00aeecb7526a613db2d4d032019093c4f34814664bfa8b",
+    "src/main.rs": "476453e1fe579f029c52268b3ecf25790d612f25598ab7546e8e0c872afdcbfc",
+    "src/measure.rs": "31ce279102a5bb397a3ff1abf1aa15513d6cab798533fc3ee377ce286d7eb252",
+    "src/rules.rs": "a12d3e3af54195a029d269bec752b22abad793338b1fe20b5ef909c6732acd05",
+    "src/sample.rs": "432619b3317a23ab2f9057cb9cb08ed309b9b16309cf39de8525e1a926c7d2e9",
+    "src/tail.rs": "2537d1a59dcce02ec828f9d5e1169488603be578d39f5d2f51f6ab959d71057c",
+    "src/tree.rs": "a93ddd9392f2690c30dc2d8011298709a5a31e244555d42af62e05e6d5b56691",
+    "src/units.rs": "fba197eb087214812175d14d0f9455206ed387ca4fd4164a8a97192b31376726",
+    "src/verify.rs": "27daf9860f6c1563492267124aa64c9fc3eb28583dd77992519dd0cbc73f9bf0"
+  },
+  "roots": 32768,
+  "repetitions": 9,
+  "seed": 17391,
+  "production_statistics": false,
+  "gpu_measured": false,
+  "notes": "Commands run serially; snapshot Rust files can replace corresponding experimental package files to reproduce this revision. Root cv dependency is unchanged.",
+  "commands": [
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0-7",
+        "BINARY",
+        "32768",
+        "9",
+        "8",
+        "17391",
+        "early",
+        "improved",
+        "64",
+        "reference,control,ternary_only,ternary"
+      ],
+      "output": "early-t8.jsonl"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "0-7",
+        "BINARY",
+        "32768",
+        "9",
+        "8",
+        "17391",
+        "late",
+        "improved",
+        "64",
+        "reference,control,ternary_only,ternary"
+      ],
+      "output": "late-t8.jsonl"
+    }
+  ]
+}

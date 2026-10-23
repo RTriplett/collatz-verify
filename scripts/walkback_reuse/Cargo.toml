@@ -25,6 +25,10 @@ path = "tree_savings.rs"
 name = "cache_demo"
 path = "cache_demo.rs"
 
+[[bin]]
+name = "word_window"
+path = "word_window.rs"
+
 [profile.release]
 opt-level = 3
 lto = "thin"

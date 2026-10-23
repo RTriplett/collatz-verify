@@ -1,0 +1,166 @@
+{
+  "binary": "/tmp/collatz-expansion-target/release/expansion_bench",
+  "binary_sha256": "b1305b0ee0146850f071d45cc82011a0aa0c376ebc943f6c172a1af59d790379",
+  "method": "nm -S --size-sort plus objdump -d -C; monomorphizations identified by endpoint code, statistics checks, and extra_cull target",
+  "stack_definition": "Immediate prologue sub rsp allocation; excludes saved-register pushes, return address, and temporary outgoing call arguments",
+  "caveat": "Static code shape is not hardware-counter attribution of total elapsed cycles. Control/reference source-location constants and addresses can differ.",
+  "measurements": [
+    {
+      "variant": "reference_stats",
+      "address": "0x5f090",
+      "symbol": "cv::tree::dfs",
+      "code_bytes": 2001,
+      "local_stack_bytes": 216,
+      "decoded_instructions": 468,
+      "static_rsp_memory_operands": 124,
+      "extra_cull_calls": [
+        "call   5f910 <cv::rules::Rules::extra_cull>",
+        "call   5f910 <cv::rules::Rules::extra_cull>"
+      ]
+    },
+    {
+      "variant": "pm_control_stats",
+      "address": "0x5db20",
+      "symbol": "expansion_bench::ternary::dfs",
+      "code_bytes": 2001,
+      "local_stack_bytes": 216,
+      "decoded_instructions": 468,
+      "static_rsp_memory_operands": 124,
+      "extra_cull_calls": [
+        "call   5f910 <cv::rules::Rules::extra_cull>",
+        "call   5f910 <cv::rules::Rules::extra_cull>"
+      ]
+    },
+    {
+      "variant": "pm_threshold_stats",
+      "address": "0x58380",
+      "symbol": "expansion_bench::ternary::dfs",
+      "code_bytes": 2023,
+      "local_stack_bytes": 216,
+      "decoded_instructions": 466,
+      "static_rsp_memory_operands": 132,
+      "extra_cull_calls": [
+        "call   565f0 <expansion_bench::ternary::extra_cull>",
+        "call   565f0 <expansion_bench::ternary::extra_cull>"
+      ]
+    },
+    {
+      "variant": "reference_no_stats",
+      "address": "0x5e9e0",
+      "symbol": "cv::tree::dfs",
+      "code_bytes": 1707,
+      "local_stack_bytes": 152,
+      "decoded_instructions": 411,
+      "static_rsp_memory_operands": 109,
+      "extra_cull_calls": [
+        "call   5f910 <cv::rules::Rules::extra_cull>",
+        "call   5f910 <cv::rules::Rules::extra_cull>",
+        "call   5f910 <cv::rules::Rules::extra_cull>"
+      ]
+    },
+    {
+      "variant": "pm_control_no_stats",
+      "address": "0x57cd0",
+      "symbol": "expansion_bench::ternary::dfs",
+      "code_bytes": 1707,
+      "local_stack_bytes": 152,
+      "decoded_instructions": 411,
+      "static_rsp_memory_operands": 109,
+      "extra_cull_calls": [
+        "call   5f910 <cv::rules::Rules::extra_cull>",
+        "call   5f910 <cv::rules::Rules::extra_cull>",
+        "call   5f910 <cv::rules::Rules::extra_cull>"
+      ]
+    },
+    {
+      "variant": "pm_threshold_no_stats",
+      "address": "0x5b660",
+      "symbol": "expansion_bench::ternary::dfs",
+      "code_bytes": 1780,
+      "local_stack_bytes": 152,
+      "decoded_instructions": 438,
+      "static_rsp_memory_operands": 117,
+      "extra_cull_calls": [
+        "call   565f0 <expansion_bench::ternary::extra_cull>",
+        "call   565f0 <expansion_bench::ternary::extra_cull>",
+        "call   565f0 <expansion_bench::ternary::extra_cull>"
+      ]
+    }
+  ],
+  "stats_control_reference_normalized_instruction_differences": [
+    {
+      "instruction_index": 70,
+      "reference": "lea    -0x53d39(%rip),%rsi        # crossbeam_epoch::guard::unprotected::UNPROTECTED+0xa30",
+      "control": "lea    -0x527c9(%rip),%rsi        # crossbeam_epoch::guard::unprotected::UNPROTECTED+0xa30"
+    },
+    {
+      "instruction_index": 80,
+      "reference": "lea    -0x535bd(%rip),%rax        # crossbeam_epoch::guard::unprotected::UNPROTECTED+0x11d8",
+      "control": "lea    -0x5204d(%rip),%rax        # crossbeam_epoch::guard::unprotected::UNPROTECTED+0x11d8"
+    },
+    {
+      "instruction_index": 434,
+      "reference": "lea    0x57c37(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xbe0",
+      "control": "lea    0x591a7(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xbe0"
+    },
+    {
+      "instruction_index": 437,
+      "reference": "call   *0x5abf9(%rip)        # _DYNAMIC+0x250",
+      "control": "call   *0x5c169(%rip)        # _DYNAMIC+0x250"
+    },
+    {
+      "instruction_index": 438,
+      "reference": "lea    0x57bc2(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xb80",
+      "control": "lea    0x5905a(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xaa8"
+    },
+    {
+      "instruction_index": 441,
+      "reference": "call   *0x5abe1(%rip)        # _DYNAMIC+0x250",
+      "control": "call   *0x5c151(%rip)        # _DYNAMIC+0x250"
+    },
+    {
+      "instruction_index": 442,
+      "reference": "lea    0x57bda(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xbb0",
+      "control": "lea    0x59072(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xad8"
+    },
+    {
+      "instruction_index": 445,
+      "reference": "call   *0x5abcc(%rip)        # _DYNAMIC+0x250",
+      "control": "call   *0x5c13c(%rip)        # _DYNAMIC+0x250"
+    },
+    {
+      "instruction_index": 446,
+      "reference": "lea    0x57bdd(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xbc8",
+      "control": "lea    0x59075(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xaf0"
+    },
+    {
+      "instruction_index": 448,
+      "reference": "call   *0x5abbc(%rip)        # _DYNAMIC+0x250",
+      "control": "call   *0x5c12c(%rip)        # _DYNAMIC+0x250"
+    },
+    {
+      "instruction_index": 449,
+      "reference": "lea    0x57b9d(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xb98",
+      "control": "lea    0x59035(%rip),%rdx        # anon.83664552c0a9bf39cc3696c77fbbe97e.42.llvm.9163846333421695004+0xac0"
+    },
+    {
+      "instruction_index": 452,
+      "reference": "call   *0x5aba7(%rip)        # _DYNAMIC+0x250",
+      "control": "call   *0x5c117(%rip)        # _DYNAMIC+0x250"
+    }
+  ],
+  "previous_pointer_helper_stats": {
+    "reference": {
+      "code_bytes": 2001,
+      "local_stack_bytes": 216
+    },
+    "pm_control": {
+      "code_bytes": 2226,
+      "local_stack_bytes": 360
+    },
+    "pm_threshold": {
+      "code_bytes": 2244,
+      "local_stack_bytes": 360
+    }
+  }
+}

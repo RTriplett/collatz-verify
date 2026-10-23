@@ -1,0 +1,36 @@
+   Compiling expansion-bench v0.1.0 (/home/ryan/Projects/Collatz/distributed/scripts/expansion_bench)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.36s
+     Running unittests checkpoint_work.rs (/tmp/collatz-expansion-target/debug/deps/checkpoint_work-d4b0458cf4daf2df)
+
+running 3 tests
+test tests::paired_disjoint_ratio_variance ... ok
+test tests::first_failure_matches_sampler_and_masks_are_nested_at_target ... ok
+test tests::classification_matches_independent_schedule_enumeration ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+
+     Running unittests main.rs (/tmp/collatz-expansion-target/debug/deps/expansion_bench-1e31b2f0dd7c83ad)
+
+running 8 tests
+test carry::tests::carried_child_valuations_match_full_values ... ok
+test tests::odd_edges_preserve_slope_and_unlifted_partner ... ok
+test tests::maximal_ternary_valuation_uses_full_width_fallback ... ok
+test tests::compact_mix_threshold_matches_full_gate_on_tree_states ... ok
+test tests::ternary_predicates_match_ordinary_division_at_arithmetic_boundaries ... ok
+test tests::sampled_wide_frontiers_match_all_node_fields ... ok
+test tests::recorded_traversals_match_endpoints_and_every_counter ... ok
+test tests::complete_small_frontiers_match_all_node_fields ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.83s
+
+     Running unittests tail_bench.rs (/tmp/collatz-expansion-target/debug/deps/tail_bench-b6f466fa757eaf5c)
+
+running 5 tests
+test fast_tail::tests::rational_slope_matches_exact_powers_through_64 ... ok
+test fast_tail::tests::wide_sampled_expansion_matches_with_wrapped_iterates ... ok
+test tail_policy::tests::screened_policies_preserve_endpoints_and_counters ... ok
+test fast_tail::tests::small_complete_expansion_matches_payloads_and_counters ... ok
+test tail_policy::tests::cutoff_matches_two_stage_frontier_and_counters ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+

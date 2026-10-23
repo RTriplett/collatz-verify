@@ -1,0 +1,15 @@
+   Compiling expansion-bench v0.1.0 (/home/ryan/Projects/Collatz/distributed/scripts/expansion_bench)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running unittests tail_bench.rs (/tmp/collatz-expansion-target/debug/deps/tail_bench-b6f466fa757eaf5c)
+
+running 7 tests
+test fast_tail::tests::rational_slope_matches_exact_powers_through_64 ... ok
+test fast_tail::tests::wide_sampled_expansion_matches_with_wrapped_iterates ... ok
+test tail_policy::tests::screened_policies_preserve_endpoints_and_counters ... ok
+test fast_tail::tests::small_complete_expansion_matches_payloads_and_counters ... ok
+test fast_tail::tests::cutoff_wide_checkpoint_expansion_matches_payloads_and_counters ... ok
+test fast_tail::tests::cutoff_small_complete_expansion_matches_payloads_and_counters ... ok
+test tail_policy::tests::cutoff_matches_two_stage_frontier_and_counters ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+

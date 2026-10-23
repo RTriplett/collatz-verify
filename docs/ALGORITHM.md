@@ -186,6 +186,33 @@ iteration (0 unjustified at N = 26 and 30). At N = 72, A = 10, B = 24 this remov
 Pattern 0 is iterated as its representative `2^B`, so that `x − 1 >= 0`
 carries the true residues mod 3^t (as with every other pattern).
 
+### Harvesting longer inverse words
+
+The same construction can use words discovered by checkpoint walkback. Recover
+the actual parity word of a certificate's partner p; its affine inverse is
+`p = (2^s*y - b)/3^o`, valid for one residue `y mod 3^o`. Store the word and its
+residue, then add `485*o - 306*s` to the current dip whenever it applies during
+array construction. The ordinary bit lookup and final array sizes stay the same;
+the dictionary adds construction work and memory. It saves GPU completion work,
+while a checkpoint exclusion also saves subsequent CPU tree traversal.
+
+With the current pattern-only residue calculation, a word is eligible only
+after the window has taken at least o odd steps. A certificate valid for one
+checkpoint class cannot simply be copied into a bitvector: the word must be
+valid for every completion represented by the bit. Validate its parity word,
+check the residue and positivity, and retain the existing strict dip cutoff.
+At window step j with `f_w` odd steps, the resulting cutoff condition is
+`306*(M+j-s) > 485*(F+f_w-o)`, where F counts the endpoint's odd steps. This is
+the same slope bound and one-unit margin used by the existing mixed-word credits.
+
+Mix13 already includes all contracting words with at most 13 odd steps that can
+improve this slope credit (a word starting with a forward even step is dominated
+by its suffix). Longer harvested words can extend that family through a sparse
+residue dictionary. Independently, `--bv-mix-j 16 --mix-j 13` already permits a
+larger dense table in the builder without increasing the table used at every
+CPU tree node. A sampled comparison is recorded in
+[FINDINGS.md](FINDINGS.md#harvested-words-in-lookahead).
+
 ### Large windows: device-built arrays and per-class windows
 
 The lookahead filter's value grows with B: every extra bit removes the cases

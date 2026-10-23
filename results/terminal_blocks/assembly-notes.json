@@ -1,0 +1,230 @@
+{
+  "type": "read_only_assembly_diagnostic",
+  "created_utc": "2026-10-23T19:41:46.811633+00:00",
+  "binary": {
+    "path": "/tmp/collatz-expansion-target/release/terminal_bench",
+    "sha256": "deed824614d5909b958261484a4e607c619503d31cef23653dfd4339cf67a593",
+    "bytes": 857392
+  },
+  "purpose": "Check whether optimization removed endpoint enumeration or packed payload stores. This inspection does not attribute measured runtime to individual instructions.",
+  "symbol_command": [
+    "nm",
+    "-S",
+    "/tmp/collatz-expansion-target/release/terminal_bench"
+  ],
+  "specialization_identification": "Inferred from table field accesses and sink behavior in the optimized instructions: flat entries stride by 6 bytes; grouped residues stride by 2 bytes; Packed writes four u32 words and flushes after 0x4000 words.",
+  "observations": [
+    {
+      "specialization": "flat table with Digest sink",
+      "symbol": {
+        "mangled_name": "_ZN14terminal_bench13terminal_walk7compact17hce0004f674e49a80E",
+        "address": "0x869b0",
+        "size_bytes": 1754,
+        "demangled_name": "terminal_bench::terminal_walk::compact"
+      },
+      "excerpt": {
+        "command": [
+          "objdump",
+          "-d",
+          "-C",
+          "--no-show-raw-insn",
+          "--start-address=0x86b50",
+          "--stop-address=0x86bba",
+          "/tmp/collatz-expansion-target/release/terminal_bench"
+        ],
+        "instructions": [
+          "86b50:\tmov    %r10,%rdi",
+          "86b53:\tmovzwl (%r9,%r13,1),%r10d",
+          "86b58:\tsub    %r11,%r10",
+          "86b5b:\tand    %rsi,%r10",
+          "86b5e:\tmov    %ebx,%ecx",
+          "86b60:\tshl    %cl,%r10",
+          "86b63:\tmov    %r15,%rcx",
+          "86b66:\tor     %rdx,%r10",
+          "86b69:\tmovzwl 0x3(%r9,%r13,1),%r15d",
+          "86b6f:\tshl    $0x20,%r15",
+          "86b73:\tadd    %rdi,%r10",
+          "86b76:\tadc    $0x0,%rax",
+          "86b7a:\tmovzbl 0x2(%r9,%r13,1),%edi",
+          "86b80:\tor     %rdi,%r15",
+          "86b83:\txor    %rcx,%r15",
+          "86b86:\tcmp    $0x41,%rdi",
+          "86b8a:\tjae    86fa5 <terminal_bench::terminal_walk::compact+0x5f5>",
+          "86b90:\tmov    0x20(%rsp),%rcx",
+          "86b95:\tincq   0x20(%rcx,%rdi,8)",
+          "86b9a:\tadd    $0x6,%r13",
+          "86b9e:\tinc    %r12",
+          "86ba1:\tcmp    %r13,%r14",
+          "86ba4:\tjne    86b50 <terminal_bench::terminal_walk::compact+0x1a0>",
+          "86ba6:\tmov    0x20(%rsp),%rcx",
+          "86bab:\tmov    %r12,0x10(%rcx)",
+          "86baf:\tmov    %r10,(%rcx)",
+          "86bb2:\tmov    %rax,0x8(%rcx)",
+          "86bb6:\tmov    %r15,0x18(%rcx)"
+        ]
+      },
+      "findings": [
+        "The backward branch at 0x86ba4 visits each flat entry; this is not a closed-form replacement of endpoint enumeration.",
+        "Each iteration loads a u16 residue, subtracts the root bias, masks and shifts it, and ORs in the root residue.",
+        "The resulting n0 contributes to a u128 sum; the code also accumulates parity state and the final-F count.",
+        "The digest sink does not store endpoint payloads, so its timing is an expansion/checksum measurement."
+      ]
+    },
+    {
+      "specialization": "grouped table with Digest sink",
+      "symbol": {
+        "mangled_name": "_ZN14terminal_bench13terminal_walk7compact17h5ae97a9fcbb20b0dE",
+        "address": "0x84a40",
+        "size_bytes": 2027,
+        "demangled_name": "terminal_bench::terminal_walk::compact"
+      },
+      "excerpt": {
+        "command": [
+          "objdump",
+          "-d",
+          "-C",
+          "--no-show-raw-insn",
+          "--start-address=0x84ce0",
+          "--stop-address=0x84d39",
+          "/tmp/collatz-expansion-target/release/terminal_bench"
+        ],
+        "instructions": [
+          "84ce0:\tmovzwl (%rsi),%r12d",
+          "84ce4:\tsub    %r11,%r12",
+          "84ce7:\tand    %r10,%r12",
+          "84cea:\tmov    %ebx,%ecx",
+          "84cec:\tshl    %cl,%r12",
+          "84cef:\tor     %rdx,%r12",
+          "84cf2:\tadd    %r9,%r12",
+          "84cf5:\tadc    $0x0,%rax",
+          "84cf9:\txor    %ecx,%ecx",
+          "84cfb:\tcmp    %r14,%rbp",
+          "84cfe:\tsetne  %cl",
+          "84d01:\tlea    0x0(,%rcx,2),%rsi",
+          "84d09:\tadd    %rbp,%rsi",
+          "84d0c:\tmovzwl 0x0(%rbp),%r9d",
+          "84d11:\tsub    %r11,%r9",
+          "84d14:\tand    %r10,%r9",
+          "84d17:\tmov    %ebx,%ecx",
+          "84d19:\tshl    %cl,%r9",
+          "84d1c:\tor     %rdx,%r9",
+          "84d1f:\tadd    %r12,%r9",
+          "84d22:\tadc    $0x0,%rax",
+          "84d26:\txor    %ecx,%ecx",
+          "84d28:\tcmp    %r14,%rsi",
+          "84d2b:\tsetne  %cl",
+          "84d2e:\tlea    (%rsi,%rcx,2),%rbp",
+          "84d32:\tjne    84ce0 <terminal_bench::terminal_walk::compact+0x2a0>",
+          "84d34:\tjmp    84bf0 <terminal_bench::terminal_walk::compact+0x1b0>"
+        ]
+      },
+      "findings": [
+        "The residue loop still reconstructs and sums every n0, two residues per unrolled iteration.",
+        "LLVM aggregates endpoint count and per-F count updates outside this residue loop; the state XOR only matters for odd group size.",
+        "This aggregation is sink-dependent. It is not evidence that a payload-producing sink can avoid materializing its endpoints."
+      ]
+    },
+    {
+      "specialization": "flat table with Packed sink",
+      "symbol": {
+        "mangled_name": "_ZN14terminal_bench13terminal_walk7compact17h8d22582ec98c8e90E",
+        "address": "0x861c0",
+        "size_bytes": 2028,
+        "demangled_name": "terminal_bench::terminal_walk::compact"
+      },
+      "excerpt": {
+        "command": [
+          "objdump",
+          "-d",
+          "-C",
+          "--no-show-raw-insn",
+          "--start-address=0x8642e",
+          "--stop-address=0x86494",
+          "/tmp/collatz-expansion-target/release/terminal_bench"
+        ],
+        "instructions": [
+          "8642e:\tmov    %r15,%rax",
+          "86431:\tshr    $0x20,%rax",
+          "86435:\tshl    $0x1e,%r12d",
+          "86439:\tmov    0x8(%r14),%rcx",
+          "8643d:\tmov    %r15d,(%rcx,%rsi,4)",
+          "86441:\tmov    %eax,0x4(%rcx,%rsi,4)",
+          "86445:\tmovl   $0x0,0x8(%rcx,%rsi,4)",
+          "8644d:\tmov    %r12d,0xc(%rcx,%rsi,4)",
+          "86452:\tadd    $0x4,%rsi",
+          "86456:\tmov    %rsi,0x10(%r14)",
+          "8645a:\tcmp    $0x4000,%rsi",
+          "86461:\tjne    86370 <terminal_bench::terminal_walk::compact+0x1b0>",
+          "86467:\tmov    0x8(%r14),%rax",
+          "8646b:\tmov    %rax,0x98(%rsp)",
+          "86473:\tmovq   $0x4000,0xa0(%rsp)",
+          "8647f:\tlea    0x98(%rsp),%rax",
+          "86487:\tmovq   $0x0,0x10(%r14)",
+          "8648f:\tjmp    86370 <terminal_bench::terminal_walk::compact+0x1b0>"
+        ]
+      },
+      "findings": [
+        "The per-entry path performs four u32 stores at 0x8643d, 0x86441, 0x86445 and 0x8644d.",
+        "It increments the buffer length by four words and flushes at 0x4000 words, equivalent to 4096 endpoints.",
+        "The chunk black_box barrier preserves the stores; emission is not replaced by a closed-form digest."
+      ]
+    },
+    {
+      "specialization": "grouped table with Packed sink",
+      "symbol": {
+        "mangled_name": "_ZN14terminal_bench13terminal_walk7compact17h5e0c8f7e889e20f9E",
+        "address": "0x85230",
+        "size_bytes": 2100,
+        "demangled_name": "terminal_bench::terminal_walk::compact"
+      },
+      "excerpt": {
+        "command": [
+          "objdump",
+          "-d",
+          "-C",
+          "--no-show-raw-insn",
+          "--start-address=0x854e0",
+          "--stop-address=0x85548",
+          "/tmp/collatz-expansion-target/release/terminal_bench"
+        ],
+        "instructions": [
+          "854e0:\tmov    %rbp,%rax",
+          "854e3:\tshr    $0x20,%rax",
+          "854e7:\tshl    $0x1e,%ebx",
+          "854ea:\tmov    0x8(%r14),%rcx",
+          "854ee:\tmov    %ebp,(%rcx,%rsi,4)",
+          "854f1:\tmov    %eax,0x4(%rcx,%rsi,4)",
+          "854f5:\tmovl   $0x0,0x8(%rcx,%rsi,4)",
+          "854fd:\tmov    %ebx,0xc(%rcx,%rsi,4)",
+          "85501:\tadd    $0x4,%rsi",
+          "85505:\tmov    %rsi,0x10(%r14)",
+          "85509:\tcmp    $0x4000,%rsi",
+          "85510:\tmov    0x50(%rsp),%rdx",
+          "85515:\tjne    85420 <terminal_bench::terminal_walk::compact+0x1f0>",
+          "8551b:\tmov    0x8(%r14),%rax",
+          "8551f:\tmov    %rax,0x98(%rsp)",
+          "85527:\tmovq   $0x4000,0xa0(%rsp)",
+          "85533:\tlea    0x98(%rsp),%rax",
+          "8553b:\tmovq   $0x0,0x10(%r14)",
+          "85543:\tjmp    85420 <terminal_bench::terminal_walk::compact+0x1f0>"
+        ]
+      },
+      "findings": [
+        "This specialization also performs four u32 payload stores for every residue.",
+        "The grouped digest-only aggregation does not remove the Packed sink stores."
+      ]
+    }
+  ],
+  "counter_semantics": [
+    "The terminal table precomputes generated, survived and all cull-category counts for every intermediate depth.",
+    "For baseline rules and a fixed incoming (k, f, oee, ne), these subtree counts do not depend on the numeric residue.",
+    "Merging exact precomputed counts once per table root is an intentional algorithmic optimization, not benchmark elision. Rejected prefixes remain included.",
+    "Reported gains with counters enabled include both cheaper endpoint enumeration and cheaper accounting; this diagnostic does not separate their contributions."
+  ],
+  "limitations": [
+    "Packed uses bounded buffers that are repeatedly reused; it does not benchmark queue copying, consumer synchronization, PCIe transfers or GPU work.",
+    "Packed also computes the validation digest, whereas the production GPU sink does not.",
+    "Packed stores every F class, while the production GPU producer dispatches F classes without a lookahead array to CPU endpoint processing.",
+    "The instruction excerpts verify that work exists in this binary; they do not measure instruction frequency, cache misses, bandwidth, or end-to-end pipeline speedup."
+  ]
+}
