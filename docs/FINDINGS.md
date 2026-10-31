@@ -4,8 +4,10 @@ This document summarizes the verification workload, the benefits of individual
 optimizations, and the evidence behind the recommended configurations. Baseline
 endpoint counts come from exact dynamic programming. Additional pruning, cases,
 and tail iterations are estimated from uniformly sampled real endpoints at the
-target N. GPU-year estimates use the RTX 4090 kernel timings and fitted
-per-operation model described in [COST_MODEL.md](COST_MODEL.md).
+target N. Historical GPU-year estimates use the RTX 4090 kernel timings and
+fitted per-operation model described in [COST_MODEL.md](COST_MODEL.md). The newer
+checkpoint-pipeline estimate uses fixed baseline K38 cohorts and live elapsed
+pipeline timings, with its different scope stated separately.
 
 ## Verification cost
 
@@ -16,6 +18,7 @@ per-operation model described in [COST_MODEL.md](COST_MODEL.md).
 | B = 28 with window credits, baseline step-1 rules | 0.889 | About 13.5% less GPU time than the sound baseline |
 | Step-1 pm∞ + mix(3^13) and window credits, A = 10, B = 28 | 0.851 | About 17% less GPU time than the sound baseline |
 | Per-class windows on a 24 GB card, shared bitvectors, A = 10 | 0.675 | About 35% less GPU time than the sound baseline; see [HARDWARE.md](HARDWARE.md) |
+| Experimental prepared-K38 parent pipeline, A = 10, tuned kernel | **0.586 [0.565, 0.607]** | 8,192 baseline draws, repeated paired timings and aggregate checks; excludes frontier preparation and setup; [full report](../results/fullrange_pipeline/README.md) |
 
 These are estimates for a complete run below 2^72, not completed record runs.
 Only the RTX 4090 is timed here; figures for other GPUs are hardware-scaling
@@ -23,7 +26,7 @@ estimates. Per-bit growth is not constant: the measured workload grows by about
 1.83–1.94× between successive N, oscillating with the log2 3 lattice. Use the
 [cost table](../results/cost_table.md) rather than a fixed growth factor.
 
-Complete runs at N = 50, 54, and 56 validate the estimator. In the recommended
+Complete runs at N = 50, 54, and 56 validate the earlier per-operation estimator. In the recommended
 24 GB configuration at N = 56 (A = 12), the pipeline took 765 s against 756
 GPU-seconds predicted, plus an 83 s array build. Cases and iterations agreed
 within 0.04%. The saved runs are in [results/validation](../results/validation/).
@@ -779,6 +782,406 @@ step needs production dispatch and the rare CPU-fallback path. Production
 `src/` remains unchanged. The
 [saved results and reproduction commands](../results/terminal_blocks/README.md)
 include all six runs, table sizes, source snapshots, and binary hashes.
+
+#### Integrated GPU pipeline
+
+The [overall benchmark](../results/overall_pipeline/README.md) now connects the
+screened prefix, compact suffix and terminal tables to the real GPU verifier.
+It includes production packing, queues, transfers, kernels and CPU fallback,
+with shared pm∞+mix13 lookahead arrays retained across trials.
+
+On a Ryzen 7 7700X and RTX 4090, three rotating repetitions expanded the same
+1,024 saved K38 packages at **N72/A10/M62**, emitting 4.20–4.33 billion endpoints
+per trial. With eight physical CPU cores, median results were:
+
+| Expansion | Pipeline wall | Process CPU time |
+|---|---:|---:|
+| Original full checks | 28.955 s | 213.846 core-s |
+| Screened full checks | 29.973 s | 212.361 core-s |
+| Screened through K54, compact suffix | 26.379 s | 74.877 core-s |
+| Screened through K54, terminal8 | 26.441 s | 31.513 core-s |
+| Screened through K50, compact suffix | 26.463 s | 73.271 core-s |
+| Screened through K50, terminal10 | 26.549 s | 27.803 core-s |
+
+The combined K50 path uses **87% less process CPU time** and **8.3% less median
+elapsed time** than full checks. Terminal tables reduce CPU use substantially
+even against matched compact controls, but provide little further wall-time
+benefit once the GPU is fed. Ternary screening alone does not establish an
+integrated speedup here. Full-check timings varied from 27.766 to 31.491 seconds;
+combined K50 timings varied from 26.240 to 26.562 seconds on the active desktop.
+
+A second run pins the entire process to **two physical cores**, with two
+producer workers, on the identical corpus. Median times remain **26.517 seconds
+for K54/terminal8** and **26.535 seconds for K50/terminal10**. Process CPU use is
+30.491 and 29.605 core-seconds respectively. Counts, tree statistics and hashes
+match the eight-core runs. The main practical gain is feeding this GPU with a
+much smaller CPU allocation, rather than a comparable reduction in GPU-years.
+
+Cutoff54 adds 0.537% actual tail iterations and cutoff50 adds 0.785% on this
+corpus. Counts, every tree counter and checksums agree exactly within each
+pruning policy. Twelve complete N32 CPU/GPU comparisons also pass, including
+checkpoint walkback, host-built and device-built arrays, and forced CPU fallback
+from reconstructed compact endpoints. No trajectories were flagged.
+
+This comparison starts from the same walkback-filtered K38 checkpoint for every
+variant. Checkpoint preparation, archive I/O and one-time setup are excluded
+from trial times. GPU initialization took 89.745 seconds; the arrays occupy
+19.625 GiB after reducing one B35 class to B34 to fit alongside the desktop.
+These are sampled N72 packages, not a complete 2^72 run or a new RTX PRO 6000
+measurement. CUDA event durations sum overlapping streams and must not be read
+as GPU busy wall time. The [raw results](../results/overall_pipeline/summary.json)
+retain timing ranges, CPU accounting, telemetry and source provenance.
+
+The new `Expander`/compact-sink hooks and reusable `GpuSession` expose the real
+pipeline to the experimental engine. Default `cv verify` still uses original
+DFS. Harvested reverse-word lookahead credits remain a separate prototype.
+
+#### Moving more expansion onto the CPU
+
+An [A8/A9/A10 pipeline comparison](../results/a_pipeline/README.md) tests whether
+the saved CPU time can buy less GPU time. It reuses the same 1,024 K38 packages,
+full-check cutoff K50 and terminal entry K52. Changing A from 10 to 9 to 8
+increases endpoint depth M from 62 to 63 to 64 and terminal width from 10 to 11
+to 12. Eight physical CPU cores and the same 19.625 GiB relative-class window
+allocation are used throughout.
+
+| A / M | Pipeline wall, median [min, max] | Process CPU, median | Average busy cores | Tail iterations vs A10 |
+|---|---:|---:|---:|---:|
+| 10 / 62 | 25.367 [25.093, 25.507] s | 27.970 core-s | 1.102 | reference |
+| 9 / 63 | 25.448 [25.085, 25.891] s | 51.105 core-s | 2.008 | −4.23% |
+| 8 / 64 | 27.539 [27.516, 27.609] s | 97.871 core-s | 3.550 | −8.11% |
+
+A10 pools three opening and three closing trials; the other configurations
+have three trials each. Fresh A10 control medians are 25.108 and 25.443 seconds.
+A9's +0.32% difference falls within the observed timing variation, while A8
+takes 8.56% longer. The CPU has enough capacity, but **neither smaller A
+demonstrates a pipeline improvement with these windows**. A10 remains the
+practical choice for this experimental path.
+
+Fewer tail iterations do not capture the whole GPU workload. A9 emits 1.906×
+and A8 3.663× as many GPU endpoints, increasing transfer volume from 69.211 GB
+to 131.893 and 253.508 GB. The kernel also replays all M steps to reconstruct
+each endpoint's iterate before lookahead filtering. Those replay steps, absent
+from the tail counter, increase 1.936× and 3.781×. These measurements do not
+isolate how much of the wall time comes from replay, transfers, dispatch or
+window behavior. Reducing those endpoint costs is a better next experiment
+than simply deepening CPU expansion again.
+
+The common window vector is indexed relative to minimum F, which shifts from
+40 to 41 at A8. It preserves the memory budget, not the allocation by absolute
+F; this comparison does not establish A8's optimum after window retuning.
+Setup is excluded (85.2–86.7 seconds per block). All runs share one binary and
+ordered corpus, with identical repeated work signatures within each A and no
+flagged trajectories. Eighteen complete N32 and nine sampled N72 CPU/GPU
+comparisons pass, including M64 bit 63, iterates above `u64`, and CPU fallback.
+The [saved results](../results/a_pipeline/summary.json) retain all trials,
+accounting and provenance; they do not replace the full-range GPU-year model.
+
+#### Preserving terminal reuse across the GPU boundary
+
+The [transport experiments](../results/transport_pipeline/README.md) compare
+five ways to process the same N72/A10 corpus, with the same windows, resident
+arrays, three CUDA streams and eight physical CPU cores. All variants perform
+identical tree and tail work, including per-class counts and checksums.
+
+| Variant | Pipeline wall, median [min, max] | Process CPU, median | Transfer volume |
+|---|---:|---:|---:|
+| Original 16-byte replay | 24.819 [24.499, 24.890] s | 28.943 core-s | 69.211 GB |
+| Packed 8-byte replay | 24.720 [24.646, 24.830] s | 25.640 core-s | 34.606 GB |
+| CPU affine reconstruction, 16-byte replay | 24.939 [24.797, 25.166] s | 49.464 core-s | 69.211 GB |
+| CPU affine reconstruction, 32-byte exact iterate | 24.737 [24.415, 25.007] s | 59.259 core-s | 138.423 GB |
+| Parent/class descriptors with GPU expansion | 24.414 [24.091, 24.582] s | 6.543 core-s | 2.955 GB |
+
+The strongest measured benefit is **less CPU work and traffic**. Parent
+dispatch cuts process CPU by 77.4% and transfers by 95.7%; its median wall
+time is only 1.6% lower, with overlapping observed ranges. It sends exact K52
+parents and ranges of resident ten-bit terminal words, grouped by final F.
+A GPU expansion kernel reconstructs exact M62 endpoints before verification.
+The transfer accounting includes repeated 64-byte class headers and batch
+splits. The terminal words are uploaded once before timing.
+
+Packing eight-byte endpoints halves traffic and reduces CPU time by 11.4%,
+without a clear wall-time gain. Computing exact iterates on the CPU and sending
+them doubles traffic and roughly doubles CPU time, also without a clear wall
+improvement. The `affine16` control shows the extra host reconstruction cost;
+avoiding GPU prefix replay alone does not justify that cost here.
+
+A second run pins the entire process to one physical core. Parent dispatch
+takes **24.315 [21.952, 24.465] seconds**, versus
+**26.931 [26.058, 27.035] seconds** for 16-byte replay. Process CPU is 2.130
+versus 24.721 core-seconds. Parent dispatch retains the throughput measured
+with eight cores; it also uses less CPU with one worker, consistent with
+reduced producer synchronization overhead. Both variants are faster in the
+last repetition, so the observed ranges should accompany the medians. The
+same ordered corpus and full work signatures match across both runs. This
+establishes a useful host-allocation saving for one GPU, without extrapolating
+the 0.088 average busy-core figure into unmeasured multi-GPU capacity.
+
+These are three rotating repetitions per variant on the same saved 1,024
+packages, not a full N72 verification. All variants share the experimental
+larger device buffers for a controlled comparison. The transport
+implementations pass 22 CPU/GPU comparisons, including split arrays, M64,
+wide iterates and CPU fallback. Production `cv verify` remains unchanged.
+
+#### Selective extra bits for the lowest F class
+
+The [class-count probe](../results/transport_pipeline/CLASS_SPLIT.md) finds
+that original F40 contains nearly all the useful baseline pruning from one
+or two more bits. Expanding F40 alone captures 98.48% or 95.46% of the
+all-class candidate reduction, with total endpoint factors of 1.136× or
+1.365× rather than 1.906× or 3.663×. These counts precede lookahead screening.
+
+A [GPU follow-up](../results/transport_pipeline/class_gpu_large_summary.md)
+samples 16,777,216 conditional M62/F40 endpoints and compares serialized
+replay-kernel cost with seven repetitions and shared B32/B35 relative-class
+windows. A10 takes 20.890 ms, A9 19.781 ms (**5.31% less**), and A8 22.382 ms
+(**7.14% more**). A closing A10 control takes 20.894 ms, just 0.02% above the
+opening control. A smaller initial sample found the same direction. One extra
+bit is more promising than two: both reduce counted tail iterations by about
+21%, but two bits generate substantially more endpoints to reconstruct and
+screen.
+
+This is a different conditional corpus, with improved13 checks through K50
+and no K38 walkback; it measures the original replay kernel, not parent
+dispatch. It excludes CPU expansion, transfers and setup. A mixed-depth
+pipeline remains unmeasured, and the extra depth-dependent arrays would add
+roughly 4 GiB net to the current 19.625 GiB resident layout. Window retuning
+or staging is needed on this desktop's 24 GiB GPU. The 5.31% class-kernel
+gain is therefore not an overall throughput claim.
+
+### Full-range checkpoint estimate and kernel tuning
+
+The [full-range follow-up](../results/fullrange_pipeline/README.md) replaces
+fixed accepted-root packages with 16 independent cohorts of 512 baseline K38
+draws. Improved13 ancestry and bounded K38 walkback reject 468 draws; all 8,192
+draws remain in the denominator. Each accepted subtree is expanded with extra
+checks through K50 and terminal parent dispatch from K52 to M62. Two rotating
+timing repetitions compare identical work on an RTX 4090 with two physical
+7700X cores available and 19.625 GiB of shared windows.
+
+The original parent kernel estimates **0.6535 GPU-years [0.6299, 0.6771]**;
+removing its redundant warp overflow vote and moving the carried OEE filter
+before candidate extraction gives **0.5859 [0.5649, 0.6069]**. The paired
+saving is **10.34% [10.27%, 10.42%]**, about **593 GPU-hours**. These are
+approximate 95% cohort intervals. The optimization preserves cases, iterations,
+checksums and overflow handling; it makes the same work cheaper. All 32 paired
+timings improve. Concatenating the accepted corpus gives aggregate times
+within 0.08% of summed cohort means, with exact matching aggregate counts and
+hashes. This is an extrapolation, not a completed N72 verification.
+
+Pilot alternatives are less promising: a read-only power table costs 6.5%
+more than the original kernel, 128- and 256-thread blocks are effectively tied,
+A9 is within 1% of A10, and A8 takes 5.4% longer. A tested A8 window remapping
+takes 6.7% longer than A10. The A comparisons use the same saved pilot roots
+but cross separate runs. They do not establish optimal windows for every A.
+
+The tuned CPU demand extrapolates to **0.0681 core-years**, measured as process
+CPU seconds without an SMT conversion. Eight naturally overflowing starts in
+six cohorts all complete wide rechecks inside the timed pipeline. A separate
+65,536-endpoint conditional probe estimates **1.37 CPU-hours** for every
+baseline F56–62 endpoint, deliberately omitting extra screening. Even a fully
+serialized idle-GPU allowance for those tails is only 0.000156 GPU-years.
+The sample does not construct the full K38 frontier; preprocessing, archive
+I/O, resident-array setup and distributed coordination are excluded. The
+cohort intervals also exclude long-run device and deployment effects.
+
+Validation includes 34 CPU/GPU comparisons, including forced overflow and
+M64 inputs, plus exact work agreement throughout the confirmation. The first
+confirmation attempt exposed a benchmark assertion that incorrectly rejected
+successfully rechecked flags; it was fixed and the same predeclared sample was
+rerun. The failed artifact is retained. Default production settings remain
+unchanged; tuning and parent dispatch are opt-in experimental paths.
+
+## Chained low-bit transitions
+
+The [grouped-transition experiments](../results/grouped_transitions/README.md)
+chain exact affine tables across K50→54→58→62 or K50→56→62, regrouping at each
+boundary by parity-rule state and the current low-bit translation. This shares
+real work: final-block extension translations fall by **99.83%** for four-bit
+blocks and **98.14%** for six-bit blocks in a 32-root structural census. All
+distinct starting values and high iterate bits are retained.
+
+The paired pilot reduces process CPU time by about **20%** relative to the
+same block chains without grouping. It does not beat the existing K52
+parent-descriptor pipeline. These prototypes emit exact 32-byte endpoints,
+transferring about **47 times** as much data as the compressed parent path.
+Sorting and intermediate frontier construction also remain in the timed scope.
+Thus the arithmetic-sharing result does not establish an overall GPU saving.
+
+GPU tail experiments reindex a low-bit affine table after each exact jump,
+retaining every original checksum point and conservatively guarding intermediate
+cutoff peaks and descent. Widths 8/10/12/14, a combined CPU/GPU path, and a
+follow-up with aligned vector loads and an unrolled checksum loop all preserve
+the reference work. They are slower than ordinary stepping in the measured
+pipeline. The saved report contains paired timings, a continuous-run check,
+source snapshots, and validation including forced-overflow origins.
+
+The [compact-dispatch follow-up](../results/compact_chain/README.md) below
+keeps parent/program descriptions through device expansion. Merely dispatching
+the final short block as parents would still produce more host parents than
+the current K52 design. These results leave the confirmed **0.586 RTX
+4090-year** estimate unchanged.
+
+## Compact chains through GPU dispatch
+
+The new experiment dispatches exact K50 parents with references to two resident
+short transition tables. A GPU block reconstructs first-stage prefixes in
+shared memory and reuses them for second-stage descendants. The CPU constructs
+neither intermediate K54/K56 nodes nor final M62 endpoints for GPU-bound
+classes. Final endpoints are still materialized on the device for the existing
+verifier; prefix sharing is within a parent/final-class descriptor, not across
+multiple unrelated parents.
+
+Four fresh cohorts of 256 baseline K38 draws give **68.6% less host-to-device
+traffic** and about **49% less process CPU time** for compact 6+6 expansion,
+relative to current K52 parent dispatch. The elapsed-time ratio is **0.999
+[0.975, 1.022]**. A flat twelve-bit K50 control has the same traffic reduction
+and slightly lower CPU cost: earlier dispatch accounts for those savings.
+Chaining reduces the resident device transition table from **9.54 MB to
+2.76 MB**; the common 19.625 GiB lookahead windows are unchanged.
+
+An initial continuous-run comparison appeared slower for K50 dispatch, but
+the fast K52 baseline did not reproduce. Four balanced continuous repetitions
+on the identical corpus average **20.219 s** for K52, **20.405 s** for flat K50,
+**20.292 s** for compact 6+6, and **20.310 s** for compact 4+8. Compact chains
+use about **45% less process CPU time** in these runs. Recorded GPU clocks do
+not explain the timing-regime change, so small differences should not be
+interpreted as established GPU savings.
+
+A matched dispatch-cadence experiment flushes 1,024 instead of 4,096 parent
+descriptors for both the existing and compact pipelines. The smaller compact
+chunks improve continuous time by only 0.7% against ordinary compact dispatch;
+comparisons with K52 change sign between cohort and continuous timings. This
+does not establish a GPU-time saving, and default flushing remains unchanged.
+
+Exact endpoints and per-depth counters match independent CPU expansion.
+Direct arithmetic checks cover wide values, carries and near-128-bit limits;
+complete N32, sampled N72, M64 and forced-overflow GPU comparisons all pass.
+The [full report](../results/compact_chain/README.md) preserves the controls,
+source snapshots, telemetry and raw work signatures. These comparative
+samples do not replace the earlier full-range cost confirmation.
+
+## CPU continuation of long GPU tails
+
+The [CPU-offload experiment](../results/tail_offload/README.md) tests whether
+the host capacity freed by compact dispatch can reduce GPU runtime. After a
+candidate exceeds a double-iteration budget, the GPU can send its exact start
+and current state to bounded CPU workers. A full device queue leaves that
+candidate on the GPU. Combined counts, checksums, flags and wide rechecks
+remain identical to ordinary verification.
+
+This design does **not** save GPU time. In a fresh four-cohort comparison
+covering 512 baseline K38 draws, enabling the machinery without exporting any
+work costs **9.16% [8.07%, 10.25%]**. Budget 16 with 262,144 continuation slots
+per launch and four CPU workers costs **10.16% more [9.13%, 11.19%]** than
+ordinary K52 dispatch. Compact dispatch with budget 24 and two workers is
+**9.49% slower [8.19%, 10.80%]** than its own compact control. These are
+approximate paired 95% cohort intervals.
+
+Two continuous repeats confirm the direction: ordinary K52 takes **10.199 s**
+and **1.376 CPU core-s**; the four-worker offload takes **11.014 s** and
+**18.749 CPU core-s**. It uses **1.70 average busy CPU cores** while removing
+only **0.0965%** of GPU-origin tail iterations. Compact dispatch takes
+**10.154 s** and **0.656 CPU core-s**, versus **10.986 s** and **7.740 CPU
+core-s** with the larger-queue budget-24 handoff. CPU queue waits and final
+drains are only milliseconds. Extra host work does not overcome the cost of
+the enabled GPU path.
+
+The initial threshold sweep explains why: only **0.0108%** of verified cases
+survive beyond 32 double iterations, and accepted continuations typically
+finish after another 3–4. A budget of eight reaches many more candidates but
+causes heavy queue saturation and about **80% more elapsed time**. These
+measurements argue against individual-tail offload, while leaving open CPU
+pruning that eliminates whole candidate families. All 54 CPU/GPU validation
+comparisons pass, including forced queue saturation and overflow after handoff;
+813 of 985 forced-overflow flags arise on CPU continuations in the budget-one
+fixture. Default settings and the confirmed **0.586 RTX 4090-year** estimate
+remain unchanged.
+
+## Early screening and grouped CPU verification
+
+The [early-handoff experiment](../results/early_screen/README.md) lets the GPU
+finish A expansion and B screening, then returns compact survivor masks to
+four CPU workers before any tail stepping. Unselected launches use the
+unchanged fused GPU verifier. Five CPU methods cover scalar stepping, sorting,
+independent table jumps, initial shared transitions and repeated regrouping.
+
+Two continuous timings on 512 baseline K38 draws average **9.875 s** for ordinary
+GPU verification and **10.046–10.169 s** for the early-handoff variants:
+**1.7–3.0% slower**. The selected batches move only **0.025–0.037%** of tail
+iterations to the CPU. Returning 320 MiB takes about **12.8 ms** of overlapping
+CUDA copy-event time, while host mask scans and owned-buffer copies consume
+**245–260 ms of dispatch-thread CPU time**. CPU worker execution mostly
+overlaps the GPU; final drains are about 0.1 ms. These different timing measures
+must not be added together.
+
+An isolated pinned-memory probe attributes much of the host-copy cost to
+first touching destination pages: fresh-vector copies take **89.3 ms** per
+160 MiB launch, versus **23.3 ms** with resident reused vectors. The software
+mask scan adds **13.3 ms**. These are standalone medians, not measured pipeline
+savings; buffer reuse has not been applied to the timed variants.
+
+An identical-input replay tests 51 configurations with five repetitions each.
+Repeated 10-bit grouping eliminates **97.96% of table lookups**, but is **19.2%
+slower** than scalar stepping with the same chunk size. Regrouping consumes
+23.4% of its runtime. No grouped configuration beats the fastest scalar
+configuration on this conditional, first-launch fixture. Sharing a transition
+description leaves per-state arithmetic, descent checks and checksums to do.
+
+All methods preserve work, checksums, flagged origins and wide rechecks.
+Validation includes complete N32, sampled N72/M64, an independent GPU mask
+oracle and 985 forced-cutoff flags completed by the early CPU workers.
+The saved report distinguishes varying selected class mixes from fixed-state
+CPU replay. These comparative timings leave defaults and the full-range
+**0.586 RTX 4090-year** estimate unchanged.
+
+## Direct CPU ownership before GPU dispatch
+
+The [direct-routing experiment](../results/direct_cpu/README.md) sends selected
+compact tree groups to CPU workers before the GPU sees them. A worker reconstructs
+the original M62 endpoints, expands them to its own depth, and applies its own
+A/B policy. The GPU retains M62/A10. Admission is nonblocking: if the bounded
+CPU pool is full, the unchanged group goes to the ordinary GPU sink. Only
+original F40 groups are eligible in the timed runs; existing rare-F fallback
+continues unchanged.
+
+The smaller CPU A is useful. On identical conditional M62/F40–42 source
+families, **A6/B20 uses 18–20% less CPU time than A10/B20**, including expansion
+to M66. Expanding further to A0 loses that advantage. With a stronger B24
+screen the same A change saves **8–12% by mean CPU time**, although A6 and A8
+are close for F40. B24 uses 32 MiB of resident arrays per plan, shared by the
+workers; construction is excluded from steady processing time.
+
+The initial live comparison uses two tree producers and four CPU workers on
+the Ryzen 7 7700X alongside the RTX 4090. Three continuous repetitions of 512
+baseline K38 draws average **9.414 s** for the GPU control and **9.368 s** for
+CPU A6/B24 routing: **0.49% lower elapsed time**, or 0.40% against the routing
+control with no diversion. The difference is small relative to timing
+variation. The 64-group queue keeps only **1.83 CPU worker cores** busy on
+average, despite rejecting 97.2% of selected groups when full. This motivates
+the larger-queue follow-up.
+
+With capacity increased to 1,024 groups, six repetitions on a fresh 512-draw
+corpus keep **3.94 CPU worker cores** busy. Mean elapsed times are **8.038 s**
+for ordinary GPU processing, **8.018 s** for the routing control, and
+**8.024 s** for CPU A6/B24: **no reliable overall speedup**. The routed median
+is essentially equal to the ordinary GPU median, and comparisons cross equality
+against both controls. Workers divert 21.57 million original endpoints
+(**1.22%**) while removing **0.164% of GPU tail iterations**. Total process CPU
+time rises from 1.318 to 32.958 core-seconds; final CPU drain remains only
+0.090 ms. The larger queue makes spare cores useful to the computation but
+does not establish GPU elapsed-time savings. The changed seed means these
+absolute timings should not be compared with the pilot's timings.
+
+Complete N32, sampled wide N72, and forced-cutoff checks pass. The tests compare
+each CPU policy with an independent DFS/window oracle, including wide rechecks,
+and audit the partition of original endpoint families between GPU and CPU.
+Different A/B policies can prune different starts and change native cases,
+iterations and checksums; those counters are not compared across policies as
+if the work were identical. Timed runs include routing, CPU work, worker drain
+and wide rechecks, with resident setup excluded. The initial GPU-forwarding
+guard is not a live queue watermark. These are sampled package comparisons;
+production defaults and the **0.586 RTX 4090-year** estimate remain unchanged.
 
 ## Bitvectors and the host pipeline
 

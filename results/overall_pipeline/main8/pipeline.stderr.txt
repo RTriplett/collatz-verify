@@ -1,0 +1,4 @@
+
+thread 'main' (416371) panicked at overall_bench.rs:148:41:
+GPU initialization: need 21.94 GiB on the GPU (21.63 GiB of bitvectors) but only 21.26 of 23.50 GiB are free; use smaller windows (--b-hi / --class-b) or --bv-shared
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

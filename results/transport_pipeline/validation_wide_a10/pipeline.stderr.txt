@@ -1,0 +1,4 @@
+
+thread 'main' (467795) panicked at transport_bench.rs:213:9:
+assertion failed: coverage.top > 0 && coverage.wide > 0 && coverage.fallback > 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

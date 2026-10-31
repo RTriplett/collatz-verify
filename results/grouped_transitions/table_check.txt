@@ -1,0 +1,5 @@
+width=8 rows=256 usable=163 max_count=2 states=3912 prefixes=3936
+width=10 rows=1024 usable=849 max_count=2 states=20376 prefixes=21720
+width=12 rows=4096 usable=3811 max_count=3 states=91464 prefixes=110544
+width=14 rows=16384 usable=15969 max_count=3 states=383256 prefixes=541296
+PASS states=499008 prefixes=677496 odd_peaks=1354992 cutoff_safe=384950 cutoff_rejected=114058

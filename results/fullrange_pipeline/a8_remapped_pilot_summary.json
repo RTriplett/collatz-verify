@@ -1,0 +1,1338 @@
+{
+  "scope": "Full-range N-target extrapolation of measured resident-array CPU/GPU pipeline wall time. This is not a completed full-range verification.",
+  "method": "Fixed baseline checkpoint draws with replacement; rejected draws contribute zero work. Full-range total = exact baseline population \u00d7 mean cost per baseline draw. Timing repetitions are averaged within each independent cohort. Student-t intervals use cohort degrees of freedom. Paired performance ratios use ratios of means and a paired delta-method interval. One year is 365.25 days.",
+  "limitations": "Intervals describe cohort sampling and observed timing variation only; they do not include systematic desktop clock drift, long-run availability, checkpoint construction or archive I/O, setup, scheduler overhead, rare unsampled fallback/overflow work, or extrapolation to another GPU. Pipeline wall time is used because overlapping CUDA event sums are not GPU busy wall time. Cohort drain/partial-batch effects are checked by a separately reported aggregate run; no correction factor is silently applied. CPU core-years mean process CPU seconds divided by seconds per year, without an SMT conversion.",
+  "runs": [
+    {
+      "directory": "results/fullrange_pipeline/a8_remapped_pilot",
+      "config": {
+        "a": 8,
+        "aggregate_repetitions": 0,
+        "baseline_endpoint_population": "16079624585697968",
+        "baseline_population": "1086320709",
+        "checkpoint": 38,
+        "class_b": [
+          35,
+          35,
+          35,
+          35,
+          34,
+          32,
+          32,
+          32,
+          27,
+          27,
+          27,
+          27,
+          27,
+          27,
+          27,
+          27
+        ],
+        "cohort_count": 2,
+        "cutoff": 50,
+        "draws_per_cohort": 256,
+        "engine_setup_seconds": 0.029421244,
+        "excluded_scope": "K38 frontier construction and walkback preprocessing, sampling, resident-array construction, checkpoint storage and distributed coordination",
+        "experiment": "fullrange",
+        "kernel_seconds_meaning": "overlapping CUDA event sums, not GPU busy wall time",
+        "m": 64,
+        "n": 72,
+        "num_bv": 16,
+        "repetitions": 2,
+        "rules": "descent+pm1+oee(root)+pm_inf+mix(3^13)",
+        "sampling_design": "fixed_baseline_draws_with_replacement",
+        "sampling_protocol": "SplitMix64 cohort seeds followed by Sampler::draws deterministic blocks; duplicates retained; improved13 ancestry and bounded K38 walkback rejections contribute zero downstream work",
+        "seed": 20261027,
+        "terminal_entry": 52,
+        "terminal_table_bytes": 12915704,
+        "terminal_width": 12,
+        "terminal_word_count": 313994,
+        "threads": 2,
+        "timed_scope": "live expansion after K38, packing, queues, transfers, device expansion, verification and fallback; resident arrays and suffix tables",
+        "type": "config",
+        "variants": [
+          "novote_oee"
+        ],
+        "walkback_cap": 65536,
+        "window": "descent+pm1+oee+pm_inf+mix(3^13)"
+      },
+      "baseline_population": "1086320709",
+      "seconds_per_year": 31557600.0,
+      "sampling": {
+        "drawn": 512,
+        "cheap_rejected": 32,
+        "walk_rejected": 3,
+        "accepted": 477
+      },
+      "acceptance_fraction": 0.931640625,
+      "cohort_corpus_sha256": [
+        "99bee53442b04a040008b6317e7aeda96c519e116110d3ebdcf78e10b9c5dad2",
+        "55692579ecef7d3bec0e0667809fda41d68034fa80831dbaf3abb22ab25a7ff4"
+      ],
+      "aggregate_corpus_sha256": "0b57c40791276fccb3f5d12371a793dec8e6b40fc7eb493a274c4ceaf1adc744",
+      "cohort_work_signature_sha256": [
+        "4e0eb8d7cb7aeacb221cfd1a053de3e4f412c6870e7fb9b172e2d94b57396df9",
+        "11265a49691373f24982d378cfc81c273ff7e4c0be233ea84d55e0609943545c"
+      ],
+      "baseline_descendant_audit": {
+        "exact_endpoint_population": "16079624585697968",
+        "sampled_endpoint_population": {
+          "estimate": 1.6366453114457526e+16,
+          "standard_error": 3720519003396.779,
+          "ci95": [
+            1.631917943827619e+16,
+            1.6413726790638864e+16
+          ],
+          "relative_half_width95": 0.002888449675121014,
+          "cohort_count": 2,
+          "degrees_of_freedom": 1,
+          "cohort_minimum": 1.636273259545413e+16,
+          "cohort_maximum": 1.6370173633460924e+16,
+          "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+        },
+        "purpose": "Exact baseline descendant total is known independently; this checks sampled root composition without changing the primary estimator.",
+        "relative_difference": 0.01783801153011222
+      },
+      "work_estimates": {
+        "endpoints": {
+          "estimate": 1.5562411823265512e+16,
+          "standard_error": 118921914949381.61,
+          "ci95": [
+            1.405136562432149e+16,
+            1.7073458022209534e+16
+          ],
+          "relative_half_width95": 0.09709588822762269,
+          "cohort_count": 2,
+          "degrees_of_freedom": 1,
+          "cohort_minimum": 1.544348990831613e+16,
+          "cohort_maximum": 1.5681333738214894e+16,
+          "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+        },
+        "cases": {
+          "estimate": 3.8884022763123584e+17,
+          "standard_error": 3248280000236621.5,
+          "ci95": [
+            3.475669169083752e+17,
+            4.3011353835409645e+17
+          ],
+          "relative_half_width95": 0.10614465219890518,
+          "cohort_count": 2,
+          "degrees_of_freedom": 1,
+          "cohort_minimum": 3.8559194763099923e+17,
+          "cohort_maximum": 3.9208850763147245e+17,
+          "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+        },
+        "iters": {
+          "estimate": 3.0752865419435126e+18,
+          "standard_error": 2.6743898010648176e+16,
+          "ci95": [
+            2.735473098381514e+18,
+            3.4150999855055114e+18
+          ],
+          "relative_half_width95": 0.11049814023094064,
+          "cohort_count": 2,
+          "degrees_of_freedom": 1,
+          "cohort_minimum": 3.0485426439328645e+18,
+          "cohort_maximum": 3.102030439954161e+18,
+          "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+        },
+        "tree_nodes": {
+          "estimate": 3.380635096738437e+16,
+          "standard_error": 260029594366219.8,
+          "ci95": [
+            3.0502361703948148e+16,
+            3.7110340230820584e+16
+          ],
+          "relative_half_width95": 0.0977327977995566,
+          "cohort_count": 2,
+          "degrees_of_freedom": 1,
+          "cohort_minimum": 3.3546321373018148e+16,
+          "cohort_maximum": 3.4066380561750588e+16,
+          "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+        }
+      },
+      "per_class_work_estimates": [
+        {
+          "class": 0,
+          "endpoints": {
+            "estimate": 2671074286821517.5,
+            "standard_error": 21443983525980.805,
+            "ci95": [
+              2398602641784994.0,
+              2943545931858040.5
+            ],
+            "relative_half_width95": 0.10200826176225701,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 2649630303295536.5,
+            "cohort_maximum": 2692518270347498.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 4563384435589233.0,
+            "standard_error": 36425400597997.79,
+            "ci95": [
+              4100555838000256.0,
+              5026213033178209.0
+            ],
+            "relative_half_width95": 0.10142222381691922,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 4526959034991235.0,
+            "cohort_maximum": 4599809836187231.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 3.2554864226743532e+16,
+            "standard_error": 259660642086825.0,
+            "ci95": [
+              2.925556294650711e+16,
+              3.5854165506979948e+16
+            ],
+            "relative_half_width95": 0.10134587744728084,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 3.2295203584656708e+16,
+            "cohort_maximum": 3.2814524868830356e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 1,
+          "endpoints": {
+            "estimate": 4198513634957478.0,
+            "standard_error": 32752009242234.418,
+            "ci95": [
+              3782359900010283.0,
+              4614667369904673.0
+            ],
+            "relative_half_width95": 0.09911930057395407,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 4165761625715243.5,
+            "cohort_maximum": 4231265644199712.5,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 3.3989491760080548e+16,
+            "standard_error": 265453933141478.38,
+            "ci95": [
+              3.0616579737608468e+16,
+              3.736240378255262e+16
+            ],
+            "relative_half_width95": 0.09923396461118743,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 3.372403782693907e+16,
+            "cohort_maximum": 3.4254945693222028e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 2.4870245410721965e+17,
+            "standard_error": 1941773107980141.8,
+            "ci95": [
+              2.2402988744636493e+17,
+              2.7337502076807437e+17
+            ],
+            "relative_half_width95": 0.09920515963311714,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 2.4676068099923952e+17,
+            "cohort_maximum": 2.506442272151998e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 2,
+          "endpoints": {
+            "estimate": 3577539640076177.0,
+            "standard_error": 26339012535779.117,
+            "ci95": [
+              3242870754252497.0,
+              3912208525899857.0
+            ],
+            "relative_half_width95": 0.09354721945626124,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 3551200627540398.0,
+            "cohort_maximum": 3603878652611956.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 6.732457656056891e+16,
+            "standard_error": 495662333034700.9,
+            "ci95": [
+              6.1026589477106584e+16,
+              7.362256364403123e+16
+            ],
+            "relative_half_width95": 0.09354662747557436,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6.682891422753421e+16,
+            "cohort_maximum": 6.782023889360362e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 5.0647962878708224e+17,
+            "standard_error": 3727300194928541.5,
+            "ci95": [
+              4.5911978939778746e+17,
+              5.5383946817637696e+17
+            ],
+            "relative_half_width95": 0.09350788599871654,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 5.0275232859215366e+17,
+            "cohort_maximum": 5.1020692898201075e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 3,
+          "endpoints": {
+            "estimate": 2434497660638403.5,
+            "standard_error": 16565968589943.18,
+            "ci95": [
+              2224007072084440.0,
+              2644988249192366.5
+            ],
+            "relative_half_width95": 0.08646161052328384,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 2417931692048460.0,
+            "cohort_maximum": 2451063629228346.5,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 8.34238610164716e+16,
+            "standard_error": 567941320045776.4,
+            "ci95": [
+              7.620748232593587e+16,
+              9.064023970700733e+16
+            ],
+            "relative_half_width95": 0.08650257375537795,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 8.285591969642582e+16,
+            "cohort_maximum": 8.399180233651738e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 6.470363673701396e+17,
+            "standard_error": 4404199715476232.0,
+            "ci95": [
+              5.910757040870657e+17,
+              7.029970306532136e+17
+            ],
+            "relative_half_width95": 0.08648766298952319,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6.426321676546634e+17,
+            "cohort_maximum": 6.514405670856159e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 4,
+          "endpoints": {
+            "estimate": 1415463272322519.0,
+            "standard_error": 8955555786511.418,
+            "ci95": [
+              1301672146974435.5,
+              1529254397670602.5
+            ],
+            "relative_half_width95": 0.08039143619839245,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 1406507716536007.5,
+            "cohort_maximum": 1424418828109030.2,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 7.860147786879974e+16,
+            "standard_error": 497156613847773.25,
+            "ci95": [
+              7.228450414739346e+16,
+              8.491845159020605e+16
+            ],
+            "relative_half_width95": 0.08036711131501223,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 7.810432125495198e+16,
+            "cohort_maximum": 7.909863448264752e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 6.234199218154744e+17,
+            "standard_error": 3941896700124820.5,
+            "ci95": [
+              5.733333752955257e+17,
+              6.735064683354232e+17
+            ],
+            "relative_half_width95": 0.08034158801677473,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6.194780251153496e+17,
+            "cohort_maximum": 6.273618185155992e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 5,
+          "endpoints": {
+            "estimate": 724740914834440.5,
+            "standard_error": 4689612553230.844,
+            "ci95": [
+              665153737600573.6,
+              784328092068307.2
+            ],
+            "relative_half_width95": 0.08221859151898285,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 720051302281209.6,
+            "cohort_maximum": 729430527387671.2,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 6.0488546498556536e+16,
+            "standard_error": 391576628874753.06,
+            "ci95": [
+              5.551309368224123e+16,
+              6.546399931487184e+16
+            ],
+            "relative_half_width95": 0.08225446145302952,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6.0096969869681784e+16,
+            "cohort_maximum": 6.088012312743129e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 4.8489878835249715e+17,
+            "standard_error": 3138234424530800.0,
+            "ci95": [
+              4.450237392448457e+17,
+              5.247738374601486e+17
+            ],
+            "relative_half_width95": 0.08223375695190296,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 4.8176055392796634e+17,
+            "cohort_maximum": 4.88037022777028e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 6,
+          "endpoints": {
+            "estimate": 331344932161327.1,
+            "standard_error": 2814790625387.4897,
+            "ci95": [
+              295579626186180.2,
+              367110238136474.1
+            ],
+            "relative_half_width95": 0.10793980080471942,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 328530141535939.7,
+            "cohort_maximum": 334159722786714.6,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 3.4209834865758196e+16,
+            "standard_error": 290503830957776.56,
+            "ci95": [
+              3.051863371301635e+16,
+              3.790103601850004e+16
+            ],
+            "relative_half_width95": 0.10789882988989505,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 3.391933103480042e+16,
+            "cohort_maximum": 3.4500338696715972e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 2.8906622441055405e+17,
+            "standard_error": 2454871707378265.0,
+            "ci95": [
+              2.5787412189599197e+17,
+              3.202583269251162e+17
+            ],
+            "relative_half_width95": 0.10790642378979806,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 2.866113527031758e+17,
+            "cohort_maximum": 2.9152109611793235e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 7,
+          "endpoints": {
+            "estimate": 136018517258149.14,
+            "standard_error": 2026179077097.1287,
+            "ci95": [
+              110273471072753.5,
+              161763563443544.78
+            ],
+            "relative_half_width95": 0.189276039059698,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 133992338181052.0,
+            "cohort_maximum": 138044696335246.27,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 1.6154729076726778e+16,
+            "standard_error": 240495591792435.56,
+            "ci95": [
+              1.309894284930661e+16,
+              1.9210515304146948e+16
+            ],
+            "relative_half_width95": 0.18915738004065133,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 1.5914233484934342e+16,
+            "cohort_maximum": 1.6395224668519214e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 1.4506096983895555e+17,
+            "standard_error": 2159525179637813.5,
+            "ci95": [
+              1.1762160077393032e+17,
+              1.725003389039808e+17
+            ],
+            "relative_half_width95": 0.18915749078120742,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 1.4290144465931774e+17,
+            "cohort_maximum": 1.4722049501859338e+17,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 8,
+          "endpoints": {
+            "estimate": 50181212399327.805,
+            "standard_error": 1496489523732.7559,
+            "ci95": [
+              31166510125500.28,
+              69195914673155.336
+            ],
+            "relative_half_width95": 0.3789207427376194,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 48684722875595.05,
+            "cohort_maximum": 51677701923060.56,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 6848631083074237.0,
+            "standard_error": 204240368001286.94,
+            "ci95": [
+              4253511151893901.5,
+              9443751014254572.0
+            ],
+            "relative_half_width95": 0.3789253501468251,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6644390715072950.0,
+            "cohort_maximum": 7052871451075524.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 6.4051776171723144e+16,
+            "standard_error": 1910732183279510.8,
+            "ci95": [
+              3.977362185530941e+16,
+              8.832993048813688e+16
+            ],
+            "relative_half_width95": 0.3790395172075147,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6.214104398844363e+16,
+            "cohort_maximum": 6.596250835500266e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 9,
+          "endpoints": {
+            "estimate": 16581160106108.104,
+            "standard_error": 977156086346.1738,
+            "ci95": [
+              4165214813965.1255,
+              28997105398251.08
+            ],
+            "relative_half_width95": 0.7487983478049428,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 15604004019761.93,
+            "cohort_maximum": 17558316192454.277,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 2321334229924864.5,
+            "standard_error": 136793038463024.52,
+            "ci95": [
+              583213876754151.9,
+              4059454583095577.0
+            ],
+            "relative_half_width95": 0.7487591966569033,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 2184541191461839.8,
+            "cohort_maximum": 2458127268387889.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 2.3627723579258684e+16,
+            "standard_error": 1392164423768282.2,
+            "ci95": [
+              5938597384683425.0,
+              4.1316849773833944e+16
+            ],
+            "relative_half_width95": 0.7486597739827736,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 2.22355591554904e+16,
+            "cohort_maximum": 2.5019888003026964e+16,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 10,
+          "endpoints": {
+            "estimate": 4867800975308.865,
+            "standard_error": 527559346349.06836,
+            "ci95": [
+              -1835476089792.7314,
+              11571078040410.463
+            ],
+            "relative_half_width95": 1.3770647360282164,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 4340241628959.797,
+            "cohort_maximum": 5395360321657.934,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 688665615032440.1,
+            "standard_error": 74635093569128.75,
+            "ci95": [
+              -259663164347426.8,
+              1636994394412307.0
+            ],
+            "relative_half_width95": 1.3770526053274712,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 614030521463311.4,
+            "cohort_maximum": 763300708601568.9,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 7624410107297113.0,
+            "standard_error": 826389723698763.5,
+            "ci95": [
+              -2875866913745847.5,
+              1.812468712834007e+16
+            ],
+            "relative_half_width95": 1.3771920546342902,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 6798020383598349.0,
+            "cohort_maximum": 8450799830995876.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 11,
+          "endpoints": {
+            "estimate": 1252619011442.795,
+            "standard_error": 229207304438.5957,
+            "ci95": [
+              -1659735925740.6838,
+              4164973948626.274
+            ],
+            "relative_half_width95": 2.325012562142868,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 1023411707004.1992,
+            "cohort_maximum": 1481826315881.3906,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 177896335475668.97,
+            "standard_error": 32552370229593.914,
+            "ci95": [
+              -235720745303622.62,
+              591513416254960.6
+            ],
+            "relative_half_width95": 2.325045536622998,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 145343965246075.06,
+            "cohort_maximum": 210448705705262.9,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 2135062520911815.5,
+            "standard_error": 390748498167232.6,
+            "ci95": [
+              -2829867897085563.0,
+              7099992938909194.0
+            ],
+            "relative_half_width95": 2.3254262436666346,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 1744314022744582.8,
+            "cohort_maximum": 2525811019079048.0,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 12,
+          "endpoints": {
+            "estimate": 276805973941.92773,
+            "standard_error": 78713695279.66992,
+            "ci95": [
+              -723346353808.675,
+              1276958301692.5305
+            ],
+            "relative_half_width95": 3.6131890995980775,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 198092278662.2578,
+            "cohort_maximum": 355519669221.59766,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 39355824970730.0,
+            "standard_error": 11191840321673.846,
+            "ci95": [
+              -102849989529077.98,
+              181561639470538.0
+            ],
+            "relative_half_width95": 3.6133358811705842,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 28163984649056.156,
+            "cohort_maximum": 50547665292403.85,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 509657150244051.8,
+            "standard_error": 144885907086180.5,
+            "ci95": [
+              -1331292848554030.8,
+              2350607149042134.5
+            ],
+            "relative_half_width95": 3.612134153158716,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 364771243157871.3,
+            "cohort_maximum": 654543057330232.2,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 13,
+          "endpoints": {
+            "estimate": 50989178278.6875,
+            "standard_error": 20898943327.441406,
+            "ci95": [
+              -214557074405.84412,
+              316535430963.2191
+            ],
+            "relative_half_width95": 5.207894334620506,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 30090234951.246094,
+            "cohort_maximum": 71888121606.1289,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 7251269236219.986,
+            "standard_error": 2971988870172.275,
+            "ci95": [
+              -30511429821302.26,
+              45013968293742.234
+            ],
+            "relative_half_width95": 5.207736442731723,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 4279280366047.711,
+            "cohort_maximum": 10223258106392.262,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 100864873587209.73,
+            "standard_error": 41316107663881.58,
+            "ci95": [
+              -424106049284688.4,
+              625835796459107.9
+            ],
+            "relative_half_width95": 5.204695194685373,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 59548765923328.15,
+            "cohort_maximum": 142180981251091.3,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 14,
+          "endpoints": {
+            "estimate": 7493915515.9921875,
+            "standard_error": 4145841143.3320312,
+            "ci95": [
+              -45183990854.11693,
+              60171821886.1013
+            ],
+            "relative_half_width95": 7.029423571388449,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 3348074372.6601562,
+            "cohort_maximum": 11639756659.324219,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 1065612720484.6875,
+            "standard_error": 589702407376.2188,
+            "ci95": [
+              -6427266800949.625,
+              8558492241919.0
+            ],
+            "relative_half_width95": 7.031522219466582,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 475910313108.46875,
+            "cohort_maximum": 1655315127860.9062,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 15836188097549.602,
+            "standard_error": 8772731405938.933,
+            "ci95": [
+              -95631933240247.61,
+              127304309435346.81
+            ],
+            "relative_half_width95": 7.038822767901142,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 7063456691610.668,
+            "cohort_maximum": 24608919503488.535,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 15,
+          "endpoints": {
+            "estimate": 821105692.1542969,
+            "standard_error": 579229596.7910156,
+            "ci95": [
+              -6538704153.823076,
+              8180915538.13167
+            ],
+            "relative_half_width95": 8.963291712992248,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 241876095.36328125,
+            "cohort_maximum": 1400335288.9453125,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 116828275780.59961,
+            "standard_error": 82405488314.16211,
+            "ci95": [
+              -930232730109.1996,
+              1163889281670.399
+            ],
+            "relative_half_width95": 8.962393726122878,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 34422787466.4375,
+            "cohort_maximum": 199233764094.76172,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 1845599476427.2266,
+            "standard_error": 1299842136482.2734,
+            "ci95": [
+              -14670460834196.195,
+              18361659787050.65
+            ],
+            "relative_half_width95": 8.948886538804055,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 545757339944.9531,
+            "cohort_maximum": 3145441612909.5,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        },
+        {
+          "class": 16,
+          "endpoints": {
+            "estimate": 61529883.908203125,
+            "standard_error": 53043003.369140625,
+            "ci95": [
+              -612445376.7124354,
+              735505144.5288416
+            ],
+            "relative_half_width95": 10.953624772413793,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 8486880.5390625,
+            "cohort_maximum": 114572887.27734375,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cases": {
+            "estimate": 8749973835.773438,
+            "standard_error": 7540593358.957031,
+            "ci95": [
+              -87062349214.05655,
+              104562296885.60342
+            ],
+            "relative_half_width95": 10.950012519821533,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 1209380476.8164062,
+            "cohort_maximum": 16290567194.730469,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "iters": {
+            "estimate": 146844250527.1289,
+            "standard_error": 126921298461.67967,
+            "ci95": [
+              -1465843753085.9348,
+              1759532254140.1926
+            ],
+            "relative_half_width95": 10.982302663018638,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 19922952065.44922,
+            "cohort_maximum": 273765548988.8086,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          }
+        }
+      ],
+      "variants": [
+        {
+          "name": "novote_oee",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "gpu_transport": "parents",
+          "gpu_years": {
+            "estimate": 0.6353485405888702,
+            "standard_error": 0.004480081792165305,
+            "ci95": [
+              0.578423704103592,
+              0.6922733770741484
+            ],
+            "relative_half_width95": 0.08959623395454346,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 0.630868458796705,
+            "cohort_maximum": 0.6398286223810355,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "cpu_core_years": {
+            "estimate": 0.08499038762028227,
+            "standard_error": 0.0011950444981597436,
+            "ci95": [
+              0.06980590755803419,
+              0.10017486768253034
+            ],
+            "relative_half_width95": 0.17866114612971157,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 0.08379534312212251,
+            "cohort_maximum": 0.08618543211844201,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "transfer_bytes": {
+            "estimate": 3373547914335763.0,
+            "standard_error": 27842263981581.37,
+            "ci95": [
+              3019778407872031.5,
+              3727317420799495.0
+            ],
+            "relative_half_width95": 0.10486571272943877,
+            "cohort_count": 2,
+            "degrees_of_freedom": 1,
+            "cohort_minimum": 3345705650354182.0,
+            "cohort_maximum": 3401390178317344.5,
+            "method": "Student-t interval on independent cohort means; approximate, not distribution-free"
+          },
+          "mean_busy_cpu_cores": 0.13376970621748696,
+          "cohort_wall_seconds": [
+            4.691640087,
+            4.7582749965
+          ],
+          "cohort_cpu_seconds": [
+            0.6231688800000015,
+            0.6409434844999922
+          ],
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          }
+        }
+      ],
+      "aggregate_calibration": [],
+      "gpu_setup": {
+        "process_cpu_seconds": 75.389572702,
+        "type": "gpu_setup",
+        "wall_seconds": 75.372898655
+      },
+      "sampling_records": [
+        {
+          "accepted": 239,
+          "baseline_descendants": "3856006343",
+          "cheap_rejected": 14,
+          "cohort": 0,
+          "drawn": 256,
+          "duplicates_retained": 0,
+          "sampling_process_cpu_seconds": 0.0035793579999999978,
+          "sampling_seconds": 0.003153257,
+          "seed": 7671909092089349006,
+          "type": "cohort",
+          "walk_rejected": 3
+        },
+        {
+          "accepted": 238,
+          "baseline_descendants": "3857759882",
+          "cheap_rejected": 18,
+          "cohort": 1,
+          "drawn": 256,
+          "duplicates_retained": 0,
+          "sampling_process_cpu_seconds": 0.0033261320000000025,
+          "sampling_seconds": 0.0025598,
+          "seed": 7159423796239308355,
+          "type": "cohort",
+          "walk_rejected": 0
+        }
+      ],
+      "runner": {
+        "started_at": "2026-10-24T04:49:18.493024+00:00",
+        "state": "complete",
+        "command": [
+          "taskset",
+          "-c",
+          "0-1",
+          "/tmp/collatz-fullrange-target/release/fullrange_bench",
+          "target",
+          "256",
+          "2",
+          "2",
+          "20261027",
+          "novote_oee",
+          "35,35,35,35,34,32,32,32,27,27,27,27,27,27,27,27",
+          "8"
+        ],
+        "arguments": {
+          "out": "results/fullrange_pipeline/a8_remapped_pilot",
+          "profile": "target",
+          "a": 8,
+          "roots": 256,
+          "repetitions": 2,
+          "threads": 2,
+          "seed": 20261027,
+          "variants": "novote_oee",
+          "affinity": "0-1",
+          "class_b": "35,35,35,35,34,32,32,32,27,27,27,27,27,27,27,27",
+          "binary": "/tmp/collatz-fullrange-target/release/fullrange_bench",
+          "cohorts": 2,
+          "cutoff": 50,
+          "entry": 52,
+          "aggregate_runs": 0
+        },
+        "working_directory": "/home/ryan/Projects/Collatz/distributed",
+        "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+        "affinity": [
+          0,
+          1
+        ],
+        "cpuinfo": "processor\t: 0\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 3614.590\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 0\ncpu cores\t: 8\napicid\t\t: 0\ninitial apicid\t: 0\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 1\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4776.492\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 1\ncpu cores\t: 8\napicid\t\t: 2\ninitial apicid\t: 2\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 2\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4768.948\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 2\ncpu cores\t: 8\napicid\t\t: 4\ninitial apicid\t: 4\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 3\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4697.683\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 3\ncpu cores\t: 8\napicid\t\t: 6\ninitial apicid\t: 6\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 4\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 2989.471\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 4\ncpu cores\t: 8\napicid\t\t: 8\ninitial apicid\t: 8\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 5\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4789.856\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 5\ncpu cores\t: 8\napicid\t\t: 10\ninitial apicid\t: 10\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 6\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4703.945\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 6\ncpu cores\t: 8\napicid\t\t: 12\ninitial apicid\t: 12\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 7\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4767.315\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 7\ncpu cores\t: 8\napicid\t\t: 14\ninitial apicid\t: 14\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 8\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4082.829\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 0\ncpu cores\t: 8\napicid\t\t: 1\ninitial apicid\t: 1\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 9\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4702.604\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 1\ncpu cores\t: 8\napicid\t\t: 3\ninitial apicid\t: 3\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 10\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 2989.471\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 2\ncpu cores\t: 8\napicid\t\t: 5\ninitial apicid\t: 5\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 11\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 2989.471\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 3\ncpu cores\t: 8\napicid\t\t: 7\ninitial apicid\t: 7\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 12\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4685.557\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 4\ncpu cores\t: 8\napicid\t\t: 9\ninitial apicid\t: 9\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 13\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 4735.650\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 5\ncpu cores\t: 8\napicid\t\t: 11\ninitial apicid\t: 11\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 14\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 2989.471\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 6\ncpu cores\t: 8\napicid\t\t: 13\ninitial apicid\t: 13\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]\n\nprocessor\t: 15\nvendor_id\t: AuthenticAMD\ncpu family\t: 25\nmodel\t\t: 97\nmodel name\t: AMD Ryzen 7 7700X 8-Core Processor\nstepping\t: 2\nmicrocode\t: 0xa60120a\ncpu MHz\t\t: 2989.471\ncache size\t: 1024 KB\nphysical id\t: 0\nsiblings\t: 16\ncore id\t\t: 7\ncpu cores\t: 8\napicid\t\t: 15\ninitial apicid\t: 15\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 16\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nbugs\t\t: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass srso spectre_v2_user tsa vmscape\nbogomips\t: 8983.31\nTLB size\t: 3584 4K pages\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 48 bits physical, 48 bits virtual\npower management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]",
+        "governors": {
+          "0": "powersave",
+          "1": "powersave"
+        },
+        "cv_gpu_slots": "3 (default)",
+        "fullrange_environment": {
+          "CV_FULLRANGE_COHORTS": "2",
+          "CV_FULLRANGE_CUTOFF": "50",
+          "CV_FULLRANGE_ENTRY": "52",
+          "CV_FULLRANGE_AGGREGATE": "0"
+        },
+        "source_sha256": {
+          "Cargo.lock": "7fb625ad996b8f0b54eab8a1f57930b507687f4cf0c3d58344dec7040f5c3cb4",
+          "Cargo.toml": "0360611648409101903eb0d74f63df280c3e8d512fe6ef9b650f522904011218",
+          "build.rs": "e22b1c90f390c3f62baa0d2a2b65df059ee16beeaa51f9e557e0b304bcb711f0",
+          "cuda/kernel.cu": "128a4374018419312bccd8531501e4ff6633cb9cda58f12b1f992868a23e4e13",
+          "scripts/expansion_bench/Cargo.lock": "609bae226558d99285a4381d5aba4365922c9d7fca98f560db9acb8c23903c83",
+          "scripts/expansion_bench/Cargo.toml": "48781dda67da46325378f5e533c184931b41f864ad51a40478bdb1785c76d357",
+          "scripts/expansion_bench/affine.rs": "153c3afc5671cd308736d14af57e3cc6daee69e60b1c2111f65c3299b7060883",
+          "scripts/expansion_bench/blocks.rs": "bc0123193334c6b20c9598a72bf5535de3ed47a73a6192e7b5bc669bfda48778",
+          "scripts/expansion_bench/carry.rs": "362c71cfc2b8775d6f6487f25090a2a7bbe820e91e9dcdcaa5ae7fb4f033d38a",
+          "scripts/expansion_bench/checkpoint_work.rs": "0e6635a6f73eb8dce35a26c5f6eb8e2c7d0a7b2687c9d65a4219195b1cdc2ba3",
+          "scripts/expansion_bench/class_split_bench.rs": "1bd2d64139c67339f5f377bb239f68617bd0876c3bbf384074d8c1278b3f9788",
+          "scripts/expansion_bench/combined.rs": "1e0fb585dba78983c621f37e4d28f5ab48ed68dac77a3c2e2cbc9d0576fd62a4",
+          "scripts/expansion_bench/fast_tail.rs": "d1a5aac4090e5c1331a2a9ef99a94efeef58ae1b8ea872b0fe773ac2af62d491",
+          "scripts/expansion_bench/fullrange_bench.rs": "bc906dc899e24b86e4901e4d32d21aeb5b0b44b1dcdf0cdaf22c72afad6a0ee4",
+          "scripts/expansion_bench/gating.rs": "e4cf9cf367d3cf238e4fcfa51820a74d38b2b26f6ac826c41e4ed3d90b5d8645",
+          "scripts/expansion_bench/main.rs": "df069c06ca7e50516e076d277f9e69231a96e26fa71e398a4285731eacec456a",
+          "scripts/expansion_bench/overall_bench.rs": "66a4d3061a32bf1dbb709f8c710030c83d2ace2baf33ae7a0d332d52d9e022ca",
+          "scripts/expansion_bench/profile.rs": "9bc36a88489b023c439cd29e2b757c94d308d7fb9df1002391a3e2a60bab4a7e",
+          "scripts/expansion_bench/reuse.rs": "848d020b685daf9be9b2757010b91807868f36b7726a447ef77f3474f87b02e6",
+          "scripts/expansion_bench/run_blocks.py": "f1e80ec6898613d1074e56e839d6e76237b86874bf46a4b066d9f690f96c8cb9",
+          "scripts/expansion_bench/run_overall.py": "7a35df30448cac6df833b78cb6e6e5d9723513a76120d1f90e53690bdd210c28",
+          "scripts/expansion_bench/tail_bench.rs": "dffb9889b0fec7e90ca61f5721a70a19f9ea24e9be8af339c6c78561117d7335",
+          "scripts/expansion_bench/tail_policy.rs": "1feb14aded36ad51e0a4d810431290adf994769daab9c40deccf507e536b3001",
+          "scripts/expansion_bench/terminal.rs": "053555659101fab03acc3f3337ad4f1d82c80e2b504fc24e2aa92f4bcaf2370a",
+          "scripts/expansion_bench/terminal_bench.rs": "5af73cd069465fc033463b8d2888b871bc3486db36c1b52a51e121657e09802a",
+          "scripts/expansion_bench/terminal_tests.rs": "a5fd4f5f020d1683f2be161e31ba7c0e3534db4d8e664539a102f94ba5f061d9",
+          "scripts/expansion_bench/terminal_walk.rs": "cfaf152bb86078184a3dbc08dc9066d9316a81c66b5eeadb0fa987d71f2378a4",
+          "scripts/expansion_bench/ternary.rs": "6460030447de08dc7e5cf9a5414b665f1e0b4a5598af77f0c415d42994c43611",
+          "scripts/expansion_bench/tests.rs": "2858f58517a64374d97f9cb65c947aecf562cc2478d70239d3f7dc7c5d6c9ab4",
+          "scripts/expansion_bench/transport_bench.rs": "2b7804cef3b68225e2a4a4efb50378615bc0d06d1514b2538eef69e012f1224f",
+          "src/arith.rs": "c70ab25082bcf2131ef3fc9e5cf72ce508060ecbf32fc2ec0bfebe834529c529",
+          "src/dp.rs": "4579c0d4f4070095e9eb4493cacd6872021ea70ab6da1021d8bc67ef4d3a2c8a",
+          "src/expansion.rs": "2cb24ad7f5c035f6059a5804859186c8dfa8cf39027ece0212ad9e591c52a3c4",
+          "src/gpu.rs": "32b8e383218decfcda81f4ce9ff93aeed3b01521061616423a18ff61d6c2e92e",
+          "src/lib.rs": "3035ddcb61d50bb2e1cd0807bbd8094b90b171e9803be9d72f8bf9df38e8aa51",
+          "src/lookahead.rs": "edc7c4c06d7433809c00aeecb7526a613db2d4d032019093c4f34814664bfa8b",
+          "src/main.rs": "476453e1fe579f029c52268b3ecf25790d612f25598ab7546e8e0c872afdcbfc",
+          "src/measure.rs": "31ce279102a5bb397a3ff1abf1aa15513d6cab798533fc3ee377ce286d7eb252",
+          "src/rules.rs": "a12d3e3af54195a029d269bec752b22abad793338b1fe20b5ef909c6732acd05",
+          "src/sample.rs": "432619b3317a23ab2f9057cb9cb08ed309b9b16309cf39de8525e1a926c7d2e9",
+          "src/tail.rs": "2537d1a59dcce02ec828f9d5e1169488603be578d39f5d2f51f6ab959d71057c",
+          "src/tree.rs": "8c850764c901a287f85a531fe5db1cd563bd5d4733c58efcfed08f1d77cd7628",
+          "src/units.rs": "fba197eb087214812175d14d0f9455206ed387ca4fd4164a8a97192b31376726",
+          "src/verify.rs": "1fbe8239d2d0f1a5b94941212a41d13c636ee6cf4aba65208cda760958a4afcf"
+        },
+        "notes": "Sources are copied under source/. Hashes identify files and binary, but do not independently establish build provenance. Full-range estimator: fixed uniform baseline K38 draws with replacement; rejected roots contribute zero downstream work. Independent cohort timings and a concatenated-corpus calibration support an N72 extrapolation, not a completed verification.",
+        "binary_sha256": "765569639e4573396b6a37e098efb2e58c6afbef855e03f42c7b362f178fa77c",
+        "rustc": "rustc 1.92.0 (ded5c06cf 2025-12-08)",
+        "gpu_before": "Fri Oct 23 23:49:18 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 595.99.02              Driver Version: 595.99.02      CUDA Version: 13.2     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA GeForce RTX 4090        Off |   00000000:01:00.0 Off |                  Off |\n| 73%   51C    P8             35W /  450W |    1231MiB /  24564MiB |      0%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            4105      G   /usr/lib/xorg/Xorg                      638MiB |\n|    0   N/A  N/A            4362      G   /usr/bin/gnome-shell                     13MiB |\n|    0   N/A  N/A            4869      G   ...exec/xdg-desktop-portal-gnome          9MiB |\n|    0   N/A  N/A            5228      G   ...rack-uuid=3190708988185955192        139MiB |\n|    0   N/A  N/A          105638      G   ...rack-uuid=3190708988185955192        287MiB |\n|    0   N/A  N/A          143586      G   .../8995/usr/lib/firefox/firefox         18MiB |\n|    0   N/A  N/A          269007      G   /usr/bin/nautilus                        20MiB |\n+-----------------------------------------------------------------------------------------+\n",
+        "lscpu": {
+          "lscpu": [
+            {
+              "field": "Architecture:",
+              "data": "x86_64"
+            },
+            {
+              "field": "CPU op-mode(s):",
+              "data": "32-bit, 64-bit"
+            },
+            {
+              "field": "Address sizes:",
+              "data": "48 bits physical, 48 bits virtual"
+            },
+            {
+              "field": "Byte Order:",
+              "data": "Little Endian"
+            },
+            {
+              "field": "CPU(s):",
+              "data": "16"
+            },
+            {
+              "field": "On-line CPU(s) list:",
+              "data": "0-15"
+            },
+            {
+              "field": "Vendor ID:",
+              "data": "AuthenticAMD"
+            },
+            {
+              "field": "Model name:",
+              "data": "AMD Ryzen 7 7700X 8-Core Processor"
+            },
+            {
+              "field": "CPU family:",
+              "data": "25"
+            },
+            {
+              "field": "Model:",
+              "data": "97"
+            },
+            {
+              "field": "Thread(s) per core:",
+              "data": "2"
+            },
+            {
+              "field": "Core(s) per socket:",
+              "data": "8"
+            },
+            {
+              "field": "Socket(s):",
+              "data": "1"
+            },
+            {
+              "field": "Stepping:",
+              "data": "2"
+            },
+            {
+              "field": "Frequency boost:",
+              "data": "enabled"
+            },
+            {
+              "field": "CPU(s) scaling MHz:",
+              "data": "84%"
+            },
+            {
+              "field": "CPU max MHz:",
+              "data": "5575.8662"
+            },
+            {
+              "field": "CPU min MHz:",
+              "data": "403.0750"
+            },
+            {
+              "field": "BogoMIPS:",
+              "data": "8983.31"
+            },
+            {
+              "field": "Flags:",
+              "data": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze"
+            },
+            {
+              "field": "L1d cache:",
+              "data": "256 KiB (8 instances)"
+            },
+            {
+              "field": "L1i cache:",
+              "data": "256 KiB (8 instances)"
+            },
+            {
+              "field": "L2 cache:",
+              "data": "8 MiB (8 instances)"
+            },
+            {
+              "field": "L3 cache:",
+              "data": "32 MiB (1 instance)"
+            },
+            {
+              "field": "NUMA node(s):",
+              "data": "1"
+            },
+            {
+              "field": "NUMA node0 CPU(s):",
+              "data": "0-15"
+            },
+            {
+              "field": "Vulnerability Gather data sampling:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Ghostwrite:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Indirect target selection:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Itlb multihit:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability L1tf:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Mds:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Meltdown:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Mmio stale data:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Old microcode:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Reg file data sampling:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Retbleed:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Spec rstack overflow:",
+              "data": "Mitigation; Safe RET"
+            },
+            {
+              "field": "Vulnerability Spec store bypass:",
+              "data": "Mitigation; Speculative Store Bypass disabled via prctl"
+            },
+            {
+              "field": "Vulnerability Spectre v1:",
+              "data": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization"
+            },
+            {
+              "field": "Vulnerability Spectre v2:",
+              "data": "Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected"
+            },
+            {
+              "field": "Vulnerability Srbds:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Tsa:",
+              "data": "Mitigation; Clear CPU buffers"
+            },
+            {
+              "field": "Vulnerability Tsx async abort:",
+              "data": "Not affected"
+            },
+            {
+              "field": "Vulnerability Vmscape:",
+              "data": "Mitigation; IBPB before exit to userspace"
+            }
+          ]
+        },
+        "exit_status": 0,
+        "finished_at": "2026-10-24T04:50:54.614664+00:00",
+        "elapsed_seconds": 96.12031762499828
+      }
+    }
+  ]
+}

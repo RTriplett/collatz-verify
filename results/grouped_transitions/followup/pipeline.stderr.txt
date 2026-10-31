@@ -1,0 +1,2 @@
+tail-jump W=8 rows=256 usable=163 mean_doubles=0.640625 max_doubles=2 bytes=16384
+tail-jump W=12 rows=4096 usable=3811 mean_doubles=1.124512 max_doubles=3 bytes=262144

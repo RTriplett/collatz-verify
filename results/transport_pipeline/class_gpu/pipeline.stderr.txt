@@ -1,0 +1,4 @@
+accepted 524288 of 2097152 F40 source endpoints
+accepted 1048576 of 2097152 F40 source endpoints
+accepted 1572864 of 2097152 F40 source endpoints
+accepted 2097152 of 2097152 F40 source endpoints

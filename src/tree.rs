@@ -32,6 +32,127 @@ pub struct Node {
     pub ne: EvenRun,
 }
 
+/// A compiled baseline suffix. The layout is shared with experimental CUDA
+/// dispatch; all arithmetic fields describe the canonical residue `r`.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TerminalWord {
+    pub r: u32,
+    pub q_coeff: u32,
+    pub iterate: u32,
+    pub pow3: u32,
+    pub f: u32,
+    pub oee: u32,
+    pub ne: u32,
+    pub pad: u32,
+}
+
+/// Resident two-stage expansion program for one parent parity state and final F.
+/// The layout is shared with the experimental CUDA compact-chain transport.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChainProgram {
+    pub route_start: u32,
+    pub route_len: u32,
+    pub endpoints: u32,
+    pub first_width: u32,
+    pub second_width: u32,
+    pub first_start: u32,
+    pub first_len: u32,
+    pub leaf_start: u32,
+}
+
+/// A reusable first-stage word followed by a contiguous second-stage range.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChainRoute {
+    pub first_index: u32,
+    pub second_start: u32,
+    pub second_len: u32,
+    pub output_start: u32,
+}
+
+/// Dense output scheduling map; indices reference the two short word tables.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChainLeaf {
+    pub first_slot: u32,
+    pub second_index: u32,
+}
+
+/// Both short transition tables and the references that compose their routes.
+/// Words are retained separately; no full-width composed affine words are stored.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ChainTables {
+    pub programs: Vec<ChainProgram>,
+    pub routes: Vec<ChainRoute>,
+    pub words: Vec<TerminalWord>,
+    pub leaves: Vec<ChainLeaf>,
+}
+
+/// Translation from canonical suffix residues to extensions of this parent.
+#[inline]
+pub fn terminal_delta(parent: &Node, width: u32) -> u32 {
+    debug_assert!((1..=12).contains(&width));
+    let inverse = 0xaaaa_aaaa_aaaa_aaabu64.wrapping_pow(parent.f);
+    ((parent.m as u64).wrapping_mul(inverse) & ((1u64 << width) - 1)) as u32
+}
+
+impl TerminalWord {
+    /// Exact affine reconstruction, retaining bits above the compact u64 state.
+    #[inline]
+    pub fn endpoint(&self, parent: &Node, target: u32) -> Node {
+        let width = target - parent.k;
+        debug_assert!(target <= 64 && (1..=12).contains(&width));
+        let q = self.q_coeff.wrapping_sub(terminal_delta(parent, width))
+            & ((1u32 << width) - 1);
+        let x = parent.m + POW3[parent.f as usize] * q as u128;
+        debug_assert_eq!(x & ((1u128 << width) - 1), self.r as u128);
+        debug_assert_eq!(self.pow3 as u128, POW3[(self.f - parent.f) as usize]);
+        let m = ((x - self.r as u128) >> width) * self.pow3 as u128
+            + self.iterate as u128;
+        Node {
+            n0: parent.n0 | ((q as u128) << parent.k),
+            k: target, f: self.f, m, m3: (m % P16 as u128) as u32,
+            oee: self.oee as u8, ne: self.ne as u8,
+        }
+    }
+}
+
+pub fn expand_terminal_group<S: Sink + ?Sized>(
+    sink: &mut S, parent: &Node, entries: &[TerminalWord], target: u32,
+) {
+    for entry in entries {
+        sink.endpoint(&entry.endpoint(parent, target));
+    }
+}
+
+/// Exact CPU fallback for a compact two-stage group. The GPU implementation
+/// retains the same route structure and reconstructs intermediate nodes locally.
+pub fn expand_chained_group<S: Sink + ?Sized>(
+    sink: &mut S,
+    parent: &Node,
+    program: &ChainProgram,
+    routes: &[ChainRoute],
+    words: &[TerminalWord],
+    target: u32,
+) {
+    debug_assert_eq!(routes.len(), program.route_len as usize);
+    debug_assert_eq!(parent.k + program.first_width + program.second_width, target);
+    let middle = parent.k + program.first_width;
+    let mut emitted = 0;
+    for route in routes {
+        debug_assert_eq!(route.output_start, emitted);
+        let prefix = words[route.first_index as usize].endpoint(parent, middle);
+        let start = route.second_start as usize;
+        for word in &words[start..start + route.second_len as usize] {
+            sink.endpoint(&word.endpoint(&prefix, target));
+            emitted += 1;
+        }
+    }
+    debug_assert_eq!(emitted, program.endpoints);
+}
+
 /// 3^16, the largest mixed-word table modulus.
 pub const P16: u64 = 43_046_721;
 /// `3^f mod 3^16` (zero from f = 16 on).
@@ -75,6 +196,17 @@ pub fn next_even_run(ne: EvenRun) -> EvenRun {
 }
 
 impl Node {
+    /// Restore the full iterate for a compact endpoint emitted by an expander.
+    /// The CPU tail needs the exact iterate, including bits above bit 63.
+    pub fn from_compact(n0: u64, k: u32, f: u32, oee: OeeState, ne: EvenRun) -> Self {
+        assert!((2..=64).contains(&k));
+        assert!((n0 as u128) < (1u128 << k));
+        assert!(oee < 3 && ne < 4);
+        let (m, actual_f) = crate::arith::t_iter(n0 as u128, k);
+        assert_eq!(f, actual_f, "compact endpoint odd-step count is inconsistent");
+        Node { n0: n0 as u128, k, f, m, m3: (m % P16 as u128) as u32, oee, ne }
+    }
+
     /// The class `3 (mod 4)`.  Classes 0, 1, 2 (mod 4) descend in <= 2 steps.
     pub fn root(rules: &Rules) -> Node {
         Node { n0: 3, k: 2, f: 2, m: 8, m3: 8, oee: (rules.oee && rules.root_oee) as u8, ne: 0 }
@@ -134,6 +266,27 @@ impl Node {
 /// Receives the depth-`M` survivors.
 pub trait Sink {
     fn endpoint(&mut self, node: &Node);
+
+    /// Accept an endpoint without a final iterate. GPU sinks can pack this
+    /// directly; ordinary sinks reconstruct the exact node for CPU processing.
+    fn compact_endpoint(&mut self, n0: u64, k: u32, f: u32, oee: OeeState, ne: EvenRun) {
+        self.endpoint(&Node::from_compact(n0, k, f, oee, ne));
+    }
+
+    /// A group of suffixes with one final F. Ordinary sinks receive full nodes;
+    /// experimental GPU sinks may send the parent and resident-table indices.
+    fn terminal_group(&mut self, parent: &Node, _entry_start: u32,
+                      entries: &[TerminalWord], target: u32) {
+        expand_terminal_group(self, parent, entries, target);
+    }
+
+    /// Dispatch a parent and resident two-stage program without materializing
+    /// intermediate or final nodes on the host. Ordinary sinks expand exactly.
+    fn chained_group(&mut self, parent: &Node, _program_index: u32,
+                     program: &ChainProgram, routes: &[ChainRoute],
+                     words: &[TerminalWord], target: u32) {
+        expand_chained_group(self, parent, program, routes, words, target);
+    }
 }
 
 /// Per-depth node accounting.
@@ -274,6 +427,34 @@ pub mod u128_str {
 mod tests {
     use super::*;
     use crate::arith::t_iter;
+
+    #[test]
+    fn compact_endpoint_restores_full_nodes_and_wide_iterates() {
+        #[derive(Default)]
+        struct Collect(Vec<Node>);
+        impl Sink for Collect {
+            fn endpoint(&mut self, node: &Node) {
+                self.0.push(*node);
+            }
+        }
+
+        let rules = Rules::baseline();
+        let nodes = frontier(14, &rules, &mut TreeStats::new(14));
+        let mut sink = Collect::default();
+        for node in &nodes {
+            sink.compact_endpoint(node.n0 as u64, node.k, node.f, node.oee, node.ne);
+        }
+        assert_eq!(sink.0, nodes);
+
+        // T^64(2^64-1) = 3^64-1: reconstructing from low iterate bits would
+        // corrupt the CPU fallback even though the starting residue fits u64.
+        sink.compact_endpoint(u64::MAX, 64, 64, 1, 0);
+        let wide = sink.0.last().unwrap();
+        assert_eq!(wide.m, POW3[64] - 1);
+        assert!(wide.m > u64::MAX as u128);
+        assert_eq!(wide.m3, (wide.m % P16 as u128) as u32);
+        assert_eq!((wide.oee, wide.ne), (1, 0));
+    }
 
     #[test]
     fn children_track_iterates() {

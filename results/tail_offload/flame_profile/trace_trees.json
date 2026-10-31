@@ -1,0 +1,437 @@
+{
+  "schema_version": 1,
+  "metric": "sum_device_operation_seconds",
+  "notes": [
+    "Measured stages, not sampled call stacks.",
+    "Device-operation durations overlap across streams and with CPU execution; their sum is not elapsed time.",
+    "CPU core-seconds are separate from device-operation seconds and include activity-tracing overhead.",
+    "CUDA kernel internals are fused: screening, stepping and handoff bookkeeping are not timed separately.",
+    "One warm aggregate capture per variant on the identical saved 512-draw, 484-accepted-root corpus.",
+    "These captures explain attribution and do not replace unprofiled performance measurements."
+  ],
+  "aggregate_corpus_sha256": "f30b13ea1764e4cce947760e1e11e98900567998c373b98cfae95417a015904a",
+  "correctness_audit_passed": true,
+  "matches_confirmation_work": true,
+  "variants": [
+    {
+      "variant": "novote_oee",
+      "label": "Before",
+      "trace_file": "direct_trace.1.sqlite",
+      "wall_seconds": 10.029487444,
+      "process_cpu_seconds": 1.4501169270000105,
+      "deferred_cpu_seconds": 0.0,
+      "gpu": {
+        "name": "Device operations",
+        "metric": "sum_device_operation_seconds",
+        "activity_union_seconds": 10.02812985,
+        "kernel_union_seconds": 10.028090712,
+        "trace_span_seconds": 10.028284603,
+        "children": [
+          {
+            "name": "GPU compute",
+            "children": [
+              {
+                "name": "Candidate screening and tail verification",
+                "raw_kernel_names": [
+                  "void cv_kernel<(int)2, (bool)0, (bool)0, (bool)1, (bool)0, (bool)0>(const unsigned int *, const unsigned int *, const unsigned int *, unsigned int, unsigned long, unsigned int, unsigned int, unsigned int, unsigned int, KParams, KOut *, unsigned int *, const TailJumpEntry *, TailContinuation *, unsigned int *)"
+                ],
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 3.915390368,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 3.919863367,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 3.998974223,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 0
+                  }
+                ],
+                "seconds": 11.834227958,
+                "operation_count": 1858
+              },
+              {
+                "name": "Parent expansion",
+                "raw_kernel_names": [
+                  "cv_expand_parents(const unsigned int *, const unsigned int *, unsigned int *, unsigned long)"
+                ],
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 0.077841957,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 0.078095961,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 0.079470705,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 0
+                  }
+                ],
+                "seconds": 0.235408623,
+                "operation_count": 1858
+              }
+            ],
+            "seconds": 12.069636581,
+            "operation_count": 3716
+          },
+          {
+            "name": "Copies",
+            "children": [
+              {
+                "name": "H2D",
+                "transfer_direction": "H2D",
+                "copy_kind": 1,
+                "transfer_bytes": 1330246400,
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 0.017436471,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 436413312
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 0.017638068,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 441480064
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 0.018048474,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 452353024
+                  }
+                ],
+                "seconds": 0.053123013,
+                "operation_count": 1858
+              },
+              {
+                "name": "D2H",
+                "transfer_direction": "D2H",
+                "copy_kind": 2,
+                "transfer_bytes": 44592,
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 0.000690053,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 14880
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 0.000693546,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 14856
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 0.000606246,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 14856
+                  }
+                ],
+                "seconds": 0.001989845,
+                "operation_count": 1858
+              }
+            ],
+            "seconds": 0.055112857999999994,
+            "operation_count": 3716
+          },
+          {
+            "name": "Buffer clears",
+            "transfer_bytes": 44592,
+            "children": [
+              {
+                "name": "Stream 13",
+                "seconds": 0.000371268,
+                "operation_count": 620,
+                "stream_id": 13,
+                "transfer_bytes": 14880
+              },
+              {
+                "name": "Stream 14",
+                "seconds": 0.000432327,
+                "operation_count": 619,
+                "stream_id": 14,
+                "transfer_bytes": 14856
+              },
+              {
+                "name": "Stream 15",
+                "seconds": 0.000365924,
+                "operation_count": 619,
+                "stream_id": 15,
+                "transfer_bytes": 14856
+              }
+            ],
+            "seconds": 0.001169519,
+            "operation_count": 1858
+          }
+        ],
+        "seconds": 12.125918958,
+        "operation_count": 9290
+      },
+      "cpu": {
+        "name": "CPU busy time",
+        "metric": "cpu_core_seconds",
+        "children": [
+          {
+            "name": "Tail continuations",
+            "seconds": 0.0
+          },
+          {
+            "name": "Other host work",
+            "seconds": 1.4501169270000105
+          }
+        ],
+        "seconds": 1.4501169270000105,
+        "operation_count": 0
+      },
+      "trace_accounting": {
+        "verifier_launches": 1858,
+        "input_transfer_bytes": 1330246400,
+        "output_transfer_bytes": 44592,
+        "device_activity_accounting_matches_report": true
+      }
+    },
+    {
+      "variant": "defer16_cap262k_w4",
+      "label": "After",
+      "trace_file": "direct_trace.2.sqlite",
+      "wall_seconds": 11.130593683,
+      "process_cpu_seconds": 18.596005274999996,
+      "deferred_cpu_seconds": 16.638719362,
+      "gpu": {
+        "name": "Device operations",
+        "metric": "sum_device_operation_seconds",
+        "activity_union_seconds": 11.11551483,
+        "kernel_union_seconds": 11.115077129,
+        "trace_span_seconds": 11.116087349,
+        "children": [
+          {
+            "name": "GPU compute",
+            "children": [
+              {
+                "name": "Candidate screening and tail verification",
+                "raw_kernel_names": [
+                  "void cv_kernel<(int)2, (bool)0, (bool)0, (bool)1, (bool)0, (bool)1>(const unsigned int *, const unsigned int *, const unsigned int *, unsigned int, unsigned long, unsigned int, unsigned int, unsigned int, unsigned int, KParams, KOut *, unsigned int *, const TailJumpEntry *, TailContinuation *, unsigned int *)"
+                ],
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 4.439049012,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 4.132398796,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 4.546113525,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 0
+                  }
+                ],
+                "seconds": 13.117561333000001,
+                "operation_count": 1858
+              },
+              {
+                "name": "Parent expansion",
+                "raw_kernel_names": [
+                  "cv_expand_parents(const unsigned int *, const unsigned int *, unsigned int *, unsigned long)"
+                ],
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 0.089368331,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 0.090444475,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 0
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 0.086116775,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 0
+                  }
+                ],
+                "seconds": 0.26592958099999997,
+                "operation_count": 1858
+              }
+            ],
+            "seconds": 13.383490914000001,
+            "operation_count": 3716
+          },
+          {
+            "name": "Copies",
+            "children": [
+              {
+                "name": "H2D",
+                "transfer_direction": "H2D",
+                "copy_kind": 1,
+                "transfer_bytes": 1330246464,
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 0.017973799,
+                    "operation_count": 620,
+                    "stream_id": 13,
+                    "transfer_bytes": 446870080
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 0.017219641,
+                    "operation_count": 619,
+                    "stream_id": 14,
+                    "transfer_bytes": 425203648
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 0.018503287,
+                    "operation_count": 619,
+                    "stream_id": 15,
+                    "transfer_bytes": 458172736
+                  }
+                ],
+                "seconds": 0.053696727,
+                "operation_count": 1858
+              },
+              {
+                "name": "D2H",
+                "transfer_direction": "D2H",
+                "copy_kind": 2,
+                "transfer_bytes": 13823891640,
+                "children": [
+                  {
+                    "name": "Stream 13",
+                    "seconds": 0.178643584,
+                    "operation_count": 1860,
+                    "stream_id": 13,
+                    "transfer_bytes": 4609849200
+                  },
+                  {
+                    "name": "Stream 14",
+                    "seconds": 0.184715239,
+                    "operation_count": 1857,
+                    "stream_id": 14,
+                    "transfer_bytes": 4542613364
+                  },
+                  {
+                    "name": "Stream 15",
+                    "seconds": 0.180915256,
+                    "operation_count": 1857,
+                    "stream_id": 15,
+                    "transfer_bytes": 4671429076
+                  }
+                ],
+                "seconds": 0.544274079,
+                "operation_count": 5574
+              }
+            ],
+            "seconds": 0.597970806,
+            "operation_count": 7432
+          },
+          {
+            "name": "Buffer clears",
+            "transfer_bytes": 52024,
+            "children": [
+              {
+                "name": "Stream 13",
+                "seconds": 0.001199376,
+                "operation_count": 1240,
+                "stream_id": 13,
+                "transfer_bytes": 17360
+              },
+              {
+                "name": "Stream 14",
+                "seconds": 0.001015913,
+                "operation_count": 1238,
+                "stream_id": 14,
+                "transfer_bytes": 17332
+              },
+              {
+                "name": "Stream 15",
+                "seconds": 0.001294196,
+                "operation_count": 1238,
+                "stream_id": 15,
+                "transfer_bytes": 17332
+              }
+            ],
+            "seconds": 0.003509485,
+            "operation_count": 3716
+          }
+        ],
+        "seconds": 13.984971205,
+        "operation_count": 14864
+      },
+      "cpu": {
+        "name": "CPU busy time",
+        "metric": "cpu_core_seconds",
+        "children": [
+          {
+            "name": "Tail continuations",
+            "seconds": 16.638719362
+          },
+          {
+            "name": "Other host work",
+            "seconds": 1.9572859129999962
+          }
+        ],
+        "seconds": 18.596005274999996,
+        "operation_count": 0
+      },
+      "trace_accounting": {
+        "verifier_launches": 1858,
+        "input_transfer_bytes": 1330246464,
+        "output_transfer_bytes": 13823891640,
+        "device_activity_accounting_matches_report": true
+      }
+    }
+  ],
+  "trace_sha256": {
+    "direct_trace.1.sqlite": "c0f25ef4adcea34e490e94a863e91127780fa8ad0eabcbd45c58ca14b18d8fe8",
+    "direct_trace.2.sqlite": "82c442ff7d09355686ac2f49de91948ce841b4a51e7ff55d1bbe5a2e3f9db5ab"
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "aggregate_corpus_sha256": "f30b13ea1764e4cce947760e1e11e98900567998c373b98cfae95417a015904a",
+  "correctness_audit_passed": true,
+  "matches_confirmation_work": true,
+  "variants": [
+    {
+      "variant": "novote_oee",
+      "gpu_phases": {
+        "name": "Fused GPU verifier: diagnostic lane residence",
+        "metric": "gpu_cycles",
+        "cycles": 51637530156064,
+        "sample_count": 30272768,
+        "children": [
+          {
+            "name": "Endpoint state and filter setup",
+            "cycles": 43219724160,
+            "description": "Load endpoint and exact iterate, derive bitvector offset and mod-9/OEE masks."
+          },
+          {
+            "name": "Step 2: bitvector / mod-9 / OEE screening and candidate assembly",
+            "cycles": 2777608377765,
+            "description": "Read lookahead words, combine masks, enumerate set bits and construct each exact candidate."
+          },
+          {
+            "name": "Step 3: exact trajectory stepping and handoff",
+            "cycles": 44220630776436,
+            "description": "Alternating odd/even runs, arithmetic-cutoff and descent checks, per-iteration checksum, plus offload queue handling when enabled."
+          },
+          {
+            "name": "Warp completion and checksum reduction",
+            "cycles": 4596071277703,
+            "description": "Waiting for other lanes at warp completion, warp reductions and atomic accumulation of final verification counters. This is not pure checksum arithmetic. Diagnostic counter writes are excluded."
+          }
+        ],
+        "description": "Summed sampled lane clock64 deltas across warm aggregate repetitions. Includes stalls, warp scheduling and instrumentation. These are diagnostic shares, not additive GPU execution seconds.",
+        "source_file": "gpu_phase_profile/pipeline.stderr.txt",
+        "attribution_method": "instrumented_lane_elapsed_cycles"
+      },
+      "captures": [
+        {
+          "type": "gpu_phase_profile",
+          "capture": 1,
+          "sampling_stride_blocks": 128,
+          "starting_offset_seed": 0,
+          "verifier_launches": 1858,
+          "sampled_lanes": 15136768,
+          "sampled_blocks": 59128,
+          "sampled_cases": 1489412276,
+          "sampled_double_iterations": 11911512025,
+          "cycles": {
+            "endpoint_setup": 21748125216,
+            "completion_screening": 1398312530237,
+            "exact_trajectory": 22130992836160,
+            "checksum_reduction": 2299084800739
+          },
+          "total_lane_cycles": 25850138292352,
+          "partition_exact": true,
+          "metric": "sampled_lane_elapsed_cycles_including_stalls_and_instrumentation",
+          "repetition": 0,
+          "wall_seconds": 9.534008356,
+          "shares": {
+            "endpoint_setup": 0.0008413156235390192,
+            "completion_screening": 0.05409303866860564,
+            "exact_trajectory": 0.8561266708080884,
+            "checksum_reduction": 0.08893897489976699
+          },
+          "sampled_case_fraction": 0.007812831718409803,
+          "sampled_iteration_fraction": 0.007812915038155626
+        },
+        {
+          "type": "gpu_phase_profile",
+          "capture": 4,
+          "sampling_stride_blocks": 128,
+          "starting_offset_seed": 159,
+          "verifier_launches": 1858,
+          "sampled_lanes": 15136000,
+          "sampled_blocks": 59125,
+          "sampled_cases": 1489054729,
+          "sampled_double_iterations": 11907482196,
+          "cycles": {
+            "endpoint_setup": 21471598944,
+            "completion_screening": 1379295847528,
+            "exact_trajectory": 22089637940276,
+            "checksum_reduction": 2296986476964
+          },
+          "total_lane_cycles": 25787391863712,
+          "partition_exact": true,
+          "metric": "sampled_lane_elapsed_cycles_including_stalls_and_instrumentation",
+          "repetition": 1,
+          "wall_seconds": 9.519466296000001,
+          "shares": {
+            "endpoint_setup": 0.0008326394176455984,
+            "completion_screening": 0.05348721789383223,
+            "exact_trajectory": 0.8566061297327444,
+            "checksum_reduction": 0.08907401295577773
+          },
+          "sampled_case_fraction": 0.007810956176904315,
+          "sampled_iteration_fraction": 0.007810271821112383
+        }
+      ],
+      "mean_instrumented_wall_seconds": 9.526737326,
+      "mean_saved_confirmation_wall_seconds": 10.19913378,
+      "wall_ratio_to_saved_confirmation": 0.9340731802813943,
+      "mean_fresh_control_wall_seconds": 8.673300787999999,
+      "wall_ratio_to_fresh_control": 1.0983981253343338,
+      "fresh_control_repetitions": [
+        {
+          "repetition": 0,
+          "wall_seconds": 8.678768435
+        },
+        {
+          "repetition": 1,
+          "wall_seconds": 8.667833141
+        }
+      ]
+    },
+    {
+      "variant": "defer16_cap262k_w4",
+      "gpu_phases": {
+        "name": "Fused GPU verifier: diagnostic lane residence",
+        "metric": "gpu_cycles",
+        "cycles": 55465239412320,
+        "sample_count": 30272768,
+        "children": [
+          {
+            "name": "Endpoint state and filter setup",
+            "cycles": 40880250752,
+            "description": "Load endpoint and exact iterate, derive bitvector offset and mod-9/OEE masks."
+          },
+          {
+            "name": "Step 2: bitvector / mod-9 / OEE screening and candidate assembly",
+            "cycles": 3192361614146,
+            "description": "Read lookahead words, combine masks, enumerate set bits and construct each exact candidate."
+          },
+          {
+            "name": "Step 3: exact trajectory stepping and handoff",
+            "cycles": 47284953712572,
+            "description": "Alternating odd/even runs, arithmetic-cutoff and descent checks, per-iteration checksum, plus offload queue handling when enabled."
+          },
+          {
+            "name": "Warp completion and checksum reduction",
+            "cycles": 4947043834850,
+            "description": "Waiting for other lanes at warp completion, warp reductions and atomic accumulation of final verification counters. This is not pure checksum arithmetic. Diagnostic counter writes are excluded."
+          }
+        ],
+        "description": "Summed sampled lane clock64 deltas across warm aggregate repetitions. Includes stalls, warp scheduling and instrumentation. These are diagnostic shares, not additive GPU execution seconds.",
+        "source_file": "gpu_phase_profile/pipeline.stderr.txt",
+        "attribution_method": "instrumented_lane_elapsed_cycles"
+      },
+      "captures": [
+        {
+          "type": "gpu_phase_profile",
+          "capture": 2,
+          "sampling_stride_blocks": 128,
+          "starting_offset_seed": 53,
+          "verifier_launches": 1858,
+          "sampled_lanes": 15135488,
+          "sampled_blocks": 59123,
+          "sampled_cases": 1488926942,
+          "sampled_double_iterations": 11895251986,
+          "cycles": {
+            "endpoint_setup": 20456673280,
+            "completion_screening": 1596218629124,
+            "exact_trajectory": 23636860210738,
+            "checksum_reduction": 2472787930410
+          },
+          "total_lane_cycles": 27726323443552,
+          "partition_exact": true,
+          "metric": "sampled_lane_elapsed_cycles_including_stalls_and_instrumentation",
+          "repetition": 0,
+          "wall_seconds": 10.272355558,
+          "shares": {
+            "endpoint_setup": 0.0007378069191772838,
+            "completion_screening": 0.05757051173314559,
+            "exact_trajectory": 0.8525061124263469,
+            "checksum_reduction": 0.0891855689213302
+          },
+          "sampled_case_fraction": 0.007810285859932387,
+          "sampled_iteration_fraction": 0.007809783730269508
+        },
+        {
+          "type": "gpu_phase_profile",
+          "capture": 3,
+          "sampling_stride_blocks": 128,
+          "starting_offset_seed": 106,
+          "verifier_launches": 1858,
+          "sampled_lanes": 15137280,
+          "sampled_blocks": 59130,
+          "sampled_cases": 1489584554,
+          "sampled_double_iterations": 11901793771,
+          "cycles": {
+            "endpoint_setup": 20423577472,
+            "completion_screening": 1596142985022,
+            "exact_trajectory": 23648093501834,
+            "checksum_reduction": 2474255904440
+          },
+          "total_lane_cycles": 27738915968768,
+          "partition_exact": true,
+          "metric": "sampled_lane_elapsed_cycles_including_stalls_and_instrumentation",
+          "repetition": 1,
+          "wall_seconds": 10.268859636,
+          "shares": {
+            "endpoint_setup": 0.0007362788616179327,
+            "completion_screening": 0.057541649674383126,
+            "exact_trajectory": 0.8525240686571902,
+            "checksum_reduction": 0.08919800280680874
+          },
+          "sampled_case_fraction": 0.0078137354164956,
+          "sampled_iteration_fraction": 0.007814078402322294
+        }
+      ],
+      "mean_instrumented_wall_seconds": 10.270607597,
+      "mean_saved_confirmation_wall_seconds": 11.014084605499999,
+      "wall_ratio_to_saved_confirmation": 0.9324976123636515,
+      "mean_fresh_control_wall_seconds": 9.420473485999999,
+      "wall_ratio_to_fresh_control": 1.0902432465059646,
+      "fresh_control_repetitions": [
+        {
+          "repetition": 0,
+          "wall_seconds": 9.415093574
+        },
+        {
+          "repetition": 1,
+          "wall_seconds": 9.425853398
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Exact lane-cycle partitions; shares describe the instrumented program, not uninstrumented GPU seconds.",
+    "One sampled block per 128 block indices, with offset advancing per launch and by 53 per capture; all live lanes in selected blocks are measured.",
+    "Repeated aggregate trials reuse identical roots. Different offsets diagnose sensitivity; two captures are not a precision estimate.",
+    "Clock reads, branches and additional register pressure perturb execution. Separate runtime controls quantify observed runtime changes.",
+    "Warp-completion time includes reconvergence and waiting for longer trajectories in other lanes; it is not pure checksum arithmetic. Other phase intervals can also include SIMT waiting.",
+    "Global diagnostic counter atomics occur after each sampled lane's final timestamp, but can affect other warps' scheduling."
+  ],
+  "raw_sha256": {
+    "pipeline.jsonl": "ec99e45569c2239119cb7a1f0845a71c0890c1b22cd5a361e5a4b9986791fa9b",
+    "pipeline.stderr.txt": "83f44e4230076ba73c33df83b3dc6b64ddfadeceb1f298b202789e4509aaaed4",
+    "metadata.json": "273db05067a86226fad51cf248072fa1e2d9dcd28e039022133c65bd3c011dfb",
+    "build_metadata.json": "23aac3f66fe53a5003439668f217c709f792a9952e68a583552957a0850e7269",
+    "control/pipeline.jsonl": "e9ca6adb2d02585cf5a7ffb94deeb1ef55d1bdd3c836a80d2fe29395dda48ad1",
+    "control/pipeline.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "control/metadata.json": "566f68defbf3e69444a0d9cd680b46dd9f4f6e07f2189f46e6bfa87a8e2a7d73"
+  }
+}

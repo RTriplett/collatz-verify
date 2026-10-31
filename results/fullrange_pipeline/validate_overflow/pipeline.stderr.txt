@@ -1,0 +1,4 @@
+
+thread 'main' (506156) panicked at fullrange_bench.rs:200:6:
+GPU full-range cohort run: 67484 trajectories reached 2^97 in one launch (the flag buffer holds 65536); raise --cutoff-bits
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

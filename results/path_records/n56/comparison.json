@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "global_path_records_complete": false,
+  "published_source": "https://pcbarina.fit.vut.cz/path-records.htm",
+  "oracle": "Python arbitrary-precision integers, ordinary-map transitions, shortcut states after even-input transitions",
+  "source_report": "results/path_records/n56/verification.json",
+  "source_candidates": "results/path_records/n56/candidates.json",
+  "flagged_occurrences": 2236,
+  "unique_candidates": 2236,
+  "duplicate_occurrences": 0,
+  "all_exported_metrics_match_independent_oracle": true,
+  "published_records_matched": [
+    {
+      "record_id": 73,
+      "first_descent_step": 435,
+      "occurrences": 1,
+      "shortcut_maximum": "1823036311464280263720932141024",
+      "shortcut_peak_step": 227,
+      "standard_maximum": "3646072622928560527441864282048",
+      "standard_peak_step": 401,
+      "start": "1254251874774375",
+      "total_shortcut_steps": 659,
+      "total_standard_steps": 1043
+    },
+    {
+      "record_id": 74,
+      "first_descent_step": 536,
+      "occurrences": 1,
+      "shortcut_maximum": "1964730439297455725829478995944",
+      "shortcut_peak_step": 332,
+      "standard_maximum": "3929460878594911451658957991888",
+      "standard_peak_step": 571,
+      "start": "5323048232813247",
+      "total_shortcut_steps": 799,
+      "total_standard_steps": 1270
+    },
+    {
+      "record_id": 75,
+      "first_descent_step": 462,
+      "occurrences": 1,
+      "shortcut_maximum": "13471057008351679202003944688336",
+      "shortcut_peak_step": 257,
+      "standard_maximum": "26942114016703358404007889376672",
+      "standard_peak_step": 450,
+      "start": "8562235014026655",
+      "total_shortcut_steps": 779,
+      "total_standard_steps": 1237
+    },
+    {
+      "record_id": 76,
+      "first_descent_step": 485,
+      "occurrences": 1,
+      "shortcut_maximum": "175294593968539094415936960141122",
+      "shortcut_peak_step": 298,
+      "standard_maximum": "350589187937078188831873920282244",
+      "standard_peak_step": 519,
+      "start": "10709980568908647",
+      "total_shortcut_steps": 735,
+      "total_standard_steps": 1165
+    },
+    {
+      "record_id": 77,
+      "first_descent_step": 623,
+      "occurrences": 1,
+      "shortcut_maximum": "301753104069007668258074264675786",
+      "shortcut_peak_step": 301,
+      "standard_maximum": "603506208138015336516148529351572",
+      "standard_peak_step": 523,
+      "start": "49163256101584231",
+      "total_shortcut_steps": 772,
+      "total_standard_steps": 1224
+    }
+  ],
+  "successive_maximum_setters_among_captured_candidates": [
+    "1254251874774375",
+    "5323048232813247",
+    "8562235014026655",
+    "10709980568908647",
+    "49163256101584231"
+  ],
+  "additional_published_records_between_2_55_and_2_56": [
+    {
+      "record_id": 77,
+      "first_descent_step": 623,
+      "occurrences": 1,
+      "shortcut_maximum": "301753104069007668258074264675786",
+      "shortcut_peak_step": 301,
+      "standard_maximum": "603506208138015336516148529351572",
+      "standard_peak_step": 523,
+      "start": "49163256101584231",
+      "total_shortcut_steps": 772,
+      "total_standard_steps": 1224
+    }
+  ],
+  "reference_comparison": {
+    "source_report": "results/validation/verify_n56_a12_cls.json",
+    "configuration_differences": {
+      "class_b": {
+        "current": [
+          32,
+          35,
+          35,
+          35,
+          35,
+          34,
+          32,
+          32
+        ],
+        "reference": [
+          32,
+          35,
+          35,
+          35,
+          35,
+          35,
+          32,
+          32
+        ]
+      }
+    },
+    "metadata_unavailable": {
+      "tail_oee": [
+        "reference"
+      ],
+      "verification_scope": [
+        "reference"
+      ],
+      "cutoff_bits": [
+        "reference"
+      ]
+    },
+    "checks": [
+      {
+        "field": "tree_nodes",
+        "status": "matched",
+        "value": 101513615194
+      },
+      {
+        "field": "endpoints",
+        "status": "matched",
+        "value": 44845477535
+      },
+      {
+        "field": "tree.generated",
+        "status": "matched"
+      },
+      {
+        "field": "tree.survived",
+        "status": "matched"
+      },
+      {
+        "field": "tree.culls",
+        "status": "matched"
+      },
+      {
+        "field": "tail.endpoints",
+        "status": "matched"
+      },
+      {
+        "field": "cases",
+        "status": "skipped_configuration_differs"
+      },
+      {
+        "field": "tail.cases",
+        "status": "skipped_configuration_differs"
+      }
+    ],
+    "qualification": "Counter agreement is observed; missing legacy configuration metadata remains unknown.",
+    "excluded": [
+      "hash",
+      "iters",
+      "tail.hash",
+      "tail.iters"
+    ],
+    "exclusion_reason": "A lower arithmetic cutoff changes tail execution, iterations and checksum."
+  }
+}

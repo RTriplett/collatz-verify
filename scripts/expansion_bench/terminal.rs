@@ -8,7 +8,9 @@
 //!
 //! Compilation stores R = r * 3^(-f) mod 2^b, so emission needs one modular
 //! multiplication per root, then one subtraction/mask/shift per endpoint.
-//! Neither intermediate iterates nor the final iterate are needed. All
+//! The compact emission path needs neither intermediate nor final iterates. An
+//! additional affine representation retains r, T^b(r), and the local 3-power,
+//! allowing exact endpoint reconstruction or resident-table GPU expansion. All
 //! baseline prefix checks depend only on (k, f, oee, ne), and are performed
 //! during compilation. The baseline's m < n0 condition adds no removal here:
 //! for k <= 64 the slope predicate agrees with 3^f <= 2^k, and otherwise the
@@ -21,7 +23,7 @@ use crate::fast_tail::Endpoints;
 use cv::arith::slope_descends;
 use cv::dp::ForwardDp;
 use cv::rules::{Cull, Rules, NUM_CULLS};
-use cv::tree::{next_even_run, TreeStats};
+use cv::tree::{next_even_run, Node, Sink, TerminalWord, TreeStats};
 use std::mem::size_of;
 
 const INV3: u64 = 0xaaaa_aaaa_aaaa_aaab;
@@ -58,6 +60,15 @@ struct Group {
     residues: Box<[u16]>,
 }
 
+/// One contiguous, single-final-F range in the resident affine word table.
+/// Within a range, words retain the original parity-word DFS order.
+#[derive(Clone, Copy, Debug)]
+pub struct WordGroup {
+    pub f: u32,
+    pub start: u32,
+    pub len: u32,
+}
+
 #[derive(Clone, Copy, Default)]
 struct Counts {
     generated: u64,
@@ -68,6 +79,7 @@ struct Counts {
 struct Program {
     flat: Box<[Entry]>,
     grouped: Box<[Group]>,
+    word_groups: Box<[WordGroup]>,
     counts: Box<[Counts]>,
 }
 
@@ -78,6 +90,7 @@ pub struct Table {
     target: u32,
     mask: u64,
     programs: Vec<Option<Program>>,
+    words: Vec<TerminalWord>,
 }
 
 #[inline(always)]
@@ -98,8 +111,9 @@ impl Table {
         let reachable = ForwardDp::from_root(rules, start);
         let mut programs: Vec<Option<Program>> =
             (0..(start as usize + 1) * 12).map(|_| None).collect();
+        let mut words = Vec::new();
         for (state, _) in reachable.layer(start).states() {
-            let mut entries = Vec::new();
+            let mut affine = Vec::new();
             let mut counts = vec![Counts::default(); width as usize];
             compile(
                 State {
@@ -117,9 +131,39 @@ impl Table {
                 INV3_POW[state.f as usize],
                 mask,
                 rules,
-                &mut entries,
+                &mut affine,
                 &mut counts,
             );
+            // Preserve the original compact payload representation and its
+            // original iteration order. The affine copy retains exact local
+            // iterates and is grouped only by final F for GPU dispatch.
+            let entries: Vec<_> = affine
+                .iter()
+                .map(|word| Entry {
+                    r: word.q_coeff as u16,
+                    f: word.f as u8,
+                    oee: word.oee as u8,
+                    ne: word.ne as u8,
+                })
+                .collect();
+            affine.sort_by_key(|word| word.f);
+            let mut word_groups = Vec::new();
+            let mut offset = 0;
+            while offset < affine.len() {
+                let f = affine[offset].f;
+                let len = affine[offset..]
+                    .iter()
+                    .take_while(|word| word.f == f)
+                    .count();
+                word_groups.push(WordGroup {
+                    f,
+                    start: u32::try_from(words.len() + offset)
+                        .expect("terminal table is too large"),
+                    len: len as u32,
+                });
+                offset += len;
+            }
+            words.extend(affine);
             let mut sorted = entries.clone();
             sorted.sort_unstable_by_key(|e| (e.f, e.oee, e.ne));
             let mut groups: Vec<Group> = Vec::new();
@@ -145,6 +189,7 @@ impl Table {
             programs[index(state.f, state.oee, state.ne)] = Some(Program {
                 flat: entries.into_boxed_slice(),
                 grouped: groups.into_boxed_slice(),
+                word_groups: word_groups.into_boxed_slice(),
                 counts: counts.into_boxed_slice(),
             });
         }
@@ -153,6 +198,7 @@ impl Table {
             target,
             mask,
             programs,
+            words,
         }
     }
 
@@ -161,6 +207,46 @@ impl Table {
     }
     pub fn target(&self) -> u32 {
         self.target
+    }
+
+    /// Resident affine words shared by every parent and worker. Group indices
+    /// are absolute indices into this slice, including across input states.
+    pub fn words(&self) -> &[TerminalWord] {
+        &self.words
+    }
+
+    pub fn groups(&self, parent: &Node) -> &[WordGroup] {
+        assert_eq!(parent.k, self.start);
+        &self.programs[index(parent.f, parent.oee, parent.ne)]
+            .as_ref()
+            .expect("terminal root state is unreachable under the supplied baseline rules")
+            .word_groups
+    }
+
+    /// Number of descendants of a reachable parity state. This depends only
+    /// on the state's flags and odd count, not on the parent's residue.
+    pub fn descendants(&self, f: u32, oee: u8, ne: u8) -> u64 {
+        self.programs[index(f, oee, ne)]
+            .as_ref()
+            .expect("terminal root state is unreachable under the supplied baseline rules")
+            .flat
+            .len() as u64
+    }
+
+    /// Add every prefix counter for this state, including branches that have
+    /// no final descendants. Used when composing several resident tables.
+    pub fn accumulate_stats(&self, f: u32, oee: u8, ne: u8, stats: &mut TreeStats) {
+        let program = self.programs[index(f, oee, ne)]
+            .as_ref()
+            .expect("terminal root state is unreachable under the supplied baseline rules");
+        for (offset, counts) in program.counts.iter().enumerate() {
+            let k = self.start as usize + offset + 1;
+            stats.generated[k] += counts.generated;
+            stats.survived[k] += counts.survived;
+            for c in 0..NUM_CULLS {
+                stats.culls[k][c] += counts.culls[c];
+            }
+        }
     }
 
     /// Total valid parity-word entries across reachable root states. Flat and
@@ -173,12 +259,13 @@ impl Table {
         self.programs.iter().flatten().count()
     }
 
-    /// Allocated payload bytes, including both experimental representations,
+    /// Allocated payload bytes, including all experimental representations,
     /// counters, dense program slots and vector/box headers; allocator overhead
     /// is excluded. Table construction and this storage are shared by workers.
     pub fn bytes(&self) -> usize {
         size_of::<Self>()
             + self.programs.capacity() * size_of::<Option<Program>>()
+            + self.words.capacity() * size_of::<TerminalWord>()
             + self
                 .programs
                 .iter()
@@ -186,6 +273,7 @@ impl Table {
                 .map(|p| {
                     p.flat.len() * size_of::<Entry>()
                         + p.grouped.len() * size_of::<Group>()
+                        + p.word_groups.len() * size_of::<WordGroup>()
                         + p.grouped
                             .iter()
                             .map(|g| g.residues.len() * size_of::<u16>())
@@ -193,6 +281,37 @@ impl Table {
                         + p.counts.len() * size_of::<Counts>()
                 })
                 .sum::<usize>()
+    }
+
+    /// Emit exact affine descendants grouped by final F. The sink may retain
+    /// the parent and table range for device expansion, or use its default
+    /// implementation to reconstruct genuine full-width endpoint Nodes.
+    #[inline]
+    pub fn emit_affine<S: Sink, const STATS: bool>(
+        &self,
+        parent: &Node,
+        sink: &mut S,
+        stats: &mut TreeStats,
+    ) {
+        debug_assert_eq!(parent.k, self.start);
+        let program = self.programs[index(parent.f, parent.oee, parent.ne)]
+            .as_ref()
+            .expect("terminal root state is unreachable under the supplied baseline rules");
+        if STATS {
+            for (offset, counts) in program.counts.iter().enumerate() {
+                let k = self.start as usize + offset + 1;
+                stats.generated[k] += counts.generated;
+                stats.survived[k] += counts.survived;
+                for c in 0..NUM_CULLS {
+                    stats.culls[k][c] += counts.culls[c];
+                }
+            }
+        }
+        for group in &program.word_groups {
+            let begin = group.start as usize;
+            let entries = &self.words[begin..begin + group.len as usize];
+            sink.terminal_group(parent, group.start, entries, self.target);
+        }
     }
 
     /// Emit the terminal descendants of a genuine, already-surviving class.
@@ -256,15 +375,19 @@ fn compile(
     inv3_f: u64,
     mask: u64,
     rules: &Rules,
-    entries: &mut Vec<Entry>,
+    entries: &mut Vec<TerminalWord>,
     counts: &mut [Counts],
 ) {
     if state.k == target {
-        entries.push(Entry {
-            r: (r.wrapping_mul(inv3_f) & mask) as u16,
-            f: state.f as u8,
-            oee: state.oee,
-            ne: state.ne,
+        entries.push(TerminalWord {
+            r: r as u32,
+            q_coeff: (r.wrapping_mul(inv3_f) & mask) as u32,
+            iterate: m as u32,
+            pow3: pow3 as u32,
+            f: state.f,
+            oee: state.oee as u32,
+            ne: state.ne as u32,
+            pad: 0,
         });
         return;
     }
@@ -335,6 +458,14 @@ mod tests {
         }
     }
 
+    #[derive(Default)]
+    struct ExactNodes(Vec<Node>);
+    impl Sink for ExactNodes {
+        fn endpoint(&mut self, node: &Node) {
+            self.0.push(*node);
+        }
+    }
+
     // An independent oracle loops over starting-number suffixes and simulates
     // their actual trajectories. Its baseline tests use exact powers rather
     // than the production rational slope predicate or parity transitions.
@@ -388,6 +519,43 @@ mod tests {
                 let mut independent = brute(root, target, rules);
                 independent.0.sort_unstable();
                 assert_eq!(expected.0, independent.0, "independent suffix oracle");
+            }
+            let mut affine = ExactNodes::default();
+            let mut affine_stats = TreeStats::new(target);
+            table.emit_affine::<_, true>(root, &mut affine, &mut affine_stats);
+            affine.0.sort_unstable_by_key(|node| node.n0);
+            let exact: Vec<_> = expected
+                .0
+                .iter()
+                .map(|&(n0, f, oee, ne)| Node::from_compact(n0, target, f, oee, ne))
+                .collect();
+            assert_eq!(
+                affine.0, exact,
+                "affine Nodes start={} target={target}",
+                root.k
+            );
+            assert_eq!(affine_stats.generated, expected_stats.generated);
+            assert_eq!(affine_stats.survived, expected_stats.survived);
+            assert_eq!(affine_stats.culls, expected_stats.culls);
+            for group in table.groups(root) {
+                let words = &table.words()[group.start as usize..][..group.len as usize];
+                assert!(words.iter().all(|word| word.f == group.f));
+                let flat: Vec<_> = table.programs[index(root.f, root.oee, root.ne)]
+                    .as_ref()
+                    .unwrap()
+                    .flat
+                    .iter()
+                    .filter(|entry| entry.f as u32 == group.f)
+                    .map(|entry| (entry.r as u32, entry.oee as u32, entry.ne as u32))
+                    .collect();
+                let grouped: Vec<_> = words
+                    .iter()
+                    .map(|word| (word.q_coeff, word.oee, word.ne))
+                    .collect();
+                assert_eq!(
+                    grouped, flat,
+                    "final-F grouping must preserve within-class order"
+                );
             }
             for grouped in [false, true] {
                 let mut actual = Payloads::default();

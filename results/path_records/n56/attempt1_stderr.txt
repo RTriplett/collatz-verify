@@ -1,0 +1,1 @@
+Error: need 22.06 GiB on the GPU (21.75 GiB of bitvectors) but only 21.42 of 23.50 GiB are free; use smaller windows (--b-hi / --class-b) or --bv-shared

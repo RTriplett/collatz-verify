@@ -1,0 +1,166 @@
+ptxas info    : 90 bytes gmem, 228 bytes cmem[3], 16 bytes cmem[4]
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb0ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb0ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 16.295 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb1ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb1ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 15.896 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb0ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb0ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 14.545 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb1ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb1ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 15.416 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb0ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb0ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 54 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 14.431 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb1ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb1ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 15.287 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb0ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb0ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 14.333 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb1ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb1ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 15.241 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb0ELb0ELb1ELb1ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb0ELb0ELb1ELb1ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 56 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 17.105 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb0ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb0ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.645 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb1ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb1ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 19.593 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb0ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb0ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 17.870 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb1ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb1ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 19.571 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb0ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb0ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.595 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb1ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb1ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 19.663 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb0ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb0ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.528 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb1ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb1ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 48 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 19.370 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi1ELb0ELb0ELb1ELb1ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi1ELb0ELb0ELb1ELb1ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 56 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 21.701 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb0ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb0ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.103 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb1ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb1ELb1ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.806 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb0ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb0ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 17.820 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb1ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb1ELb0ELb1ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.640 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb0ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb0ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 54 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 17.543 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb1ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb1ELb1ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.645 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb0ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb0ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 17.847 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb1ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb1ELb0ELb0ELb0ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 52 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 18.799 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi0ELb0ELb0ELb1ELb1ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi0ELb0ELb0ELb1ELb1ELb0EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 56 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 20.264 ms
+ptxas info    : Compiling entry function '_Z9cv_kernelILi2ELb0ELb0ELb1ELb0ELb1EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj' for 'sm_89'
+ptxas info    : Function properties for _Z9cv_kernelILi2ELb0ELb0ELb1ELb0ELb1EEvPKjS1_S1_jmjjjj7KParamsP4KOutPjPK13TailJumpEntryP16TailContinuationS5_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 53 registers, used 0 barriers, 512 bytes cmem[0], 8 bytes cmem[2]
+ptxas info    : Compile time = 15.427 ms
+ptxas info    : Compiling entry function '_Z15cv_build_kernelPj11BuildParamsPKm' for 'sm_89'
+ptxas info    : Function properties for _Z15cv_build_kernelPj11BuildParamsPKm
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 38 registers, used 0 barriers, 416 bytes cmem[0], 16 bytes cmem[2]
+ptxas info    : Compile time = 11.658 ms
+ptxas info    : Compiling entry function '_Z17cv_expand_parentsPKjS0_Pjm' for 'sm_89'
+ptxas info    : Function properties for _Z17cv_expand_parentsPKjS0_Pjm
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 40 registers, used 0 barriers, 384 bytes cmem[0]
+ptxas info    : Compile time = 3.803 ms
+ptxas info    : Compiling entry function '_Z15cv_expand_chainPKjPK15ChainProgramGpuPK12ChainLeafGpuS0_Pjm' for 'sm_89'
+ptxas info    : Function properties for _Z15cv_expand_chainPKjPK15ChainProgramGpuPK12ChainLeafGpuS0_Pjm
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 38 registers, used 1 barriers, 3072 bytes smem, 400 bytes cmem[0]
+ptxas info    : Compile time = 6.224 ms
+ptxas info    : Compiling entry function '_Z21tail_jump_test_kernelILb1EEvPK17TailJumpTestInputP18TailJumpTestOutputjPK13TailJumpEntryj' for 'sm_89'
+ptxas info    : Function properties for _Z21tail_jump_test_kernelILb1EEvPK17TailJumpTestInputP18TailJumpTestOutputjPK13TailJumpEntryj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 36 registers, used 0 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 6.363 ms
+ptxas info    : Compiling entry function '_Z21tail_jump_test_kernelILb0EEvPK17TailJumpTestInputP18TailJumpTestOutputjPK13TailJumpEntryj' for 'sm_89'
+ptxas info    : Function properties for _Z21tail_jump_test_kernelILb0EEvPK17TailJumpTestInputP18TailJumpTestOutputjPK13TailJumpEntryj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 27 registers, used 0 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 4.512 ms

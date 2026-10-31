@@ -227,7 +227,7 @@ fn extra_cull<const MODE: u8>(
 }
 
 #[inline(always)]
-fn cull<const MODE: u8>(node: &Node, rules: &Rules, screens: &Screens) -> Option<Cull> {
+pub(crate) fn cull<const MODE: u8>(node: &Node, rules: &Rules, screens: &Screens) -> Option<Cull> {
     if node.m < node.n0 || slope_descends(node.k, node.f) {
         return Some(Cull::Descent);
     }

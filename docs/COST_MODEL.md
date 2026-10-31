@@ -7,6 +7,28 @@ The answer here is not an extrapolation from small N. It is
     exact workload counts at the target N  x  unit costs measured on real
     work drawn uniformly from that same target N.
 
+The tables below retain that original endpoint-sampling and per-operation
+model. A newer [checkpoint-pipeline benchmark](../results/fullrange_pipeline/README.md)
+estimates N72 resources directly from fixed baseline K38 cohorts, including
+live expansion, transfers, GPU verification, and observed fallback after a
+prepared checkpoint. Frontier construction, archive I/O, resident-array setup,
+and distributed coordination are outside its timed scope. Its configuration
+and timing scope differ, so it does not automatically revise the other-N
+tables or the unmeasured RTX PRO 6000 projection.
+
+For that newer N72/A10 pipeline, the confirmed RTX 4090 estimate is
+**0.5859 GPU-years [0.5649, 0.6069]**, compared with
+**0.6535 [0.6299, 0.6771]** using its original kernel. The paired kernel saving
+is **10.34% [10.27%, 10.42%]**. Sixteen independent 512-draw cohorts and two
+timing repetitions give these approximate 95% intervals; concatenated runs
+agree with cohort timing sums within 0.08%. The tuned process consumes an
+estimated **0.0681 CPU core-years** after the checkpoint, using process CPU
+seconds without the SMT conversion used below. A separate baseline rare-tail
+probe adds an allowance of about **1.37 CPU-hours**, small even if entirely
+serialized with GPU work. See the [full report](../results/fullrange_pipeline/README.md)
+for exclusions, validation, and why these intervals do not cover every
+deployment uncertainty.
+
 ## 1. Exact counts (no sampling)
 
 The baseline step-1 rules depend only on the parity state `(k, f, oee, ne)`
@@ -257,15 +279,20 @@ Planning N = 72 takes about 90 s on 4 threads.
 
 ## 6. Caveats
 
-* The kernel is Angeltveit's arithmetic core, not re-tuned. Per-class time grows
+* These tables use Angeltveit's arithmetic core before the newer kernel tuning.
+  Per-class time grows
   from 1.6 ns/endpoint (class 0, ~29 cases) to 48 ns (class 15, ~570 cases).
   Classes 1–5 carry most of the work.
 * Flagged trajectories, those reaching 2^120, are abandoned on the GPU and must
   be re-checked with big integers. `cv measure` reports their expected number
-  (`flagged=` in the totals). The estimates are about 10^4 at 2^72, 2×10^9 at 2^77 and
+  (`flagged=` in the totals). The older samples estimated about 10^4 at 2^72, 2×10^9 at 2^77 and
 2×10^11 at 2^80, from very few flagged draws, so treat them as orders of magnitude.
 `cv verify` re-checks every flagged start with 256-bit arithmetic, microseconds
-each, and fails if any cannot be finished.
+each, and fails if any cannot be finished. The newer checkpoint sample observes
+eight distinct flags, all successfully rechecked, implying a rough 1.1 million
+under its different policy and sampling design. This sparse, clustered estimate
+is also imprecise; the historical N72 figure is not a reliable provisioning
+bound for the new pipeline.
 * GPU timings were taken on a desktop 4090 that also drives the display. They
   vary by roughly ±2% between runs.
 * CPU figures are for one desktop Zen 4 part with SMT. Server cores at lower

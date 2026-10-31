@@ -1,6 +1,7 @@
 //! End-to-end drivers: full verification on the CPU, and step-1 censuses.
 
 use crate::lookahead::{BvMode, Lookahead, WindowRules};
+use crate::expansion::{DfsExpander, Expander};
 use crate::rules::Rules;
 use crate::tail::{CpuTailSink, TailParams, TailStats};
 use crate::tree::{dfs, frontier, CountSink, Node, TreeStats};
@@ -72,6 +73,10 @@ pub struct VerifyReport {
     pub window: String,
     pub rules: String,
     pub backend: String,
+    /// Whether this invocation covers the whole search or selected subtrees.
+    pub verification_scope: String,
+    pub cutoff_bits: u32,
+    pub tail_oee: bool,
     pub threads: usize,
     pub units: usize,
     pub tree_nodes: u64,
@@ -102,6 +107,9 @@ impl VerifyReport {
             window: cfg.window.label(),
             rules: cfg.rules.label(),
             backend: backend.into(),
+            verification_scope: if cfg.units.is_some() { "selected_work_units" } else { "full_range" }.into(),
+            cutoff_bits: cfg.tail.cutoff_bits,
+            tail_oee: cfg.tail.tail_oee,
             threads: rayon::current_num_threads(),
             units,
             tree_nodes: tree.total_generated(),
@@ -121,6 +129,13 @@ impl VerifyReport {
 
 /// Verify n < 2^N entirely on the CPU.
 pub fn verify_cpu(cfg: &VerifyConfig) -> VerifyReport {
+    verify_cpu_with_expander(cfg, &DfsExpander)
+}
+
+/// Run the complete CPU verifier using a caller-selected host expander.
+/// Work-unit generation still uses `cfg.rules`; the custom expansion policy
+/// governs descendants of those already-surviving units.
+pub fn verify_cpu_with_expander<E: Expander>(cfg: &VerifyConfig, expander: &E) -> VerifyReport {
     let t0 = Instant::now();
     let m = cfg.m();
     let la = cfg.lookahead();
@@ -131,7 +146,7 @@ pub fn verify_cpu(cfg: &VerifyConfig) -> VerifyReport {
         .fold(
             || (TreeStats::new(m), CpuTailSink::new(&la, cfg.tail)),
             |(mut st, mut sink), u| {
-                dfs::<_, true>(u, m, &cfg.rules, &mut sink, &mut st);
+                expander.expand::<_, true>(u, m, &cfg.rules, &mut sink, &mut st);
                 (st, sink)
             },
         )
@@ -186,4 +201,61 @@ pub fn census(rules: &Rules, depth: u32, split: u32) -> Census {
         );
     top.merge(&tree);
     Census { depth, rules: rules.label(), seconds: t0.elapsed().as_secs_f64(), stats: top, endpoints_by_f: sink.by_f }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tree::Sink;
+
+    struct CompactDfs;
+
+    impl Expander for CompactDfs {
+        fn expand<S: Sink, const STATS: bool>(
+            &self,
+            root: &Node,
+            target: u32,
+            rules: &Rules,
+            sink: &mut S,
+            stats: &mut TreeStats,
+        ) {
+            struct Compact<'a, S>(&'a mut S);
+            impl<S: Sink> Sink for Compact<'_, S> {
+                fn endpoint(&mut self, node: &Node) {
+                    self.0.compact_endpoint(node.n0 as u64, node.k, node.f, node.oee, node.ne);
+                }
+            }
+            dfs::<_, STATS>(root, target, rules, &mut Compact(sink), stats);
+        }
+    }
+
+    #[test]
+    fn compact_expander_preserves_complete_cpu_verification() {
+        let rules = Rules::improved(3);
+        let cfg = VerifyConfig {
+            n: 24,
+            a: 8,
+            b: 12,
+            num_bv: 4,
+            bv_mode: BvMode::Shared,
+            window: WindowRules { pm_inf: true, mix: rules.mix.clone() },
+            class_b: None,
+            split: 10,
+            rules,
+            tail: TailParams::default(),
+            units: None,
+        };
+        let reference = verify_cpu(&cfg);
+        let compact = verify_cpu_with_expander(&cfg, &CompactDfs);
+        assert!(reference.cases > 0);
+        assert!(reference.tail.endpoints[cfg.num_bv] > 0, "exercise classes without bitvectors");
+        assert_eq!(compact.tree.generated, reference.tree.generated);
+        assert_eq!(compact.tree.survived, reference.tree.survived);
+        assert_eq!(compact.tree.culls, reference.tree.culls);
+        assert_eq!(compact.tail.endpoints, reference.tail.endpoints);
+        assert_eq!(compact.tail.cases, reference.tail.cases);
+        assert_eq!(compact.tail.iters, reference.tail.iters);
+        assert_eq!(compact.hash, reference.hash);
+        assert_eq!(compact.flagged, reference.flagged);
+    }
 }

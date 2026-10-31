@@ -100,6 +100,61 @@ pub fn step_until_below(base: u128, mut number: u128, cutoff: u128) -> (u32, u64
     }
 }
 
+/// A GPU tail paused after a complete double iteration, including its checksum
+/// update and descent test. Values use little-endian 32-bit limbs to match the
+/// CUDA queue ABI. The GPU has already counted the case and every iteration up
+/// to this boundary; continuing it adds only the remaining hash and iterations.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TailContinuation {
+    pub limbs: [u32; 8],
+}
+
+impl TailContinuation {
+    pub fn from_values(base: u128, number: u128) -> Self {
+        let mut limbs = [0; 8];
+        for i in 0..4 {
+            limbs[i] = (base >> (32 * i)) as u32;
+            limbs[4 + i] = (number >> (32 * i)) as u32;
+        }
+        Self { limbs }
+    }
+
+    pub fn base(&self) -> u128 {
+        self.limbs[..4].iter().rev().fold(0, |value, &limb| (value << 32) | limb as u128)
+    }
+
+    /// The shifted trajectory state `T^j(base) + 1` at the handoff boundary.
+    pub fn number(&self) -> u128 {
+        self.limbs[4..].iter().rev().fold(0, |value, &limb| (value << 32) | limb as u128)
+    }
+}
+
+/// Finish a GPU continuation with the same cutoff and checksum convention as
+/// the uninterrupted GPU tail. A flagged result requires the usual wide
+/// recheck of `record.base()`; it is not an additional case.
+///
+/// The upper bound on `number` leaves enough headroom for an eight-step odd
+/// run in 128-bit arithmetic. Reject completed or malformed records instead of
+/// silently performing an extra iteration after descent.
+pub fn finish_continuation(record: TailContinuation, cutoff_bits: u32) -> Result<(u32, u64, bool), &'static str> {
+    if !(97..=123).contains(&cutoff_bits) {
+        return Err("continuation cutoff must be between 97 and 123 bits");
+    }
+    let base = record.base();
+    let number = record.number();
+    if base < 3 {
+        return Err("continuation base must be at least 3");
+    }
+    if number < base {
+        return Err("continuation has already descended below its base");
+    }
+    if number >= 1u128 << 123 {
+        return Err("continuation state exceeds the GPU arithmetic bound");
+    }
+    Ok(step_until_below(base, number, 1u128 << cutoff_bits))
+}
+
 /// Finish a flagged trajectory with 256-bit arithmetic: iterate `n` until it
 /// falls below its start.  Returns the number of steps, or None if the value
 /// would exceed 2^256 (never observed; such an `n` would be a new record by
@@ -223,6 +278,134 @@ impl Sink for CpuTailSink<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Independent scalar prefix: use individual multiply/divide operations
+    // instead of the production table, bit scans, and compressed odd run.
+    // Return a continuation only after the checksum and descent test.
+    fn scalar_prefix(base: u128, mut number: u128, cutoff_bits: u32, budget: u64)
+        -> (u32, u64, bool, Option<TailContinuation>)
+    {
+        let cutoff = 1u128 << cutoff_bits;
+        let mut hash = 0;
+        let mut flagged = false;
+        for iters in 1..=budget {
+            for _ in 0..2 {
+                for _ in 0..8 {
+                    if number % 2 != 0 { break; }
+                    number = (number / 2).checked_mul(3).expect("scalar odd-run overflow");
+                }
+                if number >= cutoff {
+                    flagged = true;
+                    number = 2;
+                }
+                number -= 1;
+                for _ in 0..31 {
+                    if number % 2 != 0 { break; }
+                    number /= 2;
+                }
+                number += 1;
+            }
+            hash ^= number as u32;
+            if number < base {
+                return (hash, iters, flagged, None);
+            }
+        }
+        (hash, budget, flagged, Some(TailContinuation::from_values(base, number)))
+    }
+
+    fn check_split(base: u128, number: u128, cutoff_bits: u32, budget: u64) -> bool {
+        let expected = step_until_below(base, number, 1u128 << cutoff_bits);
+        let scalar = scalar_prefix(base, number, cutoff_bits, expected.1 + 1);
+        assert_eq!((scalar.0, scalar.1, scalar.2), expected);
+        assert_eq!(scalar.3, None);
+        let (hash, iters, flagged, continuation) = scalar_prefix(base, number, cutoff_bits, budget);
+        if let Some(record) = continuation {
+            assert!(!flagged, "flagged trajectories must complete before handoff");
+            let remaining = finish_continuation(record, cutoff_bits).unwrap();
+            assert_eq!((hash ^ remaining.0, iters + remaining.1, remaining.2), expected,
+                "base={base}, number={number}, budget={budget}, cutoff={cutoff_bits}");
+            true
+        } else {
+            assert_eq!((hash, iters, flagged), expected);
+            false
+        }
+    }
+
+    #[test]
+    fn continuation_matches_random_n72_trajectories() {
+        let budgets = [1, 2, 4, 8, 16, 32, 64, 128];
+        let mut rng = 0x6182_da73_51ee_bbf4_9037_8ac1_909d_733bu128;
+        let mut cases = 0;
+        let mut handed_off = [0; 8];
+        for _ in 0..16_384 {
+            rng ^= rng << 13;
+            rng ^= rng >> 7;
+            rng ^= rng << 17;
+            let base = (1u128 << 71) | (rng & ((1u128 << 71) - 1)) | 1;
+            let mut x = base;
+            // The actual shortcut orbit through an M=62 endpoint. Retain
+            // only states still eligible for a tail rather than inventing
+            // unrelated starting values and current states.
+            for _ in 0..62 {
+                x = if x & 1 == 0 { x / 2 } else { (3 * x + 1) / 2 };
+            }
+            if x + 1 < base { continue; }
+            cases += 1;
+            for (i, &budget) in budgets.iter().enumerate() {
+                handed_off[i] += check_split(base, x + 1, 120, budget) as usize;
+            }
+        }
+        assert!(cases >= 300, "fixture must exercise enough surviving N72 tails");
+        assert!(handed_off[0] >= 150);
+        assert!(handed_off[3] > 0);
+    }
+
+    #[test]
+    fn continuation_preserves_forced_overflow_and_wide_states() {
+        // Consecutive odd runs give a legitimate initial trajectory that
+        // crosses the 97-bit cutoff after more than one double iteration.
+        let base = (1u128 << 72) - 1;
+        let number = base + 1;
+        assert!(step_until_below(base, number, 1u128 << 97).2);
+        assert!(check_split(base, number, 97, 1));
+        assert!(check_split(base, number, 97, 2));
+        for budget in [4, 8, 16, 32, 64, 128] {
+            check_split(base, number, 97, budget);
+        }
+
+        // Both the start and carried state require more than three limbs.
+        // The first double iteration succeeds; the continuation flags later.
+        let wide_base = (1u128 << 112) - 1;
+        assert!(check_split(wide_base, wide_base + 1, 123, 1));
+        let (_, _, _, record) = scalar_prefix(wide_base, wide_base + 1, 123, 1);
+        let record = record.unwrap();
+        assert!(record.base() > u64::MAX as u128);
+        assert!(record.number() > 1u128 << 120);
+        assert!(finish_continuation(record, 123).unwrap().2);
+        for budget in [1, 2, 4, 8, 16, 32, 64, 128] {
+            check_split((1u128 << 100) + 3, (1u128 << 120) + 5, 123, budget);
+        }
+    }
+
+    #[test]
+    fn continuation_limb_abi_and_validation() {
+        assert_eq!(std::mem::size_of::<TailContinuation>(), 32);
+        assert_eq!(std::mem::align_of::<TailContinuation>(), 4);
+        let base = 0x0011_2233_4455_6677_8899_aabb_ccdd_eeff;
+        let number = 0x0123_4567_89ab_cdef_fedc_ba98_7654_3210;
+        let record = TailContinuation::from_values(base, number);
+        assert_eq!(record.limbs, [0xccdd_eeff, 0x8899_aabb, 0x4455_6677, 0x0011_2233,
+            0x7654_3210, 0xfedc_ba98, 0x89ab_cdef, 0x0123_4567]);
+        assert_eq!(record.base(), base);
+        assert_eq!(record.number(), number);
+        for cutoff in [0, 96, 124, 128, u32::MAX] {
+            assert!(finish_continuation(record, cutoff).is_err());
+        }
+        assert!(finish_continuation(TailContinuation::from_values(2, 4), 120).is_err());
+        assert!(finish_continuation(TailContinuation::from_values(27, 26), 120).is_err());
+        assert!(finish_continuation(TailContinuation::from_values(27, 1u128 << 123), 123).is_err());
+        assert!(finish_continuation(TailContinuation::from_values(27, 27), 120).is_ok());
+    }
 
     #[test]
     fn wide_recheck_matches_narrow() {

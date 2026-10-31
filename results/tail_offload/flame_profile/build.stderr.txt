@@ -1,0 +1,2 @@
+   Compiling expansion-bench v0.1.0 (/home/ryan/Projects/Collatz/distributed/scripts/expansion_bench)
+    Finished `release` profile [optimized] target(s) in 5.56s

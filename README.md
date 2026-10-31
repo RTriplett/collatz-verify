@@ -19,9 +19,10 @@ at any N.
 
 ## Headline numbers
 
-Resources to verify every n < 2^N. GPU time is RTX 4090-years (per-operation
-model fitted to the measured timings, ±5%). CPU time is Ryzen 7 7700X core-years
-for step 1.
+Resources to verify every n < 2^N using the original DFS pipeline. GPU time is
+RTX 4090-years (per-operation model fitted to the measured timings, ±5%). CPU
+time is Ryzen 7 7700X core-years for step 1. The checkpoint-pipeline experiments
+below measure the newer implementation separately.
 
 | N | Angeltveit's algorithm, sound bitvectors (A=10, B=24) | all improvements (A=10, B=28) | CPU-light (A=12, B=28) |
 |---|---|---|---|
@@ -36,8 +37,35 @@ The step-1 tree needs about 2.5 CPU cores per GPU for the baseline, 5.6 for all
 improvements, and 1.5 for the CPU-light variant. A 1-GPU-hour work package
 plan for 2^72 has 11,616 packages.
 
-**With larger, per-class lookahead windows** (device-built arrays, shared
-bitvectors), a 24 GB card does 2^72 in **0.675 RTX 4090-years** (A=10; A=12 costs
+Those CPU estimates predate terminal-table expansion. The new experimental
+[overall GPU benchmark](results/overall_pipeline/README.md) reduces process CPU
+time by **87%** on sampled N72/A10 packages, with median pipeline time falling
+from **29.0 to 26.5 seconds**. It uses the real queues, transfers and kernels;
+**two physical CPU cores retain that GPU throughput** in a follow-up run.
+An [A8/A9/A10 comparison](results/a_pipeline/README.md) finds no clear benefit
+from deeper CPU expansion with the tested windows: A9 takes about the same
+wall time, while A8 is 8.6% slower despite 8.1% fewer tail iterations.
+The [transport and reuse experiments](results/transport_pipeline/README.md)
+then move terminal-table expansion onto the GPU: sending parent/class groups
+cuts CPU time by **77%** and transfer volume by **96%** relative to that A10
+path, with a small observed wall-time improvement. Parent dispatch retains
+throughput with the entire process pinned to **one physical CPU core**.
+Default `cv verify` still uses the original DFS.
+
+The newer [full-range confirmation](results/fullrange_pipeline/README.md)
+estimates **0.586 RTX 4090-years** below 2^72, with a **0.565–0.607** 95%
+sampling interval, for the prepared-K38 parent-dispatch pipeline. Removing a
+redundant overflow vote and applying the carried OEE filter before candidate
+extraction reduces the same workload from **0.653 to 0.586 GPU-years**:
+**10.34%**, or about **593 GPU-hours**, saved. This uses 8,192 fixed baseline
+draws, repeated paired timings, and aggregate batching checks. Frontier
+construction, archive I/O, resident-array setup, and distributed coordination
+are excluded; the interval does not cover long-run clock or deployment effects.
+These kernel settings are opt-in experiments.
+
+The earlier model for **larger, per-class lookahead windows** (device-built
+arrays, shared bitvectors) estimates **0.675 RTX 4090-years** at 2^72 on a
+24 GB card (A=10; A=12 costs
 about 4% more GPU time and 3.6× less CPU), against 1.03 for Angeltveit's
 configuration. That is about $3k on vast.ai 4090s on demand, or $1.7k on interruptible
 instances. Renting a 288 GB B300 for even larger windows saves only another ~10% of
@@ -59,6 +87,7 @@ the measured benefits and tradeoffs of the optimizations.
 | **Host pipeline**: multi-threaded step 1, 16-byte endpoints, pinned streams | 4090 ≈ 7× a 3060 (was ≈ 2× when CPU-bound) | |
 | **Large windows**: arrays built on the GPU, 64-bit indexing, per-class windows (`--class-b`) | windows of 35 for the heavy classes on a 24 GB card: 0.851 → 0.675 4090-years | 21.5 GiB of VRAM, 1.5 min build per process |
 | **Shared bitvectors** (`--bv-shared`): one sound array per class | half the bitvector memory | +0.2–0.3% work |
+| **Experimental parent dispatch and kernel tuning**: terminal expansion on GPU, per-lane overflow guard, OEE mask before extraction | tuned kernel saves 10.34% on the same pipeline; 0.653 → 0.586 4090-years | prepared K38 frontier, 19.625 GiB arrays; [scope and validation](results/fullrange_pipeline/README.md) |
 
 **Optional checkpoint walkback** (`--walkback-depth`, `--walkback-states`) is also
 implemented, but is not enabled by `--rules improved` or included in the headline
@@ -102,14 +131,29 @@ python3 scripts/hardware_cost.py   # per-card windows and cost per 2^72 from the
 `cv measure --gpu` on a new GPU takes 1–2 minutes and prints that device's GPU
 time for the full verification at that N.
 
+Captured overflow starts can also be replayed on the CPU to export complete
+trajectory metrics. These are candidate metrics, not a complete path-record
+census; see [docs/PATH_RECORDS.md](docs/PATH_RECORDS.md).
+
+```sh
+cv export-paths --report verify.json --out paths.json  # reuse a saved report
+cv verify --n 55 --gpu --cutoff-bits 97 --json verify.json --path-records paths.json
+```
+
+A [completed N56 run](results/path_records/n56/README.md) captured 2,236
+candidates and matched published path records #73–77, including the additional
+record between 2^55 and 2^56. It took 15 minutes 23 seconds on the RTX 4090.
+
 ## Layout
 
 ```
 src/arith.rs      exact helpers (3^k table, 306/485 slope test, 256-bit compares)
 src/rules.rs      step-1 rules and certificates: pm1, OEE, pm_inf, mix(3^J), walkback
 src/tree.rs       step-1 DFS over residue classes (n0, k, f, m, oee, ne)
+src/expansion.rs  optional expansion engines using the normal CPU/GPU sinks
 src/lookahead.rs  step-2 bitvectors (two families; window credits), mod-9 sieve
 src/tail.rs       steps 2+3 on the CPU, bit-identical to the GPU; 256-bit re-check
+src/path_records.rs complete trajectory metrics for captured overflow starts
 cuda/kernel.cu    steps 2+3 on the GPU (Angeltveit's arithmetic core)
 src/gpu.rs        GPU driver: batching, pinned streams, per-class timing
 src/dp.rs         exact parity-state DP: survivors, tree nodes, cases
@@ -120,7 +164,7 @@ tests/bv_audit.rs exhaustive witness audit of every bitvector exclusion
 scripts/          reproduce.sh (regression anchors), gpu_fit.py + cost_table.py (tables),
                   hardware_cost.py (per-card windows and cost)
 results/          sweeps, CPU benchmarks, cost tables
-docs/             ALGORITHM.md, COST_MODEL.md, HARDWARE.md, FINDINGS.md
+docs/             ALGORITHM.md, COST_MODEL.md, HARDWARE.md, FINDINGS.md, PATH_RECORDS.md
 ```
 
 ## Provenance

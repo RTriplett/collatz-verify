@@ -1,0 +1,1039 @@
+{
+  "schema_version": 1,
+  "scope": "Exploratory N72 fixed-draw pilots; use fresh confirmation for final full-range estimates.",
+  "method": "Arithmetic means over two timing repetitions within each of two independent cohorts; ratios compare means, not mean speedup ratios.",
+  "timing_scope": "Resident-array full pipeline after K38: host expansion, queues, transfers, device expansion, verification and observed fallback; setup/preprocessing excluded.",
+  "uncertainty": "Only two independent cohorts (one degree of freedom). Four trials per variant are not four independent samples. Within-run paired intervals do not cover all drift/systematic effects; cross-run ratios are descriptive. Selected pilot winners require fresh confirmation.",
+  "common_configuration": {
+    "n": 72,
+    "checkpoint": 38,
+    "seed": 20261027,
+    "cohort_count": 2,
+    "draws_per_cohort": 256,
+    "repetitions": 2,
+    "threads": 2,
+    "cutoff": 50,
+    "terminal_entry": 52,
+    "walkback_cap": 65536,
+    "rules": "descent+pm1+oee(root)+pm_inf+mix(3^13)",
+    "window": "descent+pm1+oee+pm_inf+mix(3^13)"
+  },
+  "common_sampling": {
+    "drawn": 512,
+    "cheap_rejected": 32,
+    "walk_rejected": 3,
+    "accepted": 477
+  },
+  "ordered_corpus_sha256": "0b57c40791276fccb3f5d12371a793dec8e6b40fc7eb493a274c4ceaf1adc744",
+  "cohort_corpus_sha256": [
+    "99bee53442b04a040008b6317e7aeda96c519e116110d3ebdcf78e10b9c5dad2",
+    "55692579ecef7d3bec0e0667809fda41d68034fa80831dbaf3abb22ab25a7ff4"
+  ],
+  "cohort_seeds": [
+    7671909092089349006,
+    7159423796239308355
+  ],
+  "audit": {
+    "all_runs_completed_successfully": true,
+    "all_ordered_cohort_roots_equal": true,
+    "all_rejection_accounting_equal": true,
+    "a10_complete_work_equal_across_kernel_and_oee_runs": true,
+    "variant_tuning_and_runner_metadata_checked": true,
+    "no_aggregate_calibration_in_pilots": true
+  },
+  "runs": [
+    {
+      "directory": "results/fullrange_pipeline/kernel_pilot",
+      "name": "kernel_pilot",
+      "a": 10,
+      "m": 62,
+      "class_b": [
+        32,
+        35,
+        35,
+        35,
+        35,
+        34,
+        32,
+        32,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27
+      ],
+      "shared_arrays_gib_excluding_padding": 19.625,
+      "gpu_setup_seconds": 75.318730403,
+      "started_at": "2026-10-24T04:36:52.229523+00:00",
+      "finished_at": "2026-10-24T04:40:33.377973+00:00",
+      "binary_sha256": "4636317d1877edb9a4657bba6b8571664086451a39fd31d3dc460ba8bdca1f80",
+      "source_manifest_sha256": "64a70e1f294ed15b0c5bdede9c8bf762eeba508b2ee267807b8bf492e0a47c32",
+      "pipeline_jsonl_sha256": "202c4e62d2f323adf8ce5dccfab93c25938b0a3b551aac93ef3ef1b5a5ab71b3",
+      "variants": [
+        {
+          "name": "parents",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": false,
+            "overflow_vote": true,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.939337132,
+          "observed_trial_wall_seconds_range": [
+            4.89633738,
+            4.980581614
+          ],
+          "mean_cohort_cpu_seconds": 0.522897912750004,
+          "cohort_mean_wall_seconds": [
+            4.8981493480000005,
+            4.980524916
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "novote",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": false,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.70499636125,
+          "observed_trial_wall_seconds_range": [
+            4.656353255,
+            4.741128714
+          ],
+          "mean_cohort_cpu_seconds": 0.5150119625000009,
+          "cohort_mean_wall_seconds": [
+            4.6700738054999995,
+            4.739918917000001
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 0.9525562308286674,
+            "ci95": [
+              0.9414660724738835,
+              0.9636463891834512
+            ],
+            "saved_fraction": 0.04744376917133264,
+            "saved_fraction_ci95": [
+              0.036353610816548795,
+              0.05853392752611648
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "readonly",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": false,
+            "overflow_vote": true,
+            "readonly_powers": true
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 5.2608259375,
+          "observed_trial_wall_seconds_range": [
+            5.205147763,
+            5.317338884
+          ],
+          "mean_cohort_cpu_seconds": 0.5206209487499969,
+          "cohort_mean_wall_seconds": [
+            5.21597779,
+            5.305674085
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 1.0650874392471008,
+            "ci95": [
+              1.062567578754408,
+              1.0676072997397936
+            ],
+            "saved_fraction": -0.06508743924710081,
+            "saved_fraction_ci95": [
+              -0.06760729973979356,
+              -0.06256757875440806
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "both",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": false,
+            "overflow_vote": false,
+            "readonly_powers": true
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 5.01424548925,
+          "observed_trial_wall_seconds_range": [
+            4.969279766,
+            5.058958268
+          ],
+          "mean_cohort_cpu_seconds": 0.5182420229999956,
+          "cohort_mean_wall_seconds": [
+            4.9714593765,
+            5.057031602
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 1.0151656700581742,
+            "ci95": [
+              1.012660903948222,
+              1.0176704361681264
+            ],
+            "saved_fraction": -0.015165670058174152,
+            "saved_fraction_ci95": [
+              -0.01767043616812634,
+              -0.012660903948221962
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "both_oee",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": true
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.81700369375,
+          "observed_trial_wall_seconds_range": [
+            4.7756553010000005,
+            4.858055812
+          ],
+          "mean_cohort_cpu_seconds": 0.5108609072500023,
+          "cohort_mean_wall_seconds": [
+            4.7765798870000005,
+            4.8574275005
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 0.9752328227491397,
+            "ci95": [
+              0.974573946181371,
+              0.9758916993169083
+            ],
+            "saved_fraction": 0.024767177250860306,
+            "saved_fraction_ci95": [
+              0.024108300683091697,
+              0.025426053818628915
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "block128",
+          "gpu_tuning": {
+            "block_threads": 128,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": true
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.813292562000001,
+          "observed_trial_wall_seconds_range": [
+            4.770975347,
+            4.854481007
+          ],
+          "mean_cohort_cpu_seconds": 0.5153228152499985,
+          "cohort_mean_wall_seconds": [
+            4.772309954000001,
+            4.85427517
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 0.9744814806862632,
+            "ci95": [
+              0.9723055076829166,
+              0.9766574536896098
+            ],
+            "saved_fraction": 0.02551851931373683,
+            "saved_fraction_ci95": [
+              0.023342546310390226,
+              0.027694492317083437
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "block512",
+          "gpu_tuning": {
+            "block_threads": 512,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": true
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 5.036210206750001,
+          "observed_trial_wall_seconds_range": [
+            4.985919779,
+            5.073271894
+          ],
+          "mean_cohort_cpu_seconds": 0.5175486019999944,
+          "cohort_mean_wall_seconds": [
+            4.999231047,
+            5.0731893665
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "parents",
+          "paired_wall_ratio": {
+            "ratio": 1.0196125658486437,
+            "ci95": [
+              1.0067080630689116,
+              1.0325170686283758
+            ],
+            "saved_fraction": -0.01961256584864368,
+            "saved_fraction_ci95": [
+              -0.03251706862837586,
+              -0.006708063068911502
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "results/fullrange_pipeline/oee_pilot",
+      "name": "oee_pilot",
+      "a": 10,
+      "m": 62,
+      "class_b": [
+        32,
+        35,
+        35,
+        35,
+        35,
+        34,
+        32,
+        32,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27
+      ],
+      "shared_arrays_gib_excluding_padding": 19.625,
+      "gpu_setup_seconds": 75.281550695,
+      "started_at": "2026-10-24T04:42:55.765799+00:00",
+      "finished_at": "2026-10-24T04:45:27.896374+00:00",
+      "binary_sha256": "765569639e4573396b6a37e098efb2e58c6afbef855e03f42c7b362f178fa77c",
+      "source_manifest_sha256": "84d0a30f4b98430024ba61c8da4a57cdf761bac03b9e32aef12c0d392ca83d39",
+      "pipeline_jsonl_sha256": "349833d09a8a35cf476264731cd81cebb2d6c88083a70ffaaed9298d353e9a65",
+      "variants": [
+        {
+          "name": "novote",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": false,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.7076707375,
+          "observed_trial_wall_seconds_range": [
+            4.660328187,
+            4.739323062
+          ],
+          "mean_cohort_cpu_seconds": 0.5260832642500013,
+          "cohort_mean_wall_seconds": [
+            4.6769720965,
+            4.7383693785
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "novote_oee",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.4294489555,
+          "observed_trial_wall_seconds_range": [
+            4.392082443,
+            4.46720337
+          ],
+          "mean_cohort_cpu_seconds": 0.5109658085,
+          "cohort_mean_wall_seconds": [
+            4.3927840315,
+            4.4661138795
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote",
+          "paired_wall_ratio": {
+            "ratio": 0.9409003310737596,
+            "ci95": [
+              0.919900259945674,
+              0.9619004022018451
+            ],
+            "saved_fraction": 0.05909966892624041,
+            "saved_fraction_ci95": [
+              0.038099597798154916,
+              0.08009974005432591
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "novote_oee128",
+          "gpu_tuning": {
+            "block_threads": 128,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.42759692125,
+          "observed_trial_wall_seconds_range": [
+            4.38846899,
+            4.4577904440000005
+          ],
+          "mean_cohort_cpu_seconds": 0.5070800109999993,
+          "cohort_mean_wall_seconds": [
+            4.398147971,
+            4.4570458715
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote",
+          "paired_wall_ratio": {
+            "ratio": 0.9405069233030658,
+            "ci95": [
+              0.9389504774920776,
+              0.9420633691140541
+            ],
+            "saved_fraction": 0.059493076696934155,
+            "saved_fraction_ci95": [
+              0.057936630885945965,
+              0.061049522507922345
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        },
+        {
+          "name": "novote_oee512",
+          "gpu_tuning": {
+            "block_threads": 512,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.45887745025,
+          "observed_trial_wall_seconds_range": [
+            4.418980131,
+            4.495582015
+          ],
+          "mean_cohort_cpu_seconds": 0.5130084369999999,
+          "cohort_mean_wall_seconds": [
+            4.4228964275,
+            4.494858473
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote",
+          "paired_wall_ratio": {
+            "ratio": 0.9471515105616496,
+            "ci95": [
+              0.9285152718057604,
+              0.9657877493175387
+            ],
+            "saved_fraction": 0.05284848943835041,
+            "saved_fraction_ci95": [
+              0.03421225068246121,
+              0.07148472819423961
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 2004515942,
+            "cases": 195334608722,
+            "iters": 1560022405138,
+            "tree_nodes": 4516502857
+          },
+          "flags": 0,
+          "fallback_endpoints": 1,
+          "cohort_work_signature_sha256": [
+            "fc043f9c8a3429c43336cd21d1f6e3aaced385e22313285d1e66b11e1105b4cb",
+            "813c2ad95ef4a5da7a1a55c6c07375d1b97d6498fda7e55057cc9f1bbd194807"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "results/fullrange_pipeline/a9_pilot",
+      "name": "a9_pilot",
+      "a": 9,
+      "m": 63,
+      "class_b": [
+        32,
+        35,
+        35,
+        35,
+        35,
+        34,
+        32,
+        32,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27
+      ],
+      "shared_arrays_gib_excluding_padding": 19.625,
+      "gpu_setup_seconds": 74.715029252,
+      "started_at": "2026-10-24T04:45:50.267093+00:00",
+      "finished_at": "2026-10-24T04:47:24.389139+00:00",
+      "binary_sha256": "765569639e4573396b6a37e098efb2e58c6afbef855e03f42c7b362f178fa77c",
+      "source_manifest_sha256": "84d0a30f4b98430024ba61c8da4a57cdf761bac03b9e32aef12c0d392ca83d39",
+      "pipeline_jsonl_sha256": "ca8374d656ed6dcad65299f930d107473fc6874ef1a2e2bc5013cf5150f779e9",
+      "variants": [
+        {
+          "name": "novote_oee",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.4529420475000006,
+          "observed_trial_wall_seconds_range": [
+            4.413384258,
+            4.492733036
+          ],
+          "mean_cohort_cpu_seconds": 0.5811523167499999,
+          "cohort_mean_wall_seconds": [
+            4.414805247,
+            4.491078848
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 3817927691,
+            "cases": 187497536060,
+            "iters": 1493472917667,
+            "tree_nodes": 8500227097
+          },
+          "flags": 0,
+          "fallback_endpoints": 28,
+          "cohort_work_signature_sha256": [
+            "56818499f322ef4c68b8aec78ebed9762e0350263e61703e3cfd17c6e814e73b",
+            "47263f45cc954169fbab56d9f09b46e804e700309a998896a468521a782321c3"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "results/fullrange_pipeline/a8_relative_pilot",
+      "name": "a8_relative_pilot",
+      "a": 8,
+      "m": 64,
+      "class_b": [
+        32,
+        35,
+        35,
+        35,
+        35,
+        34,
+        32,
+        32,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27
+      ],
+      "shared_arrays_gib_excluding_padding": 19.625,
+      "gpu_setup_seconds": 74.947199527,
+      "started_at": "2026-10-24T04:47:35.596111+00:00",
+      "finished_at": "2026-10-24T04:49:10.715682+00:00",
+      "binary_sha256": "765569639e4573396b6a37e098efb2e58c6afbef855e03f42c7b362f178fa77c",
+      "source_manifest_sha256": "84d0a30f4b98430024ba61c8da4a57cdf761bac03b9e32aef12c0d392ca83d39",
+      "pipeline_jsonl_sha256": "0c6a79f7976093a0c2dab172ae6d4a1f723f23e2dba3bf149cc92e278330cd90",
+      "variants": [
+        {
+          "name": "novote_oee",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.66719513375,
+          "observed_trial_wall_seconds_range": [
+            4.625469492,
+            4.71154958
+          ],
+          "mean_cohort_cpu_seconds": 0.6261880517499989,
+          "cohort_mean_wall_seconds": [
+            4.626124476499999,
+            4.7082657910000005
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 7334808945,
+            "cases": 180161006529,
+            "iters": 1433073490913,
+            "tree_nodes": 15933463803
+          },
+          "flags": 0,
+          "fallback_endpoints": 29,
+          "cohort_work_signature_sha256": [
+            "07245b4e0747ed3b9cf68a3eccb9ef612a6240e5457bf7cd6600aad2c5628fc6",
+            "caa36766750c42619c92726a425634cc8fbdae79ac740db24a01cd24caf7d8f5"
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "results/fullrange_pipeline/a8_remapped_pilot",
+      "name": "a8_remapped_pilot",
+      "a": 8,
+      "m": 64,
+      "class_b": [
+        35,
+        35,
+        35,
+        35,
+        34,
+        32,
+        32,
+        32,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27
+      ],
+      "shared_arrays_gib_excluding_padding": 19.625,
+      "gpu_setup_seconds": 75.372898655,
+      "started_at": "2026-10-24T04:49:18.493024+00:00",
+      "finished_at": "2026-10-24T04:50:54.614664+00:00",
+      "binary_sha256": "765569639e4573396b6a37e098efb2e58c6afbef855e03f42c7b362f178fa77c",
+      "source_manifest_sha256": "84d0a30f4b98430024ba61c8da4a57cdf761bac03b9e32aef12c0d392ca83d39",
+      "pipeline_jsonl_sha256": "13321894ccba9802455c23276a69c7a8e7c6906db6fc76588d3a45683f3c33ce",
+      "variants": [
+        {
+          "name": "novote_oee",
+          "gpu_tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "transport": "parents",
+          "mean_cohort_wall_seconds": 4.724957541749999,
+          "observed_trial_wall_seconds_range": [
+            4.683870594,
+            4.760980215
+          ],
+          "mean_cohort_cpu_seconds": 0.6320561822499968,
+          "cohort_mean_wall_seconds": [
+            4.691640087,
+            4.7582749965
+          ],
+          "timed_trial_count": 4,
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_sample_work": {
+            "endpoints": 7334808945,
+            "cases": 183266502146,
+            "iters": 1449430813967,
+            "tree_nodes": 15933463803
+          },
+          "flags": 0,
+          "fallback_endpoints": 29,
+          "cohort_work_signature_sha256": [
+            "4e0eb8d7cb7aeacb221cfd1a053de3e4f412c6870e7fb9b172e2d94b57396df9",
+            "11265a49691373f24982d378cfc81c273ff7e4c0be233ea84d55e0609943545c"
+          ]
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "label": "Repeated novote control",
+      "numerator": {
+        "run": "oee_pilot",
+        "variant": "novote"
+      },
+      "denominator": {
+        "run": "kernel_pilot",
+        "variant": "novote"
+      },
+      "comparison_scope": "same corpus and work, separate runs; timing drift remains a confounder",
+      "wall_ratio": 1.000568411969885,
+      "cpu_ratio": 1.0214971739612755,
+      "sample_work_ratios": {
+        "endpoints": 1.0,
+        "cases": 1.0,
+        "iters": 1.0,
+        "tree_nodes": 1.0
+      },
+      "wall_saved_fraction": -0.0005684119698849965
+    },
+    {
+      "label": "A10 optimized versus parent baseline",
+      "numerator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee"
+      },
+      "denominator": {
+        "run": "kernel_pilot",
+        "variant": "parents"
+      },
+      "comparison_scope": "exploratory cross-run comparison, same corpus and work",
+      "wall_ratio": 0.896769918134027,
+      "cpu_ratio": 0.977180814918057,
+      "sample_work_ratios": {
+        "endpoints": 1.0,
+        "cases": 1.0,
+        "iters": 1.0,
+        "tree_nodes": 1.0
+      },
+      "wall_saved_fraction": 0.10323008186597304
+    },
+    {
+      "label": "128 versus 256 threads, novote+OEE",
+      "numerator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee128"
+      },
+      "denominator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee"
+      },
+      "comparison_scope": "same run, same corpus and work",
+      "wall_ratio": 0.9995818815684285,
+      "cpu_ratio": 0.9923951907635311,
+      "sample_work_ratios": {
+        "endpoints": 1.0,
+        "cases": 1.0,
+        "iters": 1.0,
+        "tree_nodes": 1.0
+      },
+      "wall_saved_fraction": 0.0004181184315714681
+    },
+    {
+      "label": "512 versus 256 threads, novote+OEE",
+      "numerator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee512"
+      },
+      "denominator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee"
+      },
+      "comparison_scope": "same run, same corpus and work",
+      "wall_ratio": 1.0066438274931375,
+      "cpu_ratio": 1.0039975835291137,
+      "sample_work_ratios": {
+        "endpoints": 1.0,
+        "cases": 1.0,
+        "iters": 1.0,
+        "tree_nodes": 1.0
+      },
+      "wall_saved_fraction": -0.006643827493137522
+    },
+    {
+      "label": "A9 versus optimized A10",
+      "numerator": {
+        "run": "a9_pilot",
+        "variant": "novote_oee"
+      },
+      "denominator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee"
+      },
+      "comparison_scope": "same roots, different A and work, separate runs",
+      "wall_ratio": 1.0053038407792982,
+      "cpu_ratio": 1.1373604790818406,
+      "sample_work_ratios": {
+        "endpoints": 1.904663171294449,
+        "cases": 0.9598787295642335,
+        "iters": 0.9573406848184896,
+        "tree_nodes": 1.8820373563642805
+      },
+      "wall_saved_fraction": -0.005303840779298241
+    },
+    {
+      "label": "A8 relative windows versus optimized A10",
+      "numerator": {
+        "run": "a8_relative_pilot",
+        "variant": "novote_oee"
+      },
+      "denominator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee"
+      },
+      "comparison_scope": "same roots, different A and work, separate runs",
+      "wall_ratio": 1.0536739853283088,
+      "cpu_ratio": 1.2254989303261745,
+      "sample_work_ratios": {
+        "endpoints": 3.6591422354474843,
+        "cases": 0.9223199498937996,
+        "iters": 0.9186236596302153,
+        "tree_nodes": 3.5278321098159333
+      },
+      "wall_saved_fraction": -0.053673985328308804
+    },
+    {
+      "label": "A8 remapped windows versus optimized A10",
+      "numerator": {
+        "run": "a8_remapped_pilot",
+        "variant": "novote_oee"
+      },
+      "denominator": {
+        "run": "oee_pilot",
+        "variant": "novote_oee"
+      },
+      "comparison_scope": "same roots, different A and windows and work, separate runs",
+      "wall_ratio": 1.0667145257161321,
+      "cpu_ratio": 1.236983320088426,
+      "sample_work_ratios": {
+        "endpoints": 3.6591422354474843,
+        "cases": 0.938218287814141,
+        "iters": 0.9291089725334958,
+        "tree_nodes": 3.5278321098159333
+      },
+      "wall_saved_fraction": -0.06671452571613212
+    },
+    {
+      "label": "A8 remapped versus relative windows",
+      "numerator": {
+        "run": "a8_remapped_pilot",
+        "variant": "novote_oee"
+      },
+      "denominator": {
+        "run": "a8_relative_pilot",
+        "variant": "novote_oee"
+      },
+      "comparison_scope": "same roots and A, different windows and work, separate runs",
+      "wall_ratio": 1.0123762573332966,
+      "cpu_ratio": 1.0093711952561188,
+      "sample_work_ratios": {
+        "endpoints": 1.0,
+        "cases": 1.0172373349640458,
+        "iters": 1.0114141550714044,
+        "tree_nodes": 1.0
+      },
+      "wall_saved_fraction": -0.012376257333296614
+    }
+  ]
+}

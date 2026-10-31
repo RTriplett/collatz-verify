@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "trials_sha256": "14c9882eb6df6cf6a6517ee6ec9e75b5b8f3d6ff3d873d4d4a2db9eccda3b5fe",
+  "config": {
+    "type": "config",
+    "endpoints": 1048576,
+    "shards": 4,
+    "affine_bytes": 33554432,
+    "mask_bytes": 134217728,
+    "repetitions": 5,
+    "pinned_flags": 0,
+    "popcnt_supported": true,
+    "expected_count": 536880681,
+    "source": "deterministic CPU-filled cudaHostAllocDefault, no DMA",
+    "order": "rotate by 3 positions per repetition and reverse odd repetitions",
+    "scope": "CPU count/allocation/copy only; validation and destination frees excluded"
+  },
+  "checks_passed": true,
+  "warmup_trials_excluded": 8,
+  "variants": [
+    {
+      "variant": "software_popcount",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.013326944,
+          "min": 0.013305333,
+          "max": 0.013569944
+        },
+        "cpu_seconds": {
+          "median": 0.013296438,
+          "min": 0.013271992,
+          "max": 0.013531299
+        },
+        "user_seconds": {
+          "median": 0.013169,
+          "min": 0.01299,
+          "max": 0.013189
+        },
+        "system_seconds": {
+          "median": 0.000136,
+          "min": 0.000116,
+          "max": 0.000556
+        },
+        "minor_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 4,
+          "min": 3,
+          "max": 5
+        }
+      }
+    },
+    {
+      "variant": "hardware_popcnt64",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.002681262,
+          "min": 0.00263281,
+          "max": 0.002872415
+        },
+        "cpu_seconds": {
+          "median": 0.00266702,
+          "min": 0.002633949,
+          "max": 0.002851876
+        },
+        "user_seconds": {
+          "median": 0.002683,
+          "min": 0.002664,
+          "max": 0.002873
+        },
+        "system_seconds": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "minor_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 3
+        }
+      }
+    },
+    {
+      "variant": "allocate_without_touch",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 3.4726e-05,
+          "min": 2.5057e-05,
+          "max": 3.7161e-05
+        },
+        "cpu_seconds": {
+          "median": 3.5446e-05,
+          "min": 2.5939e-05,
+          "max": 3.776e-05
+        },
+        "user_seconds": {
+          "median": 4.7e-05,
+          "min": 0.0,
+          "max": 5.1e-05
+        },
+        "system_seconds": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.000911
+        },
+        "minor_faults": {
+          "median": 8,
+          "min": 8,
+          "max": 8
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "variant": "allocate_and_copy",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.089559226,
+          "min": 0.085835656,
+          "max": 0.090772435
+        },
+        "cpu_seconds": {
+          "median": 0.089279981,
+          "min": 0.085564032,
+          "max": 0.090477995
+        },
+        "user_seconds": {
+          "median": 0.043764,
+          "min": 0.041025,
+          "max": 0.054111
+        },
+        "system_seconds": {
+          "median": 0.041992,
+          "min": 0.034182,
+          "max": 0.048991
+        },
+        "minor_faults": {
+          "median": 40932,
+          "min": 40932,
+          "max": 40932
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 44,
+          "min": 41,
+          "max": 48
+        }
+      }
+    },
+    {
+      "variant": "first_touch_copy_after_allocation",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.090435006,
+          "min": 0.086638318,
+          "max": 0.091045353
+        },
+        "cpu_seconds": {
+          "median": 0.090128271,
+          "min": 0.086319562,
+          "max": 0.090712633
+        },
+        "user_seconds": {
+          "median": 0.048739,
+          "min": 0.042897,
+          "max": 0.052114
+        },
+        "system_seconds": {
+          "median": 0.040774,
+          "min": 0.038075,
+          "max": 0.046903
+        },
+        "minor_faults": {
+          "median": 40924,
+          "min": 40924,
+          "max": 40924
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 50,
+          "min": 39,
+          "max": 54
+        }
+      }
+    },
+    {
+      "variant": "resident_reused_copy",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.023391813,
+          "min": 0.023277436,
+          "max": 0.023598024
+        },
+        "cpu_seconds": {
+          "median": 0.023339762,
+          "min": 0.023251786,
+          "max": 0.023539395
+        },
+        "user_seconds": {
+          "median": 0.023187,
+          "min": 0.023118,
+          "max": 0.023292
+        },
+        "system_seconds": {
+          "median": 0.00067,
+          "min": 0.000225,
+          "max": 0.001089
+        },
+        "minor_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 7,
+          "min": 3,
+          "max": 10
+        }
+      }
+    },
+    {
+      "variant": "software_scan_allocate_copy",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.103454296,
+          "min": 0.09931071,
+          "max": 0.104282125
+        },
+        "cpu_seconds": {
+          "median": 0.103096624,
+          "min": 0.09900559,
+          "max": 0.103936662
+        },
+        "user_seconds": {
+          "median": 0.061209,
+          "min": 0.051283,
+          "max": 0.066014
+        },
+        "system_seconds": {
+          "median": 0.041909,
+          "min": 0.036988,
+          "max": 0.052844
+        },
+        "minor_faults": {
+          "median": 40932,
+          "min": 40932,
+          "max": 40932
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 51,
+          "min": 48,
+          "max": 53
+        }
+      }
+    },
+    {
+      "variant": "software_scan_reused_copy",
+      "sample_count": 5,
+      "metrics": {
+        "wall_seconds": {
+          "median": 0.036880263,
+          "min": 0.036631361,
+          "max": 0.0369684
+        },
+        "cpu_seconds": {
+          "median": 0.036778013,
+          "min": 0.036503461,
+          "max": 0.03685033
+        },
+        "user_seconds": {
+          "median": 0.035938,
+          "min": 0.035422,
+          "max": 0.036869
+        },
+        "system_seconds": {
+          "median": 0.000854,
+          "min": 0.0,
+          "max": 0.001856
+        },
+        "minor_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "major_faults": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "voluntary_switches": {
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "involuntary_switches": {
+          "median": 13,
+          "min": 7,
+          "max": 15
+        }
+      }
+    }
+  ],
+  "caveats": [
+    "Synthetic deterministic CPU-filled pinned sources; no GPU computation or DMA.",
+    "One thread on logical CPU 6; no simultaneous workers or tree producer.",
+    "Wall and thread CPU clocks are primary; getrusage user/system times are auxiliary with coarser accounting.",
+    "Five order-rotated repetitions provide local sensitivity, not a confidence interval or a production speedup prediction.",
+    "Destination allocation and first-touch behavior depend on the allocator and OS; frees occur outside the timed section."
+  ]
+}

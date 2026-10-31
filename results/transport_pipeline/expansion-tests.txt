@@ -1,0 +1,28 @@
+   Compiling expansion-bench v0.1.0 (/home/ryan/Projects/Collatz/distributed/scripts/expansion_bench)
+    Finished `release` profile [optimized] target(s) in 3.47s
+     Running unittests transport_bench.rs (/tmp/collatz-transport-target/release/deps/transport_bench-d60b6cda2444d701)
+
+running 20 tests
+test combined::tests::combined_rejects_checkpoint_after_cutoff - should panic ... ok
+test combined::tests::combined_rejects_table_that_bypasses_full_checks - should panic ... ok
+test fast_tail::tests::rational_slope_matches_exact_powers_through_64 ... ok
+test terminal::tests::dead_prefixes_are_counted_even_though_they_emit_no_endpoints ... ok
+test terminal::tests::modular_extension_mapping_is_bijective_for_every_supported_width ... ok
+test combined::tests::combined_terminal_dispatches_compact_payloads_to_overridden_sink ... ok
+test affine::tests::selective_class_counts_match_explicit_baseline_continuations ... ok
+test fast_tail::tests::wide_sampled_expansion_matches_with_wrapped_iterates ... ok
+test affine::tests::affine_dispatch_ranges_are_resident_and_single_class ... ok
+test tail_policy::tests::screened_policies_preserve_endpoints_and_counters ... ok
+test fast_tail::tests::small_complete_expansion_matches_payloads_and_counters ... ok
+test fast_tail::tests::cutoff_small_complete_expansion_matches_payloads_and_counters ... ok
+test tail_policy::tests::cutoff_matches_two_stage_frontier_and_counters ... ok
+test combined::tests::combined_reconstructed_nodes_match_at_target64_and_wrapped_iterates ... ok
+test fast_tail::tests::cutoff_wide_checkpoint_expansion_matches_payloads_and_counters ... ok
+test affine::tests::affine_complete_small_tree_matches_compact_and_two_stage_dfs ... ok
+test terminal::tests::complete_small_frontiers_match_reference_and_suffix_oracle ... ok
+test combined::tests::combined_complete_small_tree_matches_independent_two_stage_oracle ... ok
+test terminal::tests::sampled_wide_frontiers_match_wrapping_and_target_64 ... ok
+test affine::tests::affine_exact_nodes_include_wide_iterates_and_target64 ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+

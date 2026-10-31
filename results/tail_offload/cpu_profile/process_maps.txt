@@ -1,0 +1,314 @@
+200000000-200400000 ---p 00000000 00:00 0 
+200400000-200600000 rw-s 00000000 00:07 1472                             /dev/nvidia0
+200600000-203600000 rw-s 00000000 00:07 1471                             /dev/nvidiactl
+203600000-206400000 ---p 00000000 00:00 0 
+206400000-206600000 rw-s 00000000 00:07 1471                             /dev/nvidiactl
+206600000-206800000 rw-s 00000000 00:07 1471                             /dev/nvidiactl
+206800000-206a00000 rw-s 206800000 00:07 1473                            /dev/nvidia-uvm
+206a00000-300200000 ---p 00000000 00:00 0 
+10000000000-10004000000 ---p 00000000 00:00 0 
+5fce7000000-5fce7380000 rw-p 00000000 00:00 0 
+5fce7380000-5fce7800000 ---p 00000000 00:00 0 
+5fce7800000-5fce7ac0000 rw-p 00000000 00:00 0 
+5fce7ac0000-5fce8000000 ---p 00000000 00:00 0 
+5fce8000000-5fcea880000 rw-p 00000000 00:00 0 
+5fcea880000-5fceb000000 ---p 00000000 00:00 0 
+5fceb000000-5fcf0080000 rw-p 00000000 00:00 0 
+5fcf0080000-5fcf0800000 ---p 00000000 00:00 0 
+5fcf0800000-5fcf3080000 rw-p 00000000 00:00 0 
+5fcf3080000-5fcf3800000 ---p 00000000 00:00 0 
+5fcf3800000-5fcf6000000 rw-p 00000000 00:00 0 
+55a99cbf3000-55a99ccaf000 r--p 00000000 103:06 2495951                   /tmp/collatz-cpu-profile-target/release/fullrange_bench
+55a99ccaf000-55a99cdb6000 r-xp 000bb000 103:06 2495951                   /tmp/collatz-cpu-profile-target/release/fullrange_bench
+55a99cdb6000-55a99cdc0000 r--p 001c1000 103:06 2495951                   /tmp/collatz-cpu-profile-target/release/fullrange_bench
+55a99cdc0000-55a99cdc1000 rw-p 001ca000 103:06 2495951                   /tmp/collatz-cpu-profile-target/release/fullrange_bench
+55a99cdc1000-55a99cdc2000 rw-p 00000000 00:00 0 
+55a99ed42000-55a9a0c7f000 rw-p 00000000 00:00 0                          [heap]
+755a04000000-755a04021000 rw-p 00000000 00:00 0 
+755a04021000-755a08000000 ---p 00000000 00:00 0 
+755a0a000000-755f08000000 ---p 00000000 00:00 0 
+755f0a000000-755f0b200000 ---p 00000000 00:00 0 
+755f0b200000-755f0b400000 rw-s 00000000 00:01 98986                      /dev/zero (deleted)
+755f0b400000-755f0c000000 ---p 00000000 00:00 0 
+755f0c000000-755f0c2a5000 rw-p 00000000 00:00 0 
+755f0c2a5000-755f10000000 ---p 00000000 00:00 0 
+755f10000000-755f14000000 rw-s 00000000 00:01 115004                     /dev/zero (deleted)
+755f14000000-755f18000000 rw-s 00000000 00:01 115003                     /dev/zero (deleted)
+755f18000000-755f1c000000 rw-s 00000000 00:01 115002                     /dev/zero (deleted)
+755f1c000000-755f20000000 rw-s 00000000 00:01 115001                     /dev/zero (deleted)
+755f20000000-755f24000000 rw-s 00000000 00:01 115757                     /dev/zero (deleted)
+755f24000000-755f28000000 rw-s 00000000 00:01 116759                     /dev/zero (deleted)
+755f28000000-755f2c000000 rw-s 00000000 00:01 116758                     /dev/zero (deleted)
+755f2c000000-755f30000000 rw-s 00000000 00:01 116757                     /dev/zero (deleted)
+755f30000000-755f34000000 rw-s 00000000 00:01 116756                     /dev/zero (deleted)
+755f34000000-755f38000000 rw-s 00000000 00:01 116755                     /dev/zero (deleted)
+755f38000000-755f3c000000 rw-s 00000000 00:01 116754                     /dev/zero (deleted)
+755f3c000000-755f40000000 rw-s 00000000 00:01 116753                     /dev/zero (deleted)
+755f40000000-755f44000000 rw-s 00000000 00:01 110038                     /dev/zero (deleted)
+755f44000000-755f48000000 rw-s 00000000 00:01 116752                     /dev/zero (deleted)
+755f48000000-755f4c000000 rw-s 00000000 00:01 116751                     /dev/zero (deleted)
+755f4c000000-755f50000000 rw-s 00000000 00:01 116750                     /dev/zero (deleted)
+755f50000000-755f54000000 rw-s 00000000 00:01 116749                     /dev/zero (deleted)
+755f54000000-755f58000000 rw-s 00000000 00:01 116748                     /dev/zero (deleted)
+755f58000000-755f5c000000 rw-s 00000000 00:01 116747                     /dev/zero (deleted)
+755f5c000000-755f60000000 rw-s 00000000 00:01 116746                     /dev/zero (deleted)
+755f60000000-755f64000000 rw-s 00000000 00:01 116745                     /dev/zero (deleted)
+755f64000000-755f68000000 rw-s 00000000 00:01 116744                     /dev/zero (deleted)
+755f68000000-755f68021000 rw-p 00000000 00:00 0 
+755f68021000-755f6c000000 ---p 00000000 00:00 0 
+755f6efff000-755f70000000 rw-p 00000000 00:00 0 
+755f70000000-755f83e00000 ---p 00000000 00:00 0 
+755f83e00000-755f84000000 rw-s 00000000 00:01 116760                     /dev/zero (deleted)
+755f84000000-755f88400000 ---p 00000000 00:00 0 
+755f88400000-755f88600000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f88600000-755f88800000 rw-s 00000000 00:01 100945                     /dev/zero (deleted)
+755f88800000-755f88a00000 rw-s 00000000 00:01 114998                     /dev/zero (deleted)
+755f88a00000-755f89000000 ---p 00000000 00:00 0 
+755f89000000-755f89200000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f89200000-755f89400000 ---p 00000000 00:00 0 
+755f89400000-755f89600000 rw-s 00000000 00:01 115000                     /dev/zero (deleted)
+755f89600000-755f89a63000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f89a63000-755f8a000000 ---p 00000000 00:00 0 
+755f8addf000-755f8ade0000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade0000-755f8ade1000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade1000-755f8ade2000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade2000-755f8ade3000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade3000-755f8ade4000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade4000-755f8ade5000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade5000-755f8ade6000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade6000-755f8ade7000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade7000-755f8ade8000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade8000-755f8ade9000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8ade9000-755f8adea000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8adea000-755f8adeb000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8adeb000-755f8adec000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8adec000-755f8aded000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8aded000-755f8adee000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8adee000-755f8adef000 rw-s 00000000 00:07 1471                       /dev/nvidiactl
+755f8adef000-755f8c000000 ---p 00000000 00:00 0 
+755f8c000000-755f8c021000 rw-p 00000000 00:00 0 
+755f8c021000-755f90000000 ---p 00000000 00:00 0 
+755f907fd000-755f907fe000 ---p 00000000 00:00 0 
+755f907fe000-755f90ffe000 rw-p 00000000 00:00 0 
+755f90ffe000-755f90fff000 ---p 00000000 00:00 0 
+755f90fff000-755f917ff000 rw-p 00000000 00:00 0 
+755f917ff000-755f91800000 ---p 00000000 00:00 0 
+755f91800000-755f92000000 rw-p 00000000 00:00 0 
+755f92000000-755f92314000 r--p 00000000 103:06 10233790                  /usr/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.595.99.02
+755f92314000-755f96242000 r-xp 00314000 103:06 10233790                  /usr/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.595.99.02
+755f96242000-755f97671000 r--p 04242000 103:06 10233790                  /usr/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.595.99.02
+755f97671000-755f97672000 ---p 05671000 103:06 10233790                  /usr/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.595.99.02
+755f97672000-755f9787e000 r--p 05671000 103:06 10233790                  /usr/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.595.99.02
+755f9787e000-755f979b8000 rw-p 0587d000 103:06 10233790                  /usr/lib/x86_64-linux-gnu/libnvidia-gpucomp.so.595.99.02
+755f979b8000-755f97a64000 rw-p 00000000 00:00 0 
+755f97c00000-755f99033000 r-xp 00000000 103:06 10225883                  /usr/lib/x86_64-linux-gnu/libnvidia-nvvm70.so.4
+755f99033000-755f99232000 ---p 01433000 103:06 10225883                  /usr/lib/x86_64-linux-gnu/libnvidia-nvvm70.so.4
+755f99232000-755f9953d000 r--p 01432000 103:06 10225883                  /usr/lib/x86_64-linux-gnu/libnvidia-nvvm70.so.4
+755f9953d000-755f995ae000 rw-p 0173d000 103:06 10225883                  /usr/lib/x86_64-linux-gnu/libnvidia-nvvm70.so.4
+755f995ae000-755f995f6000 rw-p 00000000 00:00 0 
+755f99600000-755f997d6000 r--p 00000000 103:06 10225889                  /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.595.99.02
+755f997d6000-755f9ac38000 r-xp 001d6000 103:06 10225889                  /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.595.99.02
+755f9ac38000-755f9b3db000 r--p 01638000 103:06 10225889                  /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.595.99.02
+755f9b3db000-755f9b546000 r--p 01dda000 103:06 10225889                  /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.595.99.02
+755f9b546000-755f9b54f000 rw-p 01f45000 103:06 10225889                  /usr/lib/x86_64-linux-gnu/libnvidia-ptxjitcompiler.so.595.99.02
+755f9b54f000-755f9b550000 rw-p 00000000 00:00 0 
+755f9b5de000-755f9b5df000 ---p 00000000 00:00 0 
+755f9b5df000-755f9bddf000 rw-p 00000000 00:00 0 
+755f9bddf000-755fa3000000 ---p 00000000 00:00 0 
+755fa3000000-755fa3b00000 rw-p 00000000 00:00 0 
+755fa4000000-755fa4b00000 rw-p 00000000 00:00 0 
+755fa5000000-755fa5b00000 rw-p 00000000 00:00 0 
+755fa6000000-755fa6b00000 rw-p 00000000 00:00 0 
+755fa7000000-755fa7b00000 rw-p 00000000 00:00 0 
+755fa8000000-755fa8b00000 rw-p 00000000 00:00 0 
+755fa9000000-755fa9b00000 rw-p 00000000 00:00 0 
+755faa000000-755faab00000 rw-p 00000000 00:00 0 
+755fab000000-755fabb00000 rw-p 00000000 00:00 0 
+755fac000000-755facb00000 rw-p 00000000 00:00 0 
+755fad000000-755fadb00000 rw-p 00000000 00:00 0 
+755fae000000-755faeb00000 rw-p 00000000 00:00 0 
+755faf000000-755fafb00000 rw-p 00000000 00:00 0 
+755fb0000000-755fb0b00000 rw-p 00000000 00:00 0 
+755fb1000000-755fb1b00000 rw-p 00000000 00:00 0 
+755fb2000000-755fb2b00000 rw-p 00000000 00:00 0 
+755fb3000000-755fb3b00000 rw-p 00000000 00:00 0 
+755fb4000000-755fb4b00000 rw-p 00000000 00:00 0 
+755fb5000000-755fb5b00000 rw-p 00000000 00:00 0 
+755fb6000000-755fb6b00000 rw-p 00000000 00:00 0 
+755fb7000000-755fb7b00000 rw-p 00000000 00:00 0 
+755fb8000000-755fb8b00000 rw-p 00000000 00:00 0 
+755fb9000000-755fb9b00000 rw-p 00000000 00:00 0 
+755fba000000-755fbab00000 rw-p 00000000 00:00 0 
+755fbb000000-755fbbb00000 rw-p 00000000 00:00 0 
+755fbc000000-755fbcb00000 rw-p 00000000 00:00 0 
+755fbd000000-755fbdb00000 rw-p 00000000 00:00 0 
+755fbe000000-755fbeb00000 rw-p 00000000 00:00 0 
+755fbf000000-755fbfb00000 rw-p 00000000 00:00 0 
+755fc0000000-755fc0b00000 rw-p 00000000 00:00 0 
+755fc1000000-755fc1b00000 rw-p 00000000 00:00 0 
+755fc2000000-755fc2b00000 rw-p 00000000 00:00 0 
+755fc3000000-755fc3b00000 rw-p 00000000 00:00 0 
+755fc4000000-755fc4b00000 rw-p 00000000 00:00 0 
+755fc5000000-755fc5b00000 rw-p 00000000 00:00 0 
+755fc6000000-755fc6b00000 rw-p 00000000 00:00 0 
+755fc7000000-755fc7b00000 rw-p 00000000 00:00 0 
+755fc8000000-755fc8b00000 rw-p 00000000 00:00 0 
+755fc9000000-755fc9b00000 rw-p 00000000 00:00 0 
+755fca000000-755fcab00000 rw-p 00000000 00:00 0 
+755fcb000000-755fcbb00000 rw-p 00000000 00:00 0 
+755fcc000000-755fccb00000 rw-p 00000000 00:00 0 
+755fcd000000-755fcdb00000 rw-p 00000000 00:00 0 
+755fce000000-755fceb00000 rw-p 00000000 00:00 0 
+755fcf000000-755fcfb00000 rw-p 00000000 00:00 0 
+755fd0000000-755fd0b00000 rw-p 00000000 00:00 0 
+755fd1000000-755fd1b00000 rw-p 00000000 00:00 0 
+755fd2000000-755fd2b00000 rw-p 00000000 00:00 0 
+755fd2dff000-755fd2e00000 ---p 00000000 00:00 0 
+755fd2e00000-755fd3000000 rw-p 00000000 00:00 0 
+755fd3000000-755fd3b00000 rw-p 00000000 00:00 0 
+755fd3cf2000-755fd4021000 rw-p 00000000 00:00 0 
+755fd4021000-755fd8000000 ---p 00000000 00:00 0 
+755fd8000000-755fd8021000 rw-p 00000000 00:00 0 
+755fd8021000-755fdc000000 ---p 00000000 00:00 0 
+755fdc000000-755fdc021000 rw-p 00000000 00:00 0 
+755fdc021000-755fe0000000 ---p 00000000 00:00 0 
+755fe0000000-755fe0021000 rw-p 00000000 00:00 0 
+755fe0021000-755fe4000000 ---p 00000000 00:00 0 
+755fe4000000-755fe4021000 rw-p 00000000 00:00 0 
+755fe4021000-755fe8000000 ---p 00000000 00:00 0 
+755fe81e4000-755fe8800000 rw-p 00000000 00:00 0 
+755fe8800000-755fe9300000 rw-p 00000000 00:00 0 
+755fe940b000-755fe97fe000 rw-p 00000000 00:00 0 
+755fe97fe000-755fe97ff000 ---p 00000000 00:00 0 
+755fe97ff000-755fe9fff000 rw-p 00000000 00:00 0 
+755fe9fff000-755fea000000 ---p 00000000 00:00 0 
+755fea000000-755fea800000 rw-p 00000000 00:00 0 
+755fea800000-755fea964000 r--p 00000000 103:06 10224301                  /usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02
+755fea964000-755feba61000 r-xp 00164000 103:06 10224301                  /usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02
+755feba61000-755fefe08000 r--p 01261000 103:06 10224301                  /usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02
+755fefe08000-755feff40000 r--p 05607000 103:06 10224301                  /usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02
+755feff40000-755feff45000 rw-p 0573f000 103:06 10224301                  /usr/lib/x86_64-linux-gnu/libcuda.so.595.99.02
+755feff45000-755feffac000 rw-p 00000000 00:00 0 
+755ff0000000-755ff0021000 rw-p 00000000 00:00 0 
+755ff0021000-755ff4000000 ---p 00000000 00:00 0 
+755ff4000000-755ff4200000 rw-s 00000000 00:01 114999                     /dev/zero (deleted)
+755ff4200000-755ff423c000 r--p 00000000 103:06 6820743                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libcupti.so.13.1
+755ff423c000-755ff43f2000 r-xp 0003c000 103:06 6820743                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libcupti.so.13.1
+755ff43f2000-755ff44bf000 r--p 001f2000 103:06 6820743                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libcupti.so.13.1
+755ff44bf000-755ff44d1000 r--p 002be000 103:06 6820743                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libcupti.so.13.1
+755ff44d1000-755ff451c000 rw-p 002d0000 103:06 6820743                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libcupti.so.13.1
+755ff451c000-755ff4623000 rw-p 00000000 00:00 0 
+755ff465d000-755ff47fe000 rw-p 00000000 00:00 0 
+755ff47fe000-755ff47ff000 ---p 00000000 00:00 0 
+755ff47ff000-755ff4fff000 rw-p 00000000 00:00 0 
+755ff4fff000-755ff5000000 ---p 00000000 00:00 0 
+755ff5000000-755ff5800000 rw-p 00000000 00:00 0 
+755ff5800000-755ff6656000 r-xp 00000000 103:06 6820719                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjection64.so
+755ff6656000-755ff669e000 r--p 00e55000 103:06 6820719                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjection64.so
+755ff669e000-755ff66a5000 rw-p 00e9d000 103:06 6820719                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjection64.so
+755ff66a5000-755ff66e3000 rw-p 00000000 00:00 0 
+755ff677e000-755ff677f000 ---p 00000000 00:00 0 
+755ff677f000-755ff6f7f000 rw-p 00000000 00:00 0 
+755ff6f7f000-755ff8000000 rw-p 00000000 00:00 0 
+755ff8000000-755ff8021000 rw-p 00000000 00:00 0 
+755ff8021000-755ffc000000 ---p 00000000 00:00 0 
+755ffc084000-755ffc109000 rw-p 00000000 00:00 0 
+755ffc109000-755ffc3fa000 rw-p 00000000 00:00 0 
+755ffc3fa000-755ffc6eb000 rw-p 00000000 00:00 0 
+755ffc6eb000-755ffcaec000 rw-p 00000000 00:00 0 
+755ffcafc000-755ffcdee000 rw-p 00000000 00:00 0 
+755ffcdee000-755ffd1ef000 rw-p 00000000 00:00 0 
+755ffd23a000-755ffd36f000 rw-p 00000000 00:00 0 
+755ffd3e3000-755ffd468000 rw-p 00000000 00:00 0 
+755ffd468000-755ffd519000 rw-p 00000000 00:00 0 
+755ffd572000-755ffe5fe000 rw-p 00000000 00:00 0 
+755ffe5fe000-755ffe5ff000 ---p 00000000 00:00 0 
+755ffe5ff000-755ffe7ff000 rw-p 00000000 00:00 0 
+755ffe7ff000-755ffe800000 ---p 00000000 00:00 0 
+755ffe800000-755ffea00000 rw-p 00000000 00:00 0 
+755ffea00000-755ffea28000 r--p 00000000 103:06 10239501                  /usr/lib/x86_64-linux-gnu/libc.so.6
+755ffea28000-755ffebb1000 r-xp 00028000 103:06 10239501                  /usr/lib/x86_64-linux-gnu/libc.so.6
+755ffebb1000-755ffec00000 r--p 001b1000 103:06 10239501                  /usr/lib/x86_64-linux-gnu/libc.so.6
+755ffec00000-755ffec04000 r--p 001ff000 103:06 10239501                  /usr/lib/x86_64-linux-gnu/libc.so.6
+755ffec04000-755ffec06000 rw-p 00203000 103:06 10239501                  /usr/lib/x86_64-linux-gnu/libc.so.6
+755ffec06000-755ffec13000 rw-p 00000000 00:00 0 
+755ffec21000-755ffee00000 rw-p 00000000 00:00 0 
+755ffee00000-755ffee9d000 r--p 00000000 103:06 10223955                  /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+755ffee9d000-755ffefe5000 r-xp 0009d000 103:06 10223955                  /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+755ffefe5000-755fff06c000 r--p 001e5000 103:06 10223955                  /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+755fff06c000-755fff077000 r--p 0026b000 103:06 10223955                  /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+755fff077000-755fff07a000 rw-p 00276000 103:06 10223955                  /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33
+755fff07a000-755fff07e000 rw-p 00000000 00:00 0 
+755fff0da000-755fff0ea000 -w-s 00000000 00:07 1472                       /dev/nvidia0
+755fff0ea000-755fff185000 rw-p 00000000 00:00 0 
+755fff185000-755fff19a000 r-xp 00000000 103:06 6820723                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjectionMemoryAllocator.so
+755fff19a000-755fff19c000 r--p 00014000 103:06 6820723                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjectionMemoryAllocator.so
+755fff19c000-755fff19e000 rw-p 00016000 103:06 6820723                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjectionMemoryAllocator.so
+755fff19e000-755fff200000 rw-p 00000000 00:00 0 
+755fff200000-755fff2b3000 r-xp 00000000 103:06 10365767                  /usr/local/cuda-13.1/targets/x86_64-linux/lib/libcudart.so.13.1.80
+755fff2b3000-755fff4b3000 ---p 000b3000 103:06 10365767                  /usr/local/cuda-13.1/targets/x86_64-linux/lib/libcudart.so.13.1.80
+755fff4b3000-755fff4b8000 r--p 000b3000 103:06 10365767                  /usr/local/cuda-13.1/targets/x86_64-linux/lib/libcudart.so.13.1.80
+755fff4b8000-755fff4b9000 rw-p 000b8000 103:06 10365767                  /usr/local/cuda-13.1/targets/x86_64-linux/lib/libcudart.so.13.1.80
+755fff4b9000-755fff4bb000 rw-p 00000000 00:00 0 
+755fff4bd000-755fff4c7000 rw-p 00000000 00:00 0 
+755fff4c7000-755fff4c8000 r--p 00000000 103:06 10239925                  /usr/lib/x86_64-linux-gnu/libutil.so.1
+755fff4c8000-755fff4c9000 r-xp 00001000 103:06 10239925                  /usr/lib/x86_64-linux-gnu/libutil.so.1
+755fff4c9000-755fff4ca000 r--p 00002000 103:06 10239925                  /usr/lib/x86_64-linux-gnu/libutil.so.1
+755fff4ca000-755fff4cb000 r--p 00002000 103:06 10239925                  /usr/lib/x86_64-linux-gnu/libutil.so.1
+755fff4cb000-755fff4cc000 rw-p 00003000 103:06 10239925                  /usr/lib/x86_64-linux-gnu/libutil.so.1
+755fff4cc000-755fff4ce000 rw-p 00000000 00:00 0 
+755fff4ce000-755fff4cf000 r--p 00000000 103:06 10239826                  /usr/lib/x86_64-linux-gnu/libdl.so.2
+755fff4cf000-755fff4d0000 r-xp 00001000 103:06 10239826                  /usr/lib/x86_64-linux-gnu/libdl.so.2
+755fff4d0000-755fff4d1000 r--p 00002000 103:06 10239826                  /usr/lib/x86_64-linux-gnu/libdl.so.2
+755fff4d1000-755fff4d2000 r--p 00002000 103:06 10239826                  /usr/lib/x86_64-linux-gnu/libdl.so.2
+755fff4d2000-755fff4d3000 rw-p 00003000 103:06 10239826                  /usr/lib/x86_64-linux-gnu/libdl.so.2
+755fff4d3000-755fff4d4000 r--p 00000000 103:06 10239921                  /usr/lib/x86_64-linux-gnu/librt.so.1
+755fff4d4000-755fff4d5000 r-xp 00001000 103:06 10239921                  /usr/lib/x86_64-linux-gnu/librt.so.1
+755fff4d5000-755fff4d6000 r--p 00002000 103:06 10239921                  /usr/lib/x86_64-linux-gnu/librt.so.1
+755fff4d6000-755fff4d7000 r--p 00002000 103:06 10239921                  /usr/lib/x86_64-linux-gnu/librt.so.1
+755fff4d7000-755fff4d8000 rw-p 00003000 103:06 10239921                  /usr/lib/x86_64-linux-gnu/librt.so.1
+755fff4d8000-755fff4d9000 r--p 00000000 103:06 10239903                  /usr/lib/x86_64-linux-gnu/libpthread.so.0
+755fff4d9000-755fff4da000 r-xp 00001000 103:06 10239903                  /usr/lib/x86_64-linux-gnu/libpthread.so.0
+755fff4da000-755fff4db000 r--p 00002000 103:06 10239903                  /usr/lib/x86_64-linux-gnu/libpthread.so.0
+755fff4db000-755fff4dc000 r--p 00002000 103:06 10239903                  /usr/lib/x86_64-linux-gnu/libpthread.so.0
+755fff4dc000-755fff4dd000 rw-p 00003000 103:06 10239903                  /usr/lib/x86_64-linux-gnu/libpthread.so.0
+755fff4dd000-755fff4ed000 r--p 00000000 103:06 10239827                  /usr/lib/x86_64-linux-gnu/libm.so.6
+755fff4ed000-755fff56c000 r-xp 00010000 103:06 10239827                  /usr/lib/x86_64-linux-gnu/libm.so.6
+755fff56c000-755fff5c4000 r--p 0008f000 103:06 10239827                  /usr/lib/x86_64-linux-gnu/libm.so.6
+755fff5c4000-755fff5c5000 r--p 000e7000 103:06 10239827                  /usr/lib/x86_64-linux-gnu/libm.so.6
+755fff5c5000-755fff5c6000 rw-p 000e8000 103:06 10239827                  /usr/lib/x86_64-linux-gnu/libm.so.6
+755fff5c6000-755fff5c8000 rw-p 00000000 00:00 0 
+755fff5c8000-755fff5cc000 r--p 00000000 103:06 10239978                  /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+755fff5cc000-755fff5f0000 r-xp 00004000 103:06 10239978                  /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+755fff5f0000-755fff5f4000 r--p 00028000 103:06 10239978                  /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+755fff5f4000-755fff5f5000 r--p 0002b000 103:06 10239978                  /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+755fff5f5000-755fff5f6000 rw-p 0002c000 103:06 10239978                  /usr/lib/x86_64-linux-gnu/libgcc_s.so.1
+755fff5f6000-755fff5f8000 rw-p 00000000 00:00 0 
+755fff5f8000-755fff5f9000 ---p 00000000 00:00 0 
+755fff5f9000-755fff5fb000 rw-p 00000000 00:00 0 
+755fff5fb000-755fff5fd000 rw-p 00000000 00:00 0 
+755fff5fd000-755fff5fe000 r--s 00000000 00:07 1471                       /dev/nvidiactl
+755fff5fe000-755fff602000 rw-p 00000000 00:00 0 
+755fff602000-755fff603000 ---p 00000000 00:00 0 
+755fff603000-755fff605000 rw-p 00000000 00:00 0 
+755fff605000-755fff606000 ---p 00000000 00:00 0 
+755fff606000-755fff608000 rw-p 00000000 00:00 0 
+755fff608000-755fff609000 ---p 00000000 00:00 0 
+755fff609000-755fff60b000 rw-p 00000000 00:00 0 
+755fff60b000-755fff627000 r-xp 00000000 103:06 6820717                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libLinuxKeyboardInterceptorProxy.so
+755fff627000-755fff629000 r--p 0001b000 103:06 6820717                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libLinuxKeyboardInterceptorProxy.so
+755fff629000-755fff62a000 rw-p 0001d000 103:06 6820717                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libLinuxKeyboardInterceptorProxy.so
+755fff62a000-755fff6d3000 r-xp 00000000 103:06 6820726                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjectionProxy64.so
+755fff6d3000-755fff6db000 r--p 000a8000 103:06 6820726                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjectionProxy64.so
+755fff6db000-755fff6dc000 rw-p 000b0000 103:06 6820726                   /opt/nvidia/nsight-systems/2025.5.2/target-linux-x64/libToolsInjectionProxy64.so
+755fff6dc000-755fff6df000 rw-p 00000000 00:00 0 
+755fff6df000-755fff6e3000 r--p 00000000 00:00 0                          [vvar]
+755fff6e3000-755fff6e5000 r--p 00000000 00:00 0                          [vvar_vclock]
+755fff6e5000-755fff6e7000 r-xp 00000000 00:00 0                          [vdso]
+755fff6e7000-755fff6e8000 r--p 00000000 103:06 10239442                  /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+755fff6e8000-755fff713000 r-xp 00001000 103:06 10239442                  /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+755fff713000-755fff71d000 r--p 0002c000 103:06 10239442                  /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+755fff71d000-755fff71f000 r--p 00036000 103:06 10239442                  /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+755fff71f000-755fff721000 rw-p 00038000 103:06 10239442                  /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fff4a8f9000-7fff4a91b000 rw-p 00000000 00:00 0                          [stack]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]

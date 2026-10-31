@@ -1,0 +1,4 @@
+tail-jump GPU self-test W=8 cases=16384 iters=49920 flags=9123 accepted_jumps=17739 exact_match=true
+tail-jump GPU self-test W=10 cases=16384 iters=49920 flags=9123 accepted_jumps=25036 exact_match=true
+tail-jump GPU self-test W=12 cases=16384 iters=49920 flags=9123 accepted_jumps=26817 exact_match=true
+tail-jump GPU self-test W=14 cases=16384 iters=49920 flags=9123 accepted_jumps=25003 exact_match=true

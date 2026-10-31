@@ -1,0 +1,40 @@
+{
+  "state": "complete",
+  "exit_status": 0,
+  "command": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/tmp/collatz-tail-offload-target/release/fullrange_bench",
+    "target",
+    "128",
+    "1",
+    "2",
+    "20261101",
+    "novote_oee,defer16_cap262k_w4",
+    "32,35,35,35,35,34,32,32,27,27,27,27,27,27,27,27",
+    "10"
+  ],
+  "fullrange_environment": {
+    "CV_FULLRANGE_COHORTS": "4",
+    "CV_FULLRANGE_CUTOFF": "50",
+    "CV_FULLRANGE_ENTRY": "52",
+    "CV_FULLRANGE_AGGREGATE": "2",
+    "CV_FULLRANGE_PROFILE_AGGREGATE": "0"
+  },
+  "gpu_access": "Approved process-scoped execution outside sandbox; no driver settings changed",
+  "binary_sha256": "b6b85584a7860daee496b53435eb6dd4df11bfcfd961dd17ab6d883e5ee436b1",
+  "arguments": {
+    "roots": 128,
+    "cohorts": 4,
+    "repetitions": 1,
+    "a": 10,
+    "seed": 20261101,
+    "threads": 2,
+    "cutoff": 50,
+    "entry": 52,
+    "aggregate_runs": 2,
+    "variants": "novote_oee,defer16_cap262k_w4",
+    "class_b": "32,35,35,35,35,34,32,32,27,27,27,27,27,27,27,27"
+  }
+}

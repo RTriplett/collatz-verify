@@ -16,10 +16,14 @@
 
 pub mod arith;
 pub mod dp;
+pub mod direct_cpu;
+pub mod early_cpu;
+pub mod expansion;
 #[cfg(feature = "cuda")]
 pub mod gpu;
 pub mod lookahead;
 pub mod measure;
+pub mod path_records;
 pub mod rules;
 pub mod sample;
 pub mod tail;

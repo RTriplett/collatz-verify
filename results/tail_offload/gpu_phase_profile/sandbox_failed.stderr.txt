@@ -1,0 +1,4 @@
+
+thread 'main' (3) panicked at fullrange_bench.rs:808:54:
+GPU initialization: cannot query GPU memory
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

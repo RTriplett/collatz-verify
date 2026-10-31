@@ -1,0 +1,33 @@
+{
+  "mask_oracle": "passed",
+  "launches": 128,
+  "mask_words": 111680,
+  "completion_bits": 3573760,
+  "a": [
+    8,
+    10
+  ],
+  "m": [
+    62,
+    64
+  ],
+  "families": [
+    1,
+    2
+  ],
+  "oee_states": [
+    0,
+    1,
+    2
+  ],
+  "modes": [
+    2,
+    3,
+    4
+  ],
+  "blocks": [
+    128,
+    256,
+    512
+  ]
+}

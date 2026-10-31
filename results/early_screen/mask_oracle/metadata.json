@@ -1,0 +1,63 @@
+{
+  "state": "complete",
+  "exit_status": 0,
+  "build_command": [
+    "/usr/local/cuda/bin/nvcc",
+    "-O3",
+    "-std=c++17",
+    "-arch=sm_89",
+    "/tmp/collatz_screen_mask_oracle.cu",
+    "-o",
+    "/tmp/collatz_screen_mask_oracle"
+  ],
+  "run_command": [
+    "/tmp/collatz_screen_mask_oracle"
+  ],
+  "nvcc_version": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_Dec_16_07:23:41_PM_PST_2025\nCuda compilation tools, release 13.1, V13.1.115\nBuild cuda_13.1.r13.1/compiler.37061995_0",
+  "kernel_source_sha256": "9b26bb64e3fa2459c10754b6173a1a5d17d05781e51c421acfe3c3c37ad0ac89",
+  "included_headers_sha256": {
+    "cuda/grouped_tail.cuh": "94160d07524b712cbd69b0edd675b64abb8dcdad2e3766bf2073104d173276aa",
+    "cuda/compact_chain.cuh": "7d5261119156573b39ba9dbf9acf3f28bfda7034b8ae5bc064e8e67ae2867d45"
+  },
+  "executed_harness_sha256": "1bc08876c6ff27fb9e55d78b96d1018d9d53b438499e9cc29140fc5aa4701848",
+  "saved_harness_sha256": "aed6b4e277043c3ec42e6be24476d0dd63afc01a682e3847beec6fea9a119af4",
+  "executed_binary_sha256": "ad26be09afb98f0a6f776d747abd9e903c7855b47bb9ed09ca9c0e818df60aca",
+  "source_normalization": "The saved source changes only the leading CUDA include from the executed absolute workspace path to the equivalent relative path ../../../cuda/kernel.cu.",
+  "hardware": "RTX 4090 (sm_89)",
+  "gpu_access": "Approved process-scoped execution outside the sandbox; no settings changed.",
+  "coverage": {
+    "endpoints_per_launch": [
+      1,
+      7,
+      8,
+      9,
+      17,
+      33,
+      257
+    ],
+    "tail_oee": [
+      false,
+      true
+    ],
+    "oee_states": [
+      0,
+      1,
+      2
+    ],
+    "forced_bitvector_indices": [
+      0,
+      31,
+      4095,
+      4088
+    ],
+    "random_seed_hex": "61e5d773b942a019",
+    "checks": [
+      "Every mask bit against scalar wrapped-bit-index, full-width base modulo 9 and direct OEE candidate test",
+      "Exact returned affine32 records, including independent CPU reconstruction of terminal-parent and compact-chain expansion",
+      "Low-64-bit carry in T^M(n0)+1",
+      "Reject slot reuse and preparation while screen export is in flight",
+      "Reject ordinary wait for screen export and second wait after consumption"
+    ]
+  },
+  "scope": "Synthetic exact input states and random resident masks exercise the screen export ABI. This does not replace integrated mathematical-bitvector and full-pipeline checks."
+}

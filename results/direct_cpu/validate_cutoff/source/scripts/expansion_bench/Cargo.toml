@@ -1,0 +1,72 @@
+[package]
+name = "expansion-bench"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "expansion_bench"
+path = "main.rs"
+
+[[bin]]
+name = "checkpoint_work"
+path = "checkpoint_work.rs"
+
+[[bin]]
+name = "tail_bench"
+path = "tail_bench.rs"
+
+[[bin]]
+name = "terminal_bench"
+path = "terminal_bench.rs"
+
+[[bin]]
+name = "overall_bench"
+path = "overall_bench.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "transport_bench"
+path = "transport_bench.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "class_split_bench"
+path = "class_split_bench.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "fullrange_bench"
+path = "fullrange_bench.rs"
+required-features = ["cuda"]
+
+[[bin]]
+name = "rare_tail_bench"
+path = "rare_tail_bench.rs"
+
+[[bin]]
+name = "early_cpu_bench"
+path = "early_cpu_bench.rs"
+
+[[bin]]
+name = "direct_cpu_bench"
+path = "direct_cpu_bench.rs"
+
+[[bin]]
+name = "direct_pipeline_bench"
+path = "direct_pipeline_bench.rs"
+required-features = ["cuda"]
+
+[features]
+cuda = ["cv/cuda"]
+
+[dependencies]
+cv = { package = "collatz-verify", path = "../..", default-features = false }
+rayon = "1.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

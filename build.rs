@@ -5,6 +5,8 @@ use std::process::Command;
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=cuda/kernel.cu");
+    println!("cargo:rerun-if-changed=cuda/grouped_tail.cuh");
+    println!("cargo:rerun-if-changed=cuda/compact_chain.cuh");
     if env::var_os("CARGO_FEATURE_CUDA").is_none() {
         return;
     }

@@ -1,0 +1,1 @@
+{"checks":28486,"wide_states":10993,"carrying_products":1042,"near_limit":304,"kernel_slice_endpoints":8574}

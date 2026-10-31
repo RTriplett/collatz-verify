@@ -1,0 +1,23 @@
+	Command being timed: "/tmp/collatz-n56-target/release/cv --threads 16 verify --n 56 --gpu --a 12 --b 28 --class-b 32,35,35,35,35,34,32,32 --bv-shared --bv-pm-inf --bv-mix-j 13 --rules improved --mix-j 13 --cutoff-bits 97 --json results/path_records/n56/verification.json --path-records results/path_records/n56/candidates.json"
+	User time (seconds): 3857.78
+	System time (seconds): 14.15
+	Percent of CPU this job got: 419%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 15:22.73
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 565164
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 133266
+	Voluntary context switches: 992916
+	Involuntary context switches: 861054
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1736
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

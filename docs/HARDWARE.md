@@ -115,6 +115,53 @@ about $0.48/h to break even with a 4090 fleet.
 
 ## 5. Keep the GPU fed: CPU cores per GPU
 
+The figures below describe the original DFS used by default. A newer
+[integrated benchmark](../results/overall_pipeline/README.md) of experimental
+checkpoint/table expansion at N72/A10 reduces process CPU consumption by 87%
+on the measured packages, while median pipeline time falls from 29.0 to 26.5
+seconds. A follow-up retains 26.5-second throughput with the entire process
+pinned to two physical 7700X cores. Its arrays and checkpoint are prepared before
+timing. The earlier
+CPU-core estimates below should not be applied to that experimental path;
+the global GPU-year estimates have not been replaced by this package benchmark.
+
+A subsequent [A comparison](../results/a_pipeline/README.md) uses this spare
+CPU capacity to expand to M63/A9 and M64/A8. With fresh A10 controls and the
+same window-memory allocation, median pipeline times are 25.367, 25.448 and
+27.539 seconds for A10, A9 and A8. Average busy CPU cores rise from 1.10 to 2.01
+and 3.55. Smaller A reduces counted tail iterations but multiplies endpoint
+traffic and GPU prefix reconstruction; A9 shows no clear benefit and A8 is
+8.6% slower. Retain A10 for this experimental configuration. Per-A window
+retuning is not measured, and the original-DFS guidance below remains separate.
+
+The [transport follow-up](../results/transport_pipeline/README.md) realizes
+larger host savings by sending K52 parent/class groups and expanding their
+terminal words on the GPU. With eight cores available, process CPU falls from
+28.943 to 6.543 core-seconds and transfers from 69.211 to 2.955 GB per measured
+batch; wall time falls only from 24.819 to 24.414 seconds. With the **entire
+process pinned to one physical core**, parent dispatch takes a median 24.315
+seconds and 2.130 CPU-seconds, retaining the eight-core throughput. The original
+16-byte experimental path takes 26.931 seconds on that same single core.
+These are three repetitions on an active desktop, with a wider 21.952–24.465
+second range for the single-core parent run. This supports allocating fewer
+host cores to this path; it does not establish multi-GPU scaling or a revised
+full-range GPU-year estimate. Packed eight-byte endpoints and CPU-supplied
+exact iterates show no clear elapsed-time benefit in the same comparison.
+
+The subsequent [full-range benchmark](../results/fullrange_pipeline/README.md)
+uses 16 independent cohorts of 512 baseline K38 draws, retains rejected draws
+in the denominator, and measures two repetitions plus a concatenated-corpus
+check. On this RTX 4090, the A10 parent pipeline estimates **0.6535 GPU-years**
+with its original kernel and **0.5859 GPU-years** with a per-lane overflow
+guard and an OEE mask applied before candidate extraction. The latter has a
+**0.5649–0.6069** 95% sampling interval; the paired saving is **10.34%**.
+Both aggregate checks agree within 0.08%. The arrays use 19.625 GiB, and two
+physical CPU cores are available; measured CPU demand extrapolates to 0.0681
+core-years after the checkpoint. A separate rare-class probe gives a 1.37
+CPU-hour allowance. Frontier construction, archive I/O, resident-array setup,
+and distributed coordination are excluded. This new RTX 4090 result does not
+remeasure or update the RTX PRO 6000 and other-device projections above.
+
 A deeper window shrinks GPU work but leaves the step-1 tree unchanged, so a GPU
 needs more CPU behind it. A complete N = 56 run on this machine (RTX 4090 plus a
 16-thread Ryzen 7700X, A = 10, classes 0–7 at B = 34, 16 GiB of shared arrays

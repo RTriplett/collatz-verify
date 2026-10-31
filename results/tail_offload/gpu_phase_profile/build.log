@@ -1,0 +1,3 @@
+   Compiling collatz-verify v0.1.0 (/tmp/collatz-gpu-phase-source)
+   Compiling expansion-bench v0.1.0 (/tmp/collatz-gpu-phase-source/scripts/expansion_bench)
+    Finished `release` profile [optimized + debuginfo] target(s) in 11.45s

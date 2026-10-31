@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Run from the repository root; use a fresh --output path for a new capture.
+nsys profile --sample=none --cpuctxsw=none --trace=cuda --capture-range=cudaProfilerApi --capture-range-end=repeat:2 --export=sqlite --stats=false --output=/home/ryan/Projects/Collatz/distributed/results/tail_offload/flame_profile/direct_trace --env-var=CV_FULLRANGE_COHORTS=4,CV_FULLRANGE_CUTOFF=50,CV_FULLRANGE_ENTRY=52,CV_FULLRANGE_AGGREGATE=1,CV_FULLRANGE_PROFILE_AGGREGATE=1 taskset -c 0-7 /tmp/collatz-tail-offload-target/release/fullrange_bench target 128 1 2 20261101 novote_oee,defer16_cap262k_w4 32,35,35,35,35,34,32,32,27,27,27,27,27,27,27,27 10 > results/tail_offload/flame_profile/direct_stdout.txt 2> results/tail_offload/flame_profile/direct_stderr.txt

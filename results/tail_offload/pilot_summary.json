@@ -1,0 +1,1691 @@
+{
+  "scope": "Directly measured CPU/GPU continuation experiments; no new absolute full-range GPU-year estimate.",
+  "accounting": "GPU-origin cases, iterations, flags and checksums include exact CPU continuations. Deferred work is a subset of these totals. Budgets and iteration counts use the existing double-iteration loop, not individual Collatz steps. A full queue leaves the candidate on the GPU. GPU time comparisons use outer pipeline wall time, including queue backpressure, CPU continuation drain and wide rechecks. Timing repetitions are averaged within each independent cohort before paired inference.",
+  "runs": [
+    {
+      "directory": "results/tail_offload/pilot",
+      "baseline_draws": 256,
+      "accepted_draws": 238,
+      "cohort_count": 2,
+      "repetitions": 2,
+      "n": 72,
+      "a": 10,
+      "threads": 2,
+      "aggregate_corpus_sha256": "62e18683b8786b196a78a7bf427b2231d5c6ed2aee17358b3fd421aa8615818c",
+      "exact_work_audit_passed": true,
+      "variants": [
+        {
+          "name": "novote_oee",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 1.0,
+            "ci95": [
+              1.0,
+              1.0
+            ],
+            "saved_fraction": 0.0,
+            "saved_fraction_ci95": [
+              0.0,
+              0.0
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 0,
+            "deferred_cases": 0,
+            "deferred_rejected": 0,
+            "deferred_iterations": 0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 0,
+            "deferred_cpu_seconds": 0.0,
+            "deferred_queue_wait_seconds": 0.0,
+            "deferred_drain_seconds": 0.0,
+            "wall_seconds": 5.092960741,
+            "process_cpu_seconds": 0.7205995019999989,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435680,
+            "average_busy_cpu_cores": 0.14148931017648284,
+            "threshold_exceeding_case_fraction": 0.0,
+            "offloaded_case_fraction": 0.0,
+            "cpu_remainder_iteration_fraction": 0.0,
+            "queue_rejection_fraction": null,
+            "mean_remainder_iterations_per_offloaded_case": null,
+            "cpu_nanoseconds_per_remainder_iteration": null,
+            "gpu_executed_iterations": 766250676804
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 0,
+              "deferred_cases": 0,
+              "deferred_rejected": 0,
+              "deferred_iterations": 0,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 0,
+              "deferred_cpu_seconds": 0.0,
+              "deferred_queue_wait_seconds": 0.0,
+              "deferred_drain_seconds": 0.0,
+              "wall_seconds": 2.2728112275,
+              "process_cpu_seconds": 0.328018117500001,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404288,
+              "average_busy_cpu_cores": 0.14432264040723153,
+              "threshold_exceeding_case_fraction": 0.0,
+              "offloaded_case_fraction": 0.0,
+              "cpu_remainder_iteration_fraction": 0.0,
+              "queue_rejection_fraction": null,
+              "mean_remainder_iterations_per_offloaded_case": null,
+              "cpu_nanoseconds_per_remainder_iteration": null,
+              "gpu_executed_iterations": 343539084799
+            },
+            {
+              "deferred_attempts": 0,
+              "deferred_cases": 0,
+              "deferred_rejected": 0,
+              "deferred_iterations": 0,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 0,
+              "deferred_cpu_seconds": 0.0,
+              "deferred_queue_wait_seconds": 0.0,
+              "deferred_drain_seconds": 0.0,
+              "wall_seconds": 2.8201495134999996,
+              "process_cpu_seconds": 0.3925813844999979,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031392,
+              "average_busy_cpu_cores": 0.13920587636248313,
+              "threshold_exceeding_case_fraction": 0.0,
+              "offloaded_case_fraction": 0.0,
+              "cpu_remainder_iteration_fraction": 0.0,
+              "queue_rejection_fraction": null,
+              "mean_remainder_iterations_per_offloaded_case": null,
+              "cpu_nanoseconds_per_remainder_iteration": null,
+              "gpu_executed_iterations": 422711592005
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 0,
+            "deferred_cases": 0,
+            "deferred_rejected": 0,
+            "deferred_iterations": 0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 0,
+            "deferred_cpu_seconds": 0.0,
+            "deferred_queue_wait_seconds": 0.0,
+            "deferred_drain_seconds": 0.0,
+            "wall_seconds": 5.06743028,
+            "process_cpu_seconds": 0.7536541999999997,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675436160,
+            "average_busy_cpu_cores": 0.1487251246404913,
+            "threshold_exceeding_case_fraction": 0.0,
+            "offloaded_case_fraction": 0.0,
+            "cpu_remainder_iteration_fraction": 0.0,
+            "queue_rejection_fraction": null,
+            "mean_remainder_iterations_per_offloaded_case": null,
+            "cpu_nanoseconds_per_remainder_iteration": null,
+            "gpu_executed_iterations": 766250676804
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "saved_fraction": 0.0,
+              "saved_fraction_ci95": [
+                0.0,
+                0.0
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 0.9173456362086067,
+              "ci95": [
+                0.8809668896331712,
+                0.9537243827840421
+              ],
+              "saved_fraction": 0.08265436379139335,
+              "saved_fraction_ci95": [
+                0.046275617215957805,
+                0.1190331103668289
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer_count",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 4294967295
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0901016591009296,
+            "ci95": [
+              1.046872007775836,
+              1.1333313104260232
+            ],
+            "saved_fraction": -0.0901016591009296,
+            "saved_fraction_ci95": [
+              -0.13333131042602323,
+              -0.046872007775835965
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 0.9952015259649667,
+            "ci95": [
+              0.4253668916217196,
+              1.565036160308214
+            ],
+            "saved_fraction": 0.004798474035033307,
+            "saved_fraction_ci95": [
+              -0.5650361603082138,
+              0.5746331083782804
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 0,
+            "deferred_cases": 0,
+            "deferred_rejected": 0,
+            "deferred_iterations": 0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 0,
+            "deferred_cpu_seconds": 0.0,
+            "deferred_queue_wait_seconds": 0.0,
+            "deferred_drain_seconds": 8.50765e-05,
+            "wall_seconds": 5.5518449535,
+            "process_cpu_seconds": 0.717141723999994,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435648,
+            "average_busy_cpu_cores": 0.12917178523652623,
+            "threshold_exceeding_case_fraction": 0.0,
+            "offloaded_case_fraction": 0.0,
+            "cpu_remainder_iteration_fraction": 0.0,
+            "queue_rejection_fraction": null,
+            "mean_remainder_iterations_per_offloaded_case": null,
+            "cpu_nanoseconds_per_remainder_iteration": null,
+            "gpu_executed_iterations": 766250676804
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 0,
+              "deferred_cases": 0,
+              "deferred_rejected": 0,
+              "deferred_iterations": 0,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 0,
+              "deferred_cpu_seconds": 0.0,
+              "deferred_queue_wait_seconds": 0.0,
+              "deferred_drain_seconds": 4.4805e-05,
+              "wall_seconds": 2.486259046,
+              "process_cpu_seconds": 0.34260247899999996,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404256,
+              "average_busy_cpu_cores": 0.13779838410289286,
+              "threshold_exceeding_case_fraction": 0.0,
+              "offloaded_case_fraction": 0.0,
+              "cpu_remainder_iteration_fraction": 0.0,
+              "queue_rejection_fraction": null,
+              "mean_remainder_iterations_per_offloaded_case": null,
+              "cpu_nanoseconds_per_remainder_iteration": null,
+              "gpu_executed_iterations": 343539084799
+            },
+            {
+              "deferred_attempts": 0,
+              "deferred_cases": 0,
+              "deferred_rejected": 0,
+              "deferred_iterations": 0,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 0,
+              "deferred_cpu_seconds": 0.0,
+              "deferred_queue_wait_seconds": 0.0,
+              "deferred_drain_seconds": 4.02715e-05,
+              "wall_seconds": 3.0655859075,
+              "process_cpu_seconds": 0.374539244999994,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031392,
+              "average_busy_cpu_cores": 0.12217541974070222,
+              "threshold_exceeding_case_fraction": 0.0,
+              "offloaded_case_fraction": 0.0,
+              "cpu_remainder_iteration_fraction": 0.0,
+              "queue_rejection_fraction": null,
+              "mean_remainder_iterations_per_offloaded_case": null,
+              "cpu_nanoseconds_per_remainder_iteration": null,
+              "gpu_executed_iterations": 422711592005
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 0,
+            "deferred_cases": 0,
+            "deferred_rejected": 0,
+            "deferred_iterations": 0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 0,
+            "deferred_cpu_seconds": 0.0,
+            "deferred_queue_wait_seconds": 0.0,
+            "deferred_drain_seconds": 5.8642e-05,
+            "wall_seconds": 5.486180154,
+            "process_cpu_seconds": 0.7539812559999888,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675436096,
+            "average_busy_cpu_cores": 0.13743282845902488,
+            "threshold_exceeding_case_fraction": 0.0,
+            "offloaded_case_fraction": 0.0,
+            "cpu_remainder_iteration_fraction": 0.0,
+            "queue_rejection_fraction": null,
+            "mean_remainder_iterations_per_offloaded_case": null,
+            "cpu_nanoseconds_per_remainder_iteration": null,
+            "gpu_executed_iterations": 766250676804
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.0901016591009296,
+              "ci95": [
+                1.046872007775836,
+                1.1333313104260232
+              ],
+              "saved_fraction": -0.0901016591009296,
+              "saved_fraction_ci95": [
+                -0.13333131042602323,
+                -0.046872007775835965
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "saved_fraction": 0.0,
+              "saved_fraction_ci95": [
+                0.0,
+                0.0
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer8",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 8
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.8030205819330505,
+            "ci95": [
+              1.6032118215446811,
+              2.00282934232142
+            ],
+            "saved_fraction": -0.8030205819330505,
+            "saved_fraction_ci95": [
+              -1.0028293423214198,
+              -0.6032118215446811
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 4.572768063056488,
+            "ci95": [
+              2.5833725691641676,
+              6.562163556948809
+            ],
+            "saved_fraction": -3.572768063056488,
+            "saved_fraction_ci95": [
+              -5.562163556948809,
+              -1.5833725691641676
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 30779069191,
+            "deferred_cases": 62720241,
+            "deferred_rejected": 30716348950,
+            "deferred_iterations": 202024628.5,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 2007047712,
+            "deferred_cpu_seconds": 2.4824074240000007,
+            "deferred_queue_wait_seconds": 0.015460495999999999,
+            "deferred_drain_seconds": 0.013744875,
+            "wall_seconds": 9.182713039,
+            "process_cpu_seconds": 3.2951343890000047,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435776,
+            "average_busy_cpu_cores": 0.3588410500257608,
+            "threshold_exceeding_case_fraction": 0.32065065011888333,
+            "offloaded_case_fraction": 0.0006534078703765257,
+            "cpu_remainder_iteration_fraction": 0.0002636534421641706,
+            "queue_rejection_fraction": 0.9979622437374311,
+            "mean_remainder_iterations_per_offloaded_case": 3.221043562316669,
+            "cpu_nanoseconds_per_remainder_iteration": 12.287647513233766,
+            "gpu_executed_iterations": 766048652175.5
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 13754082401,
+              "deferred_cases": 28626764,
+              "deferred_rejected": 13725455637,
+              "deferred_iterations": 92112301.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 916056448,
+              "deferred_cpu_seconds": 1.172146062,
+              "deferred_queue_wait_seconds": 0.006738968,
+              "deferred_drain_seconds": 0.0079808645,
+              "wall_seconds": 4.0578812785,
+              "process_cpu_seconds": 1.5563624790000006,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404448,
+              "average_busy_cpu_cores": 0.3835406637562624,
+              "threshold_exceeding_case_fraction": 0.31914694725026443,
+              "offloaded_case_fraction": 0.000664249644133986,
+              "cpu_remainder_iteration_fraction": 0.00026812757434541585,
+              "queue_rejection_fraction": 0.9979186714776466,
+              "mean_remainder_iterations_per_offloaded_case": 3.2176987067067726,
+              "cpu_nanoseconds_per_remainder_iteration": 12.725184833211447,
+              "gpu_executed_iterations": 343446972497.5
+            },
+            {
+              "deferred_attempts": 17024986790,
+              "deferred_cases": 34093477,
+              "deferred_rejected": 16990893313,
+              "deferred_iterations": 109912327,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 1090991264,
+              "deferred_cpu_seconds": 1.3102613620000008,
+              "deferred_queue_wait_seconds": 0.008721528,
+              "deferred_drain_seconds": 0.0057640105,
+              "wall_seconds": 5.124831760499999,
+              "process_cpu_seconds": 1.738771910000004,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031328,
+              "average_busy_cpu_cores": 0.33928370554555776,
+              "threshold_exceeding_case_fraction": 0.32187584325770013,
+              "offloaded_case_fraction": 0.0006445741658611886,
+              "cpu_remainder_iteration_fraction": 0.0002600173003978086,
+              "queue_rejection_fraction": 0.997997444731057,
+              "mean_remainder_iterations_per_offloaded_case": 3.2238520876002177,
+              "cpu_nanoseconds_per_remainder_iteration": 11.920968264096535,
+              "gpu_executed_iterations": 422601679678
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 30779069191,
+            "deferred_cases": 62276060,
+            "deferred_rejected": 30716793131,
+            "deferred_iterations": 199775051,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1992833920,
+            "deferred_cpu_seconds": 2.486300325999999,
+            "deferred_queue_wait_seconds": 0.012756162000000001,
+            "deferred_drain_seconds": 0.006833148,
+            "wall_seconds": 8.952786303,
+            "process_cpu_seconds": 3.282769509000019,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435904,
+            "average_busy_cpu_cores": 0.36667573623420363,
+            "threshold_exceeding_case_fraction": 0.32065065011888333,
+            "offloaded_case_fraction": 0.0006487804748715926,
+            "cpu_remainder_iteration_fraction": 0.00026071761767735527,
+            "queue_rejection_fraction": 0.9979766750055519,
+            "mean_remainder_iterations_per_offloaded_case": 3.2078948314970472,
+            "cpu_nanoseconds_per_remainder_iteration": 12.44549964349652,
+            "gpu_executed_iterations": 766050901753
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.8030205819330505,
+              "ci95": [
+                1.6032118215446811,
+                2.00282934232142
+              ],
+              "saved_fraction": -0.8030205819330505,
+              "saved_fraction_ci95": [
+                -1.0028293423214198,
+                -0.6032118215446811
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 1.6539930628305863,
+              "ci95": [
+                1.405107739591629,
+                1.9028783860695437
+              ],
+              "saved_fraction": -0.6539930628305863,
+              "saved_fraction_ci95": [
+                -0.9028783860695436,
+                -0.40510773959162905
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer16",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 16
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.1085094788874204,
+            "ci95": [
+              1.072489540303636,
+              1.1445294174712046
+            ],
+            "saved_fraction": -0.10850947888742035,
+            "saved_fraction_ci95": [
+              -0.14452941747120454,
+              -0.07248954030363616
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 4.413597583224526,
+            "ci95": [
+              4.332483727486505,
+              4.494711438962547
+            ],
+            "saved_fraction": -3.4135975832245258,
+            "saved_fraction_ci95": [
+              -3.4947114389625473,
+              -3.3324837274865042
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 1984187158,
+            "deferred_cases": 62627552,
+            "deferred_rejected": 1921559606,
+            "deferred_iterations": 213169156.0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 2004081664,
+            "deferred_cpu_seconds": 2.4399737584999994,
+            "deferred_queue_wait_seconds": 0.011080557999999999,
+            "deferred_drain_seconds": 0.0072741344999999995,
+            "wall_seconds": 5.645595257,
+            "process_cpu_seconds": 3.180436220499992,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435520,
+            "average_busy_cpu_cores": 0.5633482521717358,
+            "threshold_exceeding_case_fraction": 0.020670894828628463,
+            "offloaded_case_fraction": 0.00065244225351773,
+            "cpu_remainder_iteration_fraction": 0.0002781976740159236,
+            "queue_rejection_fraction": 0.9684366710330256,
+            "mean_remainder_iterations_per_offloaded_case": 3.403759993684569,
+            "cpu_nanoseconds_per_remainder_iteration": 11.446185762915905,
+            "gpu_executed_iterations": 766037507648.0
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 880875675,
+              "deferred_cases": 28590541,
+              "deferred_rejected": 852285134,
+              "deferred_iterations": 97281796.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 914897312,
+              "deferred_cpu_seconds": 1.1074780925,
+              "deferred_queue_wait_seconds": 0.0034741984999999993,
+              "deferred_drain_seconds": 0.0040887284999999995,
+              "wall_seconds": 2.52665163,
+              "process_cpu_seconds": 1.445439889499994,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404352,
+              "average_busy_cpu_cores": 0.5720772394332788,
+              "threshold_exceeding_case_fraction": 0.020439661068398604,
+              "offloaded_case_fraction": 0.0006634091329655051,
+              "cpu_remainder_iteration_fraction": 0.0002831753381334128,
+              "queue_rejection_fraction": 0.9675430462987867,
+              "mean_remainder_iterations_per_offloaded_case": 3.4025867681202673,
+              "cpu_nanoseconds_per_remainder_iteration": 11.384227392428963,
+              "gpu_executed_iterations": 343441803002.5
+            },
+            {
+              "deferred_attempts": 1103311483,
+              "deferred_cases": 34037011,
+              "deferred_rejected": 1069274472,
+              "deferred_iterations": 115887359.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 1089184352,
+              "deferred_cpu_seconds": 1.3324956659999994,
+              "deferred_queue_wait_seconds": 0.0076063595,
+              "deferred_drain_seconds": 0.003185406,
+              "wall_seconds": 3.118943627,
+              "process_cpu_seconds": 1.7349963309999978,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031168,
+              "average_busy_cpu_cores": 0.5562769124714282,
+              "threshold_exceeding_case_fraction": 0.020859300412210697,
+              "offloaded_case_fraction": 0.0006435066148792362,
+              "cpu_remainder_iteration_fraction": 0.00027415231020830213,
+              "queue_rejection_fraction": 0.9691501343687184,
+              "mean_remainder_iterations_per_offloaded_case": 3.4047454842612357,
+              "cpu_nanoseconds_per_remainder_iteration": 11.498196798590438,
+              "gpu_executed_iterations": 422595704645.5
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 1984187158,
+            "deferred_cases": 62218223,
+            "deferred_rejected": 1921968935,
+            "deferred_iterations": 211570376,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1990983136,
+            "deferred_cpu_seconds": 2.427875359000002,
+            "deferred_queue_wait_seconds": 0.0063343340000000005,
+            "deferred_drain_seconds": 0.003500318,
+            "wall_seconds": 5.539886469,
+            "process_cpu_seconds": 3.1644962830000054,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435968,
+            "average_busy_cpu_cores": 0.571220421340372,
+            "threshold_exceeding_case_fraction": 0.020670894828628463,
+            "offloaded_case_fraction": 0.000648177939702779,
+            "cpu_remainder_iteration_fraction": 0.0002761111766745203,
+            "queue_rejection_fraction": 0.9686429665925698,
+            "mean_remainder_iterations_per_offloaded_case": 3.400456743999262,
+            "cpu_nanoseconds_per_remainder_iteration": 11.475497680261256,
+            "gpu_executed_iterations": 766039106428
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.1085094788874204,
+              "ci95": [
+                1.072489540303636,
+                1.1445294174712046
+              ],
+              "saved_fraction": -0.10850947888742035,
+              "saved_fraction_ci95": [
+                -0.14452941747120454,
+                -0.07248954030363616
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 1.0168863331532516,
+              "ci95": [
+                1.0096028812206743,
+                1.024169785085829
+              ],
+              "saved_fraction": -0.01688633315325161,
+              "saved_fraction_ci95": [
+                -0.02416978508582887,
+                -0.009602881220674347
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer24",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 24
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0860012450074372,
+            "ci95": [
+              0.9726182943477693,
+              1.1993841956671052
+            ],
+            "saved_fraction": -0.08600124500743722,
+            "saved_fraction_ci95": [
+              -0.19938419566710516,
+              0.02738170565223072
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 3.281090711883399,
+            "ci95": [
+              3.245730785260844,
+              3.3164506385059545
+            ],
+            "saved_fraction": -2.281090711883399,
+            "saved_fraction_ci95": [
+              -2.3164506385059545,
+              -2.245730785260844
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 138575924,
+            "deferred_cases": 40757565.5,
+            "deferred_rejected": 97818358.5,
+            "deferred_iterations": 144781202.5,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1304242096,
+            "deferred_cpu_seconds": 1.6473129770000012,
+            "deferred_queue_wait_seconds": 0.0107082145,
+            "deferred_drain_seconds": 0.0015949245000000001,
+            "wall_seconds": 5.5309617055,
+            "process_cpu_seconds": 2.3643523329999994,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435712,
+            "average_busy_cpu_cores": 0.42747580961352205,
+            "threshold_exceeding_case_fraction": 0.0014436583460560885,
+            "offloaded_case_fraction": 0.00042460477910291757,
+            "cpu_remainder_iteration_fraction": 0.00018894756883462268,
+            "queue_rejection_fraction": 0.7058827801862609,
+            "mean_remainder_iterations_per_offloaded_case": 3.5522534460504027,
+            "cpu_nanoseconds_per_remainder_iteration": 11.377947886570436,
+            "gpu_executed_iterations": 766105895601.5
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 61315807,
+              "deferred_cases": 18464716.5,
+              "deferred_rejected": 42851090.5,
+              "deferred_iterations": 65581549,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 590870928,
+              "deferred_cpu_seconds": 0.7451407245000008,
+              "deferred_queue_wait_seconds": 0.0036894334999999995,
+              "deferred_drain_seconds": 0.0011626800000000001,
+              "wall_seconds": 2.4909991665,
+              "process_cpu_seconds": 1.077259871999999,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404320,
+              "average_busy_cpu_cores": 0.43246095241116134,
+              "threshold_exceeding_case_fraction": 0.0014227595888776728,
+              "offloaded_case_fraction": 0.00042845154849356843,
+              "cpu_remainder_iteration_fraction": 0.00019089981868692136,
+              "queue_rejection_fraction": 0.6988587869356429,
+              "mean_remainder_iterations_per_offloaded_case": 3.551722497337016,
+              "cpu_nanoseconds_per_remainder_iteration": 11.362048256896172,
+              "gpu_executed_iterations": 343473503250
+            },
+            {
+              "deferred_attempts": 77260117,
+              "deferred_cases": 22292849,
+              "deferred_rejected": 54967268,
+              "deferred_iterations": 79199653.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 713371168,
+              "deferred_cpu_seconds": 0.9021722525000004,
+              "deferred_queue_wait_seconds": 0.007018781,
+              "deferred_drain_seconds": 0.0004322445,
+              "wall_seconds": 3.0399625390000002,
+              "process_cpu_seconds": 1.2870924610000003,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031392,
+              "average_busy_cpu_cores": 0.42339089527839746,
+              "threshold_exceeding_case_fraction": 0.0014606863204246617,
+              "offloaded_case_fraction": 0.00042147049269408433,
+              "cpu_remainder_iteration_fraction": 0.00018736096903409073,
+              "queue_rejection_fraction": 0.7114572192532403,
+              "mean_remainder_iterations_per_offloaded_case": 3.5526932201442714,
+              "cpu_nanoseconds_per_remainder_iteration": 11.391113630314058,
+              "gpu_executed_iterations": 422632392351.5
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 138575924,
+            "deferred_cases": 40507303,
+            "deferred_rejected": 98068621,
+            "deferred_iterations": 143804849,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1296233696,
+            "deferred_cpu_seconds": 1.6900264320000011,
+            "deferred_queue_wait_seconds": 0.007076149999999999,
+            "deferred_drain_seconds": 0.000554441,
+            "wall_seconds": 5.517194568,
+            "process_cpu_seconds": 2.4270954899999992,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675436032,
+            "average_busy_cpu_cores": 0.4399147900415317,
+            "threshold_exceeding_case_fraction": 0.0014436583460560885,
+            "offloaded_case_fraction": 0.00042199759066497604,
+            "cpu_remainder_iteration_fraction": 0.00018767337289645746,
+            "queue_rejection_fraction": 0.7076887396399392,
+            "mean_remainder_iterations_per_offloaded_case": 3.5500968553744494,
+            "cpu_nanoseconds_per_remainder_iteration": 11.752221456732666,
+            "gpu_executed_iterations": 766106871955
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.0860012450074372,
+              "ci95": [
+                0.9726182943477693,
+                1.1993841956671052
+              ],
+              "saved_fraction": -0.08600124500743722,
+              "saved_fraction_ci95": [
+                -0.19938419566710516,
+                0.02738170565223072
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 0.9962385030246865,
+              "ci95": [
+                0.9317345120893153,
+                1.0607424939600576
+              ],
+              "saved_fraction": 0.003761496975313472,
+              "saved_fraction_ci95": [
+                -0.060742493960057695,
+                0.06826548791068464
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer32",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 32
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.091111371675111,
+            "ci95": [
+              1.0769215576152706,
+              1.1053011857349515
+            ],
+            "saved_fraction": -0.09111137167511107,
+            "saved_fraction_ci95": [
+              -0.10530118573495154,
+              -0.07692155761527061
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 1.6379969237058798,
+            "ci95": [
+              1.5389149034466547,
+              1.7370789439651049
+            ],
+            "saved_fraction": -0.6379969237058798,
+            "saved_fraction_ci95": [
+              -0.7370789439651049,
+              -0.5389149034466547
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 10350155,
+            "deferred_cases": 8976924,
+            "deferred_rejected": 1373231,
+            "deferred_iterations": 32901055.5,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 287261568,
+            "deferred_cpu_seconds": 0.4362423835000001,
+            "deferred_queue_wait_seconds": 0.004946054,
+            "deferred_drain_seconds": 0.000154763,
+            "wall_seconds": 5.55698738,
+            "process_cpu_seconds": 1.1803397674999871,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435616,
+            "average_busy_cpu_cores": 0.21240641498451399,
+            "threshold_exceeding_case_fraction": 0.00010782600048709872,
+            "offloaded_case_fraction": 9.351993391370933e-05,
+            "cpu_remainder_iteration_fraction": 4.293771802881656e-05,
+            "queue_rejection_fraction": 0.13267733671621343,
+            "mean_remainder_iterations_per_offloaded_case": 3.6650700730005066,
+            "cpu_nanoseconds_per_remainder_iteration": 13.259221531661806,
+            "gpu_executed_iterations": 766217775748.5
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 4572739,
+              "deferred_cases": 3991041,
+              "deferred_rejected": 581698,
+              "deferred_iterations": 14627912,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 127713312,
+              "deferred_cpu_seconds": 0.19716713850000006,
+              "deferred_queue_wait_seconds": 0.0018227370000000005,
+              "deferred_drain_seconds": 9.89375e-05,
+              "wall_seconds": 2.48273399,
+              "process_cpu_seconds": 0.5401022574999956,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404192,
+              "average_busy_cpu_cores": 0.2175433452296658,
+              "threshold_exceeding_case_fraction": 0.00010610491124556024,
+              "offloaded_case_fraction": 9.260730846050736e-05,
+              "cpu_remainder_iteration_fraction": 4.2580051724125046e-05,
+              "queue_rejection_fraction": 0.1272099719664735,
+              "mean_remainder_iterations_per_offloaded_case": 3.6651871028135266,
+              "cpu_nanoseconds_per_remainder_iteration": 13.478829958780178,
+              "gpu_executed_iterations": 343524456887
+            },
+            {
+              "deferred_attempts": 5777416,
+              "deferred_cases": 4985883,
+              "deferred_rejected": 791533,
+              "deferred_iterations": 18273143.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 159548256,
+              "deferred_cpu_seconds": 0.23907524500000002,
+              "deferred_queue_wait_seconds": 0.003123317,
+              "deferred_drain_seconds": 5.58255e-05,
+              "wall_seconds": 3.07425339,
+              "process_cpu_seconds": 0.6402375099999915,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031424,
+              "average_busy_cpu_cores": 0.208257885339761,
+              "threshold_exceeding_case_fraction": 0.00010922831657894807,
+              "offloaded_case_fraction": 9.426352659209503e-05,
+              "cpu_remainder_iteration_fraction": 4.322839459719349e-05,
+              "queue_rejection_fraction": 0.13700467475425,
+              "mean_remainder_iterations_per_offloaded_case": 3.6649763943518128,
+              "cpu_nanoseconds_per_remainder_iteration": 13.083421853497732,
+              "gpu_executed_iterations": 422693318861.5
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 10350155,
+            "deferred_cases": 8770936,
+            "deferred_rejected": 1579219,
+            "deferred_iterations": 32115661,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 280669952,
+            "deferred_cpu_seconds": 0.45245176699999984,
+            "deferred_queue_wait_seconds": 0.002513340999999998,
+            "deferred_drain_seconds": 3.655e-05,
+            "wall_seconds": 5.526225833,
+            "process_cpu_seconds": 1.227382605999992,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675436096,
+            "average_busy_cpu_cores": 0.2221014202261958,
+            "threshold_exceeding_case_fraction": 0.00010782600048709872,
+            "offloaded_case_fraction": 9.137398902802051e-05,
+            "cpu_remainder_iteration_fraction": 4.1912734268572656e-05,
+            "queue_rejection_fraction": 0.15257926089029586,
+            "mean_remainder_iterations_per_offloaded_case": 3.661600198656107,
+            "cpu_nanoseconds_per_remainder_iteration": 14.08819725055635,
+            "gpu_executed_iterations": 766218561143
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.091111371675111,
+              "ci95": [
+                1.0769215576152706,
+                1.1053011857349515
+              ],
+              "saved_fraction": -0.09111137167511107,
+              "saved_fraction_ci95": [
+                -0.10530118573495154,
+                -0.07692155761527061
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 1.0009262554237504,
+              "ci95": [
+                0.9742499553544117,
+                1.027602555493089
+              ],
+              "saved_fraction": -0.0009262554237503551,
+              "saved_fraction_ci95": [
+                -0.02760255549308897,
+                0.02575004464558826
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer64",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 64
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0923305235232719,
+            "ci95": [
+              1.0897102982698548,
+              1.094950748776689
+            ],
+            "saved_fraction": -0.09233052352327187,
+            "saved_fraction_ci95": [
+              -0.09495074877668887,
+              -0.08971029826985487
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 1.0219034574076205,
+            "ci95": [
+              0.4522351106676684,
+              1.5915718041475726
+            ],
+            "saved_fraction": -0.021903457407620452,
+            "saved_fraction_ci95": [
+              -0.5915718041475725,
+              0.5477648893323316
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 474,
+            "deferred_cases": 474,
+            "deferred_rejected": 0,
+            "deferred_iterations": 1872,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 15168,
+            "deferred_cpu_seconds": 0.00035959249999999924,
+            "deferred_queue_wait_seconds": 0.000505145,
+            "deferred_drain_seconds": 9.33365e-05,
+            "wall_seconds": 5.5631964725000005,
+            "process_cpu_seconds": 0.7363831225000084,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435712,
+            "average_busy_cpu_cores": 0.13236690922927102,
+            "threshold_exceeding_case_fraction": 4.938044331788731e-09,
+            "offloaded_case_fraction": 4.938044331788731e-09,
+            "cpu_remainder_iteration_fraction": 2.443064726295623e-09,
+            "queue_rejection_fraction": 0.0,
+            "mean_remainder_iterations_per_offloaded_case": 3.949367088607595,
+            "cpu_nanoseconds_per_remainder_iteration": 192.09001068376028,
+            "gpu_executed_iterations": 766250674932
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 208,
+              "deferred_cases": 208,
+              "deferred_rejected": 0,
+              "deferred_iterations": 831,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 6656,
+              "deferred_cpu_seconds": 0.0001762684999999997,
+              "deferred_queue_wait_seconds": 0.00023492350000000006,
+              "deferred_drain_seconds": 5.0095e-05,
+              "wall_seconds": 2.4821359525,
+              "process_cpu_seconds": 0.3513564810000034,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404416,
+              "average_busy_cpu_cores": 0.14155408395181504,
+              "threshold_exceeding_case_fraction": 4.826389946829795e-09,
+              "offloaded_case_fraction": 4.826389946829795e-09,
+              "cpu_remainder_iteration_fraction": 2.418938737309051e-09,
+              "queue_rejection_fraction": 0.0,
+              "mean_remainder_iterations_per_offloaded_case": 3.9951923076923075,
+              "cpu_nanoseconds_per_remainder_iteration": 212.11612515042083,
+              "gpu_executed_iterations": 343539083968
+            },
+            {
+              "deferred_attempts": 266,
+              "deferred_cases": 266,
+              "deferred_rejected": 0,
+              "deferred_iterations": 1041,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 8512,
+              "deferred_cpu_seconds": 0.00018332399999999952,
+              "deferred_queue_wait_seconds": 0.0002702215,
+              "deferred_drain_seconds": 4.3241499999999996e-05,
+              "wall_seconds": 3.0810605200000003,
+              "process_cpu_seconds": 0.385026641500005,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031296,
+              "average_busy_cpu_cores": 0.12496562109075512,
+              "threshold_exceeding_case_fraction": 5.0290185456612756e-09,
+              "offloaded_case_fraction": 5.0290185456612756e-09,
+              "cpu_remainder_iteration_fraction": 2.4626719959638263e-09,
+              "queue_rejection_fraction": 0.0,
+              "mean_remainder_iterations_per_offloaded_case": 3.9135338345864663,
+              "cpu_nanoseconds_per_remainder_iteration": 176.10374639769407,
+              "gpu_executed_iterations": 422711590964
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 474,
+            "deferred_cases": 474,
+            "deferred_rejected": 0,
+            "deferred_iterations": 1872,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 15168,
+            "deferred_cpu_seconds": 0.0003769590000000002,
+            "deferred_queue_wait_seconds": 0.0005305870000000003,
+            "deferred_drain_seconds": 4.0116e-05,
+            "wall_seconds": 5.522463878,
+            "process_cpu_seconds": 0.77232695699999,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675436160,
+            "average_busy_cpu_cores": 0.13985188025886985,
+            "threshold_exceeding_case_fraction": 4.938044331788731e-09,
+            "offloaded_case_fraction": 4.938044331788731e-09,
+            "cpu_remainder_iteration_fraction": 2.443064726295623e-09,
+            "queue_rejection_fraction": 0.0,
+            "mean_remainder_iterations_per_offloaded_case": 3.949367088607595,
+            "cpu_nanoseconds_per_remainder_iteration": 201.3669871794873,
+            "gpu_executed_iterations": 766250674932
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.0923305235232719,
+              "ci95": [
+                1.0897102982698548,
+                1.094950748776689
+              ],
+              "saved_fraction": -0.09233052352327187,
+              "saved_fraction_ci95": [
+                -0.09495074877668887,
+                -0.08971029826985487
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 1.0020446390515363,
+              "ci95": [
+                0.9599033715575643,
+                1.0441859065455084
+              ],
+              "saved_fraction": -0.00204463905153629,
+              "saved_fraction_ci95": [
+                -0.04418590654550828,
+                0.0400966284424357
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "defer16_w2",
+          "transport": "parents",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 16,
+            "tail_cpu_workers": 2
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0972993861921465,
+            "ci95": [
+              0.9717513302054979,
+              1.2228474421787952
+            ],
+            "saved_fraction": -0.09729938619214651,
+            "saved_fraction_ci95": [
+              -0.2228474421787952,
+              0.02824866979450219
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 4.658322760678257,
+            "ci95": [
+              3.6651211152226777,
+              5.651524406133837
+            ],
+            "saved_fraction": -3.6583227606782573,
+            "saved_fraction_ci95": [
+              -4.651524406133837,
+              -2.6651211152226777
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 1984187158,
+            "deferred_cases": 62627629.5,
+            "deferred_rejected": 1921559528.5,
+            "deferred_iterations": 213162306.0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 2004084144,
+            "deferred_cpu_seconds": 2.5789313540000003,
+            "deferred_queue_wait_seconds": 0.003140093499999999,
+            "deferred_drain_seconds": 0.0045297,
+            "wall_seconds": 5.588502695,
+            "process_cpu_seconds": 3.3567850615000125,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435456,
+            "average_busy_cpu_cores": 0.6006591111610823,
+            "threshold_exceeding_case_fraction": 0.020670894828628463,
+            "offloaded_case_fraction": 0.000652443060898396,
+            "cpu_remainder_iteration_fraction": 0.00027818873438271036,
+            "queue_rejection_fraction": 0.9684366319742101,
+            "mean_remainder_iterations_per_offloaded_case": 3.4036464049784927,
+            "cpu_nanoseconds_per_remainder_iteration": 12.098439927742199,
+            "gpu_executed_iterations": 766037514498.0
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 880875675,
+              "deferred_cases": 28590541,
+              "deferred_rejected": 852285134,
+              "deferred_iterations": 97268926.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 914897312,
+              "deferred_cpu_seconds": 1.1934476335000002,
+              "deferred_queue_wait_seconds": 0.002141611499999999,
+              "deferred_drain_seconds": 0.002443479,
+              "wall_seconds": 2.5191157459999998,
+              "process_cpu_seconds": 1.5561776925000075,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 311404192,
+              "average_busy_cpu_cores": 0.6177475945561446,
+              "threshold_exceeding_case_fraction": 0.020439661068398604,
+              "offloaded_case_fraction": 0.0006634091329655051,
+              "cpu_remainder_iteration_fraction": 0.0002831378751471924,
+              "queue_rejection_fraction": 0.9675430462987867,
+              "mean_remainder_iterations_per_offloaded_case": 3.402136619240608,
+              "cpu_nanoseconds_per_remainder_iteration": 12.269567234300672,
+              "gpu_executed_iterations": 343441815872.5
+            },
+            {
+              "deferred_attempts": 1103311483,
+              "deferred_cases": 34037088.5,
+              "deferred_rejected": 1069274394.5,
+              "deferred_iterations": 115893379.5,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 1089186832,
+              "deferred_cpu_seconds": 1.3854837205000001,
+              "deferred_queue_wait_seconds": 0.000998482,
+              "deferred_drain_seconds": 0.002086221,
+              "wall_seconds": 3.069386949,
+              "process_cpu_seconds": 1.800607369000005,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 364031264,
+              "average_busy_cpu_cores": 0.586634203806281,
+              "threshold_exceeding_case_fraction": 0.020859300412210697,
+              "offloaded_case_fraction": 0.000643508080100805,
+              "cpu_remainder_iteration_fraction": 0.00027416655159678984,
+              "queue_rejection_fraction": 0.9691500641256355,
+              "mean_remainder_iterations_per_offloaded_case": 3.4049145977923465,
+              "cpu_nanoseconds_per_remainder_iteration": 11.954813350662539,
+              "gpu_executed_iterations": 422595698625.5
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 1984187158,
+            "deferred_cases": 62218223,
+            "deferred_rejected": 1921968935,
+            "deferred_iterations": 211556197,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1990983136,
+            "deferred_cpu_seconds": 2.5233654999999997,
+            "deferred_queue_wait_seconds": 0.0018424069999999975,
+            "deferred_drain_seconds": 0.003252428,
+            "wall_seconds": 5.530067041,
+            "process_cpu_seconds": 3.2795364029999803,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 675435840,
+            "average_busy_cpu_cores": 0.5930373680256402,
+            "threshold_exceeding_case_fraction": 0.020670894828628463,
+            "offloaded_case_fraction": 0.000648177939702779,
+            "cpu_remainder_iteration_fraction": 0.0002760926722862969,
+            "queue_rejection_fraction": 0.9686429665925698,
+            "mean_remainder_iterations_per_offloaded_case": 3.400228852566233,
+            "cpu_nanoseconds_per_remainder_iteration": 11.927636891676586,
+            "gpu_executed_iterations": 766039120607
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "novote_oee",
+              "ratio": 1.0972993861921465,
+              "ci95": [
+                0.9717513302054979,
+                1.2228474421787952
+              ],
+              "saved_fraction": -0.09729938619214651,
+              "saved_fraction_ci95": [
+                -0.2228474421787952,
+                0.02824866979450219
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            },
+            "budget_instrumentation": {
+              "variant": "defer_count",
+              "ratio": 1.0066028035377483,
+              "ci95": [
+                0.9313502185315863,
+                1.0818553885439104
+              ],
+              "saved_fraction": -0.006602803537748336,
+              "saved_fraction_ci95": [
+                -0.08185538854391035,
+                0.06864978146841368
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "compact66",
+          "transport": "compact_chain",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0209431130386168,
+            "ci95": [
+              0.8638747921364639,
+              1.1780114339407697
+            ],
+            "saved_fraction": -0.020943113038616845,
+            "saved_fraction_ci95": [
+              -0.17801143394076976,
+              0.13612520786353607
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 0.4644217003636035,
+            "ci95": [
+              0.37852821259195996,
+              0.5503151881352469
+            ],
+            "saved_fraction": 0.5355782996363965,
+            "saved_fraction_ci95": [
+              0.44968481186475295,
+              0.62147178740804
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 0,
+            "deferred_cases": 0,
+            "deferred_rejected": 0,
+            "deferred_iterations": 0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 0,
+            "deferred_cpu_seconds": 0.0,
+            "deferred_queue_wait_seconds": 0.0,
+            "deferred_drain_seconds": 0.0,
+            "wall_seconds": 5.199623193500001,
+            "process_cpu_seconds": 0.3346620460000054,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 212537696,
+            "average_busy_cpu_cores": 0.06436274967354619,
+            "threshold_exceeding_case_fraction": 0.0,
+            "offloaded_case_fraction": 0.0,
+            "cpu_remainder_iteration_fraction": 0.0,
+            "queue_rejection_fraction": null,
+            "mean_remainder_iterations_per_offloaded_case": null,
+            "cpu_nanoseconds_per_remainder_iteration": null,
+            "gpu_executed_iterations": 766250676804
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 0,
+              "deferred_cases": 0,
+              "deferred_rejected": 0,
+              "deferred_iterations": 0,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 0,
+              "deferred_cpu_seconds": 0.0,
+              "deferred_queue_wait_seconds": 0.0,
+              "deferred_drain_seconds": 0.0,
+              "wall_seconds": 2.3518894015000003,
+              "process_cpu_seconds": 0.14990311849999927,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 98561952,
+              "average_busy_cpu_cores": 0.06373731622090446,
+              "threshold_exceeding_case_fraction": 0.0,
+              "offloaded_case_fraction": 0.0,
+              "cpu_remainder_iteration_fraction": 0.0,
+              "queue_rejection_fraction": null,
+              "mean_remainder_iterations_per_offloaded_case": null,
+              "cpu_nanoseconds_per_remainder_iteration": null,
+              "gpu_executed_iterations": 343539084799
+            },
+            {
+              "deferred_attempts": 0,
+              "deferred_cases": 0,
+              "deferred_rejected": 0,
+              "deferred_iterations": 0,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 0,
+              "deferred_cpu_seconds": 0.0,
+              "deferred_queue_wait_seconds": 0.0,
+              "deferred_drain_seconds": 0.0,
+              "wall_seconds": 2.847733792,
+              "process_cpu_seconds": 0.1847589275000061,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 113975744,
+              "average_busy_cpu_cores": 0.06487928331610222,
+              "threshold_exceeding_case_fraction": 0.0,
+              "offloaded_case_fraction": 0.0,
+              "cpu_remainder_iteration_fraction": 0.0,
+              "queue_rejection_fraction": null,
+              "mean_remainder_iterations_per_offloaded_case": null,
+              "cpu_nanoseconds_per_remainder_iteration": null,
+              "gpu_executed_iterations": 422711592005
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 0,
+            "deferred_cases": 0,
+            "deferred_rejected": 0,
+            "deferred_iterations": 0,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 0,
+            "deferred_cpu_seconds": 0.0,
+            "deferred_queue_wait_seconds": 0.0,
+            "deferred_drain_seconds": 0.0,
+            "wall_seconds": 5.124889845,
+            "process_cpu_seconds": 0.339807253999993,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 212538240,
+            "average_busy_cpu_cores": 0.06630527958206153,
+            "threshold_exceeding_case_fraction": 0.0,
+            "offloaded_case_fraction": 0.0,
+            "cpu_remainder_iteration_fraction": 0.0,
+            "queue_rejection_fraction": null,
+            "mean_remainder_iterations_per_offloaded_case": null,
+            "cpu_nanoseconds_per_remainder_iteration": null,
+            "gpu_executed_iterations": 766250676804
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "compact66",
+              "ratio": 1.0,
+              "ci95": [
+                1.0,
+                1.0
+              ],
+              "saved_fraction": 0.0,
+              "saved_fraction_ci95": [
+                0.0,
+                0.0
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        },
+        {
+          "name": "compact_defer24",
+          "transport": "compact_chain",
+          "tuning": {
+            "block_threads": 256,
+            "oee_mask": true,
+            "overflow_vote": false,
+            "readonly_powers": false,
+            "tail_budget": 24
+          },
+          "comparison_baseline": "novote_oee",
+          "paired_wall_ratio": {
+            "ratio": 1.0905642131279096,
+            "ci95": [
+              1.02797236938295,
+              1.1531560568728694
+            ],
+            "saved_fraction": -0.09056421312790963,
+            "saved_fraction_ci95": [
+              -0.15315605687286937,
+              -0.027972369382949905
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "paired_cpu_ratio": {
+            "ratio": 3.05454433411474,
+            "ci95": [
+              2.6976218663999507,
+              3.411466801829529
+            ],
+            "saved_fraction": -2.05454433411474,
+            "saved_fraction_ci95": [
+              -2.411466801829529,
+              -1.6976218663999505
+            ],
+            "method": "Ratio of cohort means; paired delta-method t interval"
+          },
+          "one_pass_cohort_totals": {
+            "deferred_attempts": 138575924,
+            "deferred_cases": 40757188.5,
+            "deferred_rejected": 97818735.5,
+            "deferred_iterations": 144763214,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1304230032,
+            "deferred_cpu_seconds": 1.7860326375000006,
+            "deferred_queue_wait_seconds": 0.014629725500000003,
+            "deferred_drain_seconds": 0.0014518080000000002,
+            "wall_seconds": 5.554200723,
+            "process_cpu_seconds": 2.2011031259999996,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 212537728,
+            "average_busy_cpu_cores": 0.39629520713668304,
+            "threshold_exceeding_case_fraction": 0.0014436583460560885,
+            "offloaded_case_fraction": 0.00042460085158664524,
+            "cpu_remainder_iteration_fraction": 0.00018892409283578242,
+            "queue_rejection_fraction": 0.7058855007165603,
+            "mean_remainder_iterations_per_offloaded_case": 3.551844946321555,
+            "cpu_nanoseconds_per_remainder_iteration": 12.33761387406058,
+            "gpu_executed_iterations": 766105913590
+          },
+          "cohorts": [
+            {
+              "deferred_attempts": 61315807,
+              "deferred_cases": 18464269.5,
+              "deferred_rejected": 42851537.5,
+              "deferred_iterations": 65572881,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 590856624,
+              "deferred_cpu_seconds": 0.7985868570000003,
+              "deferred_queue_wait_seconds": 0.0050099365,
+              "deferred_drain_seconds": 0.0010126505,
+              "wall_seconds": 2.4911907665,
+              "process_cpu_seconds": 0.9918249155000041,
+              "gpu_origin_cases": 43096393431,
+              "gpu_origin_iters": 343539084799,
+              "gpu_origin_endpoints": 450058516,
+              "input_transfer_bytes": 98561920,
+              "average_busy_cpu_cores": 0.3981328643464222,
+              "threshold_exceeding_case_fraction": 0.0014227595888776728,
+              "offloaded_case_fraction": 0.0004284411763959423,
+              "cpu_remainder_iteration_fraction": 0.00019087458720560367,
+              "queue_rejection_fraction": 0.6988660770623144,
+              "mean_remainder_iterations_per_offloaded_case": 3.551339033477604,
+              "cpu_nanoseconds_per_remainder_iteration": 12.178614769114695,
+              "gpu_executed_iterations": 343473511918
+            },
+            {
+              "deferred_attempts": 77260117,
+              "deferred_cases": 22292919,
+              "deferred_rejected": 54967198,
+              "deferred_iterations": 79190333,
+              "deferred_flags": 0,
+              "deferred_transfer_bytes": 713373408,
+              "deferred_cpu_seconds": 0.9874457805000003,
+              "deferred_queue_wait_seconds": 0.009619789000000004,
+              "deferred_drain_seconds": 0.0004391575,
+              "wall_seconds": 3.0630099565,
+              "process_cpu_seconds": 1.2092782104999955,
+              "gpu_origin_cases": 52893024272,
+              "gpu_origin_iters": 422711592005,
+              "gpu_origin_endpoints": 534799068,
+              "input_transfer_bytes": 113975808,
+              "average_busy_cpu_cores": 0.39480061366884933,
+              "threshold_exceeding_case_fraction": 0.0014606863204246617,
+              "offloaded_case_fraction": 0.00042147181612001735,
+              "cpu_remainder_iteration_fraction": 0.00018733891972156586,
+              "queue_rejection_fraction": 0.7114563132230307,
+              "mean_remainder_iterations_per_offloaded_case": 3.552263972250561,
+              "cpu_nanoseconds_per_remainder_iteration": 12.46927172916422,
+              "gpu_executed_iterations": 422632401672
+            }
+          ],
+          "continuous_aggregate": {
+            "deferred_attempts": 138575924,
+            "deferred_cases": 40506950,
+            "deferred_rejected": 98068974,
+            "deferred_iterations": 143799223,
+            "deferred_flags": 0,
+            "deferred_transfer_bytes": 1296222400,
+            "deferred_cpu_seconds": 1.7076454710000006,
+            "deferred_queue_wait_seconds": 0.007969198999999996,
+            "deferred_drain_seconds": 0.000577355,
+            "wall_seconds": 5.528761956,
+            "process_cpu_seconds": 2.105491093000012,
+            "gpu_origin_cases": 95989417703,
+            "gpu_origin_iters": 766250676804,
+            "gpu_origin_endpoints": 984857584,
+            "input_transfer_bytes": 212538304,
+            "average_busy_cpu_cores": 0.3808250580792435,
+            "threshold_exceeding_case_fraction": 0.0014436583460560885,
+            "offloaded_case_fraction": 0.0004219939131762648,
+            "cpu_remainder_iteration_fraction": 0.00018766603065171913,
+            "queue_rejection_fraction": 0.7076912869799807,
+            "mean_remainder_iterations_per_offloaded_case": 3.549988903138844,
+            "cpu_nanoseconds_per_remainder_iteration": 11.875206523195196,
+            "gpu_executed_iterations": 766106877581
+          },
+          "paired_wall_controls": {
+            "ordinary_transport": {
+              "variant": "compact66",
+              "ratio": 1.068192927892016,
+              "ci95": [
+                0.9651632639516563,
+                1.1712225918323755
+              ],
+              "saved_fraction": -0.06819292789201592,
+              "saved_fraction_ci95": [
+                -0.17122259183237556,
+                0.034836736048343725
+              ],
+              "method": "Ratio of cohort means; paired delta-method t interval"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

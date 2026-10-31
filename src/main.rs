@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, ensure, Context, Result};
 use clap::{Args, Parser, Subcommand};
 use cv::dp::{predict_cases, ForwardDp};
 use cv::lookahead::{BvMode, Lookahead, WindowRules};
@@ -6,7 +6,7 @@ use cv::rules::{Rules, CULL_NAMES, NUM_CULLS};
 use cv::tail::TailParams;
 use cv::verify::{census, verify_cpu, VerifyConfig};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[command(name = "cv", about = "LSB-tree Collatz verification, exact workload counts and cost model")]
@@ -161,12 +161,24 @@ enum Cmd {
         /// Write the full JSON report here.
         #[arg(long)]
         json: Option<PathBuf>,
+        /// Export exact full-trajectory peaks for captured overflow starts.
+        /// These are candidates for comparison, not a complete path-record census.
+        #[arg(long)]
+        path_records: Option<PathBuf>,
         /// Work plan from `cv plan`; with --package runs one package ("7") or a
         /// range ("7..12") in one process, so device arrays are built once.
         #[arg(long)]
         plan: Option<PathBuf>,
         #[arg(long)]
         package: Option<String>,
+    },
+    /// Export path-candidate metrics from an existing verification JSON report.
+    /// Replays captured overflow starts on the CPU; does not repeat verification.
+    ExportPaths {
+        #[arg(long)]
+        report: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
     },
     /// Split the search into work packages of balanced predicted GPU time.
     Plan {
@@ -256,7 +268,10 @@ fn main() -> Result<()> {
         rayon::ThreadPoolBuilder::new().num_threads(t).build_global()?;
     }
     match cli.cmd {
-        Cmd::Verify { n, shape, rules, split, no_tail_oee, cutoff_bits, gpu, json, plan, package } => {
+        Cmd::Verify { n, shape, rules, split, no_tail_oee, cutoff_bits, gpu, json, path_records, plan, package } => {
+            if let (Some(report), Some(paths)) = (&json, &path_records) {
+                ensure_distinct_paths(report, paths)?;
+            }
             if cutoff_bits > 123 || cutoff_bits < n {
                 bail!("cutoff-bits must be in [N, 123]");
             }
@@ -311,9 +326,19 @@ fn main() -> Result<()> {
             if rep.flagged.len() > 20 {
                 println!("flagged ... ({} more; full list in --json)", rep.flagged.len() - 20);
             }
-            if let Some(p) = json {
+            if let Some(p) = &json {
                 fs::write(p, serde_json::to_string_pretty(&rep)?)?;
             }
+            if let Some(p) = path_records {
+                let artifact = path_artifact(&serde_json::to_value(&rep)?, json.as_deref())?;
+                fs::write(p, serde_json::to_string_pretty(&artifact)? + "\n")?;
+            }
+        }
+        Cmd::ExportPaths { report, out } => {
+            ensure_distinct_paths(&report, &out)?;
+            let source: serde_json::Value = serde_json::from_str(&fs::read_to_string(&report)?)?;
+            let artifact = path_artifact(&source, Some(&report))?;
+            fs::write(out, serde_json::to_string_pretty(&artifact)? + "\n")?;
         }
         Cmd::Plan { n, shape, rules, costs, target_hours, out } => {
             let r = rules.build()?;
@@ -437,6 +462,75 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+fn ensure_distinct_paths(report: &Path, artifact: &Path) -> Result<()> {
+    // Canonicalize existing files, including symlinks; for a new destination,
+    // canonicalize its parent so `paths.json` and `./paths.json` compare equal.
+    fn resolved(path: &Path) -> Result<PathBuf> {
+        if path.exists() {
+            return Ok(path.canonicalize()?);
+        }
+        ensure!(!fs::symlink_metadata(path).is_ok_and(|m| m.file_type().is_symlink()),
+            "output path {} is a dangling symlink", path.display());
+        let parent = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+        Ok(parent.canonicalize()?.join(path.file_name().context("output path needs a filename")?))
+    }
+    ensure!(resolved(report)? != resolved(artifact)?, "verification report and path artifact must use different files");
+    #[cfg(unix)]
+    if let (Ok(a), Ok(b)) = (fs::metadata(report), fs::metadata(artifact)) {
+        use std::os::unix::fs::MetadataExt;
+        ensure!((a.dev(), a.ino()) != (b.dev(), b.ino()), "verification report and path artifact must use different files");
+    }
+    Ok(())
+}
+
+fn path_artifact(report: &serde_json::Value, source_report: Option<&Path>) -> Result<serde_json::Value> {
+    use serde_json::json;
+
+    ensure!(report.is_object(), "expected a verification report object");
+    let n = report["n"].as_u64().context("verification report needs an integer n")?;
+    ensure!((1..=128).contains(&n), "verification report n must be in 1..=128");
+    let flags = report["flagged"].as_array().context("verification report needs a flagged array")?;
+    let rechecked = report["flagged_rechecked"].as_u64().context("verification report needs flagged_rechecked")?;
+    ensure!(rechecked == flags.len() as u64, "verification report contains unresolved overflow flags");
+    let starts: Vec<u128> = flags.iter().map(|flag| {
+        let start = flag.as_str().context("flagged starts must be decimal strings")?
+            .parse::<u128>().context("invalid flagged start")?;
+        ensure!(start > 0 && (n == 128 || start < (1u128 << n)), "flagged start {start} lies outside 0 < start < 2^{n}");
+        Ok(start)
+    }).collect::<Result<_>>()?;
+    let candidates = cv::path_records::candidate_metrics(&starts)?;
+    // Missing fields in old reports stay null: neither the arithmetic cutoff
+    // nor whole-range coverage can be reconstructed from their flag lists.
+    let mut verification = serde_json::Map::new();
+    for field in ["n", "a", "b", "num_bv", "bv_mode", "class_b", "window", "rules", "backend",
+        "verification_scope", "cutoff_bits", "tail_oee", "units", "tree_nodes", "endpoints", "cases", "iters", "hash"] {
+        verification.insert(field.into(), report[field].clone());
+    }
+    Ok(json!({
+        "schema_version": 1,
+        "artifact_type": "collatz_path_candidates",
+        "selection": "overflow_flags_only",
+        "global_path_records_complete": false,
+        "all_input_flags_replayed": true,
+        "source_report": source_report.map(|p| p.to_string_lossy()),
+        "verification": verification,
+        "arithmetic": "checked_unsigned_256_bit",
+        "replay_limit_shortcut_steps": cv::path_records::MAX_SHORTCUT_STEPS,
+        "definitions": {
+            "shortcut_map": "odd: (3*n+1)/2; even: n/2",
+            "standard_map": "odd: 3*n+1; even: n/2",
+            "trajectory": "include the start at step 0; stop on first arrival at 1",
+            "maximum": "largest value on the complete trajectory, including the start",
+            "peak_step": "first step attaining the maximum, counted in the respective map",
+            "first_descent_step": "first shortcut step below the start; null for start 1",
+            "integer_encoding": "starts and maxima are exact decimal strings"
+        },
+        "flagged_occurrences": flags.len(),
+        "unique_candidates": candidates.len(),
+        "candidates": candidates
+    }))
+}
+
 fn print_measure(r: &cv::measure::Measure) {
     println!(
         "# measure N={} A={} B={} window={} baseline={} extra={} tree_nodes={:.4e} seconds={:.1}",
@@ -543,4 +637,78 @@ fn run_gpu(cfg: &VerifyConfig) -> Result<cv::verify::VerifyReport> {
 #[cfg(not(feature = "cuda"))]
 fn run_gpu(_cfg: &VerifyConfig) -> Result<cv::verify::VerifyReport> {
     bail!("built without the `cuda` feature")
+}
+
+#[cfg(test)]
+mod path_export_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn legacy_report_exports_exact_sorted_candidates_with_unknown_metadata() {
+        let report = json!({"n": 8, "flagged": ["27", "9", "27"], "flagged_rechecked": 3, "hash": "12345678"});
+        let artifact = path_artifact(&report, Some(Path::new("old-report.json"))).unwrap();
+        assert_eq!(artifact["flagged_occurrences"], 3);
+        assert_eq!(artifact["unique_candidates"], 2);
+        assert_eq!(artifact["candidates"][0]["start"], "9");
+        assert_eq!(artifact["candidates"][0]["standard_maximum"], "52");
+        assert_eq!(artifact["candidates"][1]["occurrences"], 2);
+        assert_eq!(artifact["candidates"][1]["shortcut_maximum"], "4616");
+        assert_eq!(artifact["verification"]["hash"], "12345678");
+        assert!(artifact["verification"]["cutoff_bits"].is_null());
+        assert!(artifact["verification"]["verification_scope"].is_null());
+        assert_eq!(artifact["source_report"], "old-report.json");
+    }
+
+    #[test]
+    fn empty_flags_and_selected_scope_do_not_claim_complete_records() {
+        let report = json!({"n": 55, "flagged": [], "flagged_rechecked": 0,
+            "cutoff_bits": 120, "tail_oee": true, "verification_scope": "selected_work_units"});
+        let artifact = path_artifact(&report, None).unwrap();
+        assert_eq!(artifact["candidates"], json!([]));
+        assert_eq!(artifact["selection"], "overflow_flags_only");
+        assert_eq!(artifact["global_path_records_complete"], false);
+        assert_eq!(artifact["all_input_flags_replayed"], true);
+        assert_eq!(artifact["verification"]["cutoff_bits"], 120);
+        assert_eq!(artifact["verification"]["verification_scope"], "selected_work_units");
+    }
+
+    #[test]
+    fn rejects_missing_unresolved_and_out_of_range_flags() {
+        for report in [
+            json!({"n": 8, "flagged_rechecked": 0}),
+            json!({"n": 8, "flagged": ["27"], "flagged_rechecked": 0}),
+            json!({"n": 8, "flagged": ["0"], "flagged_rechecked": 1}),
+            json!({"n": 8, "flagged": ["256"], "flagged_rechecked": 1}),
+            json!({"n": 8, "flagged": [27], "flagged_rechecked": 1}),
+        ] {
+            assert!(path_artifact(&report, None).is_err());
+        }
+        let report = json!({"n": 128, "flagged": [u128::MAX.to_string()], "flagged_rechecked": 1});
+        assert!(path_artifact(&report, None).is_ok());
+    }
+
+    #[test]
+    fn prevents_overwriting_a_report_with_its_artifact() {
+        assert!(ensure_distinct_paths(Path::new("Cargo.toml"), Path::new("./Cargo.toml")).is_err());
+        assert!(ensure_distinct_paths(Path::new("not-created-report.json"), Path::new("./not-created-report.json")).is_err());
+        assert!(ensure_distinct_paths(Path::new("Cargo.toml"), Path::new("not-created-artifact.json")).is_ok());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_dangling_symlinks_to_a_future_report() {
+        let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+        let dir = std::env::temp_dir().join(format!("cv-path-export-{}-{nonce}", std::process::id()));
+        fs::create_dir(&dir).unwrap();
+        let report = dir.join("report.json");
+        let artifact = dir.join("paths.json");
+        std::os::unix::fs::symlink(&report, &artifact).unwrap();
+        let forward = ensure_distinct_paths(&report, &artifact);
+        let reverse = ensure_distinct_paths(&artifact, &report);
+        fs::remove_file(&artifact).unwrap();
+        fs::remove_dir(&dir).unwrap();
+        assert!(forward.is_err());
+        assert!(reverse.is_err());
+    }
 }

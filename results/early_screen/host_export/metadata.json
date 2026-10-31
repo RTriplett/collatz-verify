@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "captured_at_utc": "2026-10-28T19:22:03.074440+00:00",
+  "metadata_created_utc": "2026-10-28T19:25:33.444447+00:00",
+  "repository": "/home/ryan/Projects/Collatz/distributed",
+  "git_head": "877d0ecbf0fea7ababe3ca1c2a4aa9cec87e8b5f",
+  "repository_state": "Working tree contains uncommitted early-screen experiments; current source hashes identify the relevant files.",
+  "compile_command": "rustc --edition=2021 -O -C codegen-units=1 results/early_screen/host_export/bench.rs -L native=/usr/local/cuda/lib64 -C link-arg=-Wl,-rpath,/usr/local/cuda/lib64 -o /tmp/collatz-host-export-bench",
+  "run_command": "taskset -c 6 /tmp/collatz-host-export-bench > results/early_screen/host_export/trials.jsonl 2> results/early_screen/host_export/stderr.txt",
+  "summarize_command": "python3 results/early_screen/host_export/summarize.py",
+  "disassembly_commands": [
+    "objdump -d --disassemble=hardware_popcount /tmp/collatz-host-export-bench > results/early_screen/host_export/hardware_popcount.asm",
+    "objdump -d --disassemble=software_popcount /tmp/collatz-host-export-bench > results/early_screen/host_export/software_popcount.asm"
+  ],
+  "compiler": "rustc 1.92.0 (ded5c06cf 2025-12-08)\nbinary: rustc\ncommit-hash: ded5c06cf21d2b93bffd5d884aa6e96934ee4234\ncommit-date: 2025-12-08\nhost: x86_64-unknown-linux-gnu\nrelease: 1.92.0\nLLVM version: 21.1.3",
+  "compile_target_features": "Default x86_64; hardware helper alone has target_feature(popcnt) and runtime detection.",
+  "cpu_affinity": [
+    6
+  ],
+  "cpu_model": "AMD Ryzen 7 7700X 8-Core Processor",
+  "lscpu_at_report": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           48 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  16\nOn-line CPU(s) list:                     0-15\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen 7 7700X 8-Core Processor\nCPU family:                              25\nModel:                                   97\nThread(s) per core:                      2\nCore(s) per socket:                      8\nSocket(s):                               1\nStepping:                                2\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      72%\nCPU max MHz:                             5575.8662\nCPU min MHz:                             403.0750\nBogoMIPS:                                8982.66\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid overflow_recov succor smca fsrm flush_l1d amd_lbr_pmc_freeze\nL1d cache:                               256 KiB (8 instances)\nL1i cache:                               256 KiB (8 instances)\nL2 cache:                                8 MiB (8 instances)\nL3 cache:                                32 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-15\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Mitigation; Safe RET\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Mitigation; Clear CPU buffers\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace",
+  "uname": "Linux ryan-B650M-DS3H-24 7.0.0-38-generic #38~24.04.4-Ubuntu SMP PREEMPT_DYNAMIC Mon Sep 14 16:37:11 UTC 2 x86_64 x86_64 x86_64 GNU/Linux",
+  "cuda_runtime_library": "/usr/local/cuda-13.1/targets/x86_64-linux/lib/libcudart.so.13.1.80",
+  "cuda_runtime_library_sha256": "9955aa41ec390676be408b6c615f3d94f067f64cb756ef3cdf2b656ac2a81900",
+  "executable_path": "/tmp/collatz-host-export-bench",
+  "executable_sha256": "96ab62e932700f5f780858f62e33b663ecb2018da2d79b89ae2a9cb7935fb2e2",
+  "artifacts_sha256": {
+    "bench.rs": "62f573fe8b26243e6cc29424ba38eacced94fbee3f71424aedb01d47ad8f740f",
+    "summarize.py": "c472fe0475379917c7fe9960bb5f7a3907d2b95309aa80da859292c5956f0195",
+    "trials.jsonl": "14c9882eb6df6cf6a6517ee6ec9e75b5b8f3d6ff3d873d4d4a2db9eccda3b5fe",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "summary.json": "49625fc9b4af72299673b8892421c08bc14315b95d70c1ec01a0bd15dff43ecd",
+    "hardware_popcount.asm": "c243fd646529aafa7fbae30015d5551f1b26394a08f2ef96d81a19450ab8b3dd",
+    "software_popcount.asm": "8536822001d85d50a19b3cc54bf6a2799e1de961278beaf2f29808cd9430e70a",
+    "README.md": "a3fbf82ea662aced700ad8b7b20608c39296415f40cb1373aa7c53903806b558"
+  },
+  "production_source_sha256": {
+    "src/gpu_early.rs": "082130a32f32ce10bb37b0e578a1fe31071d4c8c5ae231b16f545698b5cd5aba",
+    "src/gpu.rs": "2ef26422aa9b9642a7955a5d6b05d16782c966c8cec999bc8cd92ccb8e8bc8b7",
+    "cuda/kernel.cu": "9b26bb64e3fa2459c10754b6173a1a5d17d05781e51c421acfe3c3c37ad0ac89"
+  },
+  "measurement_scope": "Single-thread CPU scan, destination allocation and memcpy from CPU-filled pinned source; no GPU compute or transfers; production source unchanged for this diagnostic.",
+  "other_experiments": "Root confirmed GPU and CPU replay timings finished before this capture.",
+  "checks_passed": true
+}
