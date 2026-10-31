@@ -342,6 +342,19 @@ pub fn h_range(screen: &Screen, n: u32, a: u32) -> HRange {
                               a verification of every n < 2^{} (strong induction)", n - 1, n - 1))
     } else if lo == 0 && hi == half {
         ("bottom_half", format!("every n < 2^{}", n - 1))
+    } else if (lo == 0 || lo.is_power_of_two()) && hi.is_power_of_two() && n >= a {
+        // n73-port: power-of-two h bounds are a range of n, n0 < 2^M: h in [2^p, 2^q) is every n in
+        // [2^(M+p), 2^(M+q)) (N73, A = 10: h in [256, 1024) is every n in [2^71, 2^73)).
+        let m = n - a;
+        let q = m + hi.trailing_zeros();
+        if lo == 0 {
+            ("explicit", format!("every n < 2^{q} (completions n = n0 + h 2^M with h in [0, {hi}))"))
+        } else {
+            let p = m + lo.trailing_zeros();
+            ("explicit", format!("every n in [2^{p}, 2^{q}) (completions n = n0 + h 2^M with h in [{lo}, {hi})); sound as \
+                                  a verification of n < 2^{q} only together with a verification of every n < 2^{p} \
+                                  (strong induction)"))
+        }
     } else {
         ("explicit", format!("completions n = n0 + h 2^M with h in [{lo}, {hi}) of every endpoint; sound for that \
                               set only together with a verification of every smaller n"))
@@ -743,6 +756,17 @@ mod tests {
         assert_eq!((e.kind.as_str(), e.h_lo, e.h_hi, e.completions), ("explicit", 64, 128, 1024));
         assert_eq!(s(Screen::top(10)).h_lo, 512);
         assert_eq!(s(Screen::top(10)).h_hi, 1024);
+        // n73-port: power-of-two explicit ranges name their n range (kind stays "explicit").
+        assert!(e.covers.starts_with("every n in [2^36, 2^37)"), "{}", e.covers);
+        let q = h_range(&Screen { h_lo: 256, h_hi: 0, ..Screen::default() }, 73, 10);
+        assert_eq!(q.kind, "explicit");
+        assert!(q.covers.starts_with("every n in [2^71, 2^73)") && q.covers.contains("every n < 2^71"), "{}", q.covers);
+        let l = h_range(&Screen { h_lo: 0, h_hi: 256, ..Screen::default() }, 73, 10);
+        assert!(l.covers.starts_with("every n < 2^71"), "{}", l.covers);
+        let m2 = h_range(&Screen { h_lo: 512, h_hi: 1024, ..Screen::default() }, 73, 11);
+        assert!(m2.covers.starts_with("every n in [2^71, 2^72)"), "{}", m2.covers);
+        let odd = h_range(&Screen { h_lo: 192, h_hi: 1024, ..Screen::default() }, 73, 10);
+        assert!(odd.covers.starts_with("completions n = n0 + h 2^M with h in [192, 1024)"), "{}", odd.covers);
     }
 
     #[test]

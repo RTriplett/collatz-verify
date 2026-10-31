@@ -5,6 +5,11 @@
 //! probability. A rejected draw contributes zero downstream work; an accepted
 //! duplicate is dispatched again. Timing repetitions measure noise, while the
 //! independent cohorts measure sampling uncertainty.
+//!
+//! n73-port: N is a parameter (positional argument 8, default 72) of the target,
+//! census, validate-wide and validate-device profiles; the complete-small-N
+//! `validate` profile takes CV_VALIDATE_N (default 32).  M = N - A must lie in
+//! 60..=64 (the parent transport's u64 n0 and device width M - 52 <= 12).
 #[allow(dead_code)]
 mod affine;
 #[allow(dead_code)]
@@ -219,7 +224,8 @@ fn family(name: &str) -> &str {
 ///       fx (final: CV_FX / CV_FX2 / CV_FX3 codes, optional warp-queue specs
 ///           CV_FX_WQ / CV_FX2_WQ / CV_FX3_WQ; unset = per-thread kernels).
 /// `r[N]` = (12, 9) row table instead of mod 9 (for classes >= N; N = 0 if
-/// omitted); `_top`/`_bot` = completions h >= 2^(A-1) / h < 2^(A-1); `_d*` =
+/// omitted); `_top`/`_bot` = completions h >= 2^(A-1) / h < 2^(A-1) (n73-port:
+/// also `_u2`/`_l2`/`_m2`, see range_screen; and a trailing `_c<bits>` cutoff); `_d*` =
 /// diagnostic kernels (not verifications: load records only / screen only /
 /// screen + case setup); `_pf` / `_lz` / `_lb` = work-preserving scan options
 /// (mod-9 word prefetch / lazy row words / 48-register launch bound of the jd
@@ -234,7 +240,47 @@ struct TailSpec {
     diag: u32,
 }
 
+/// r3pr-gpu (as pr-measure / v-pr-cost): optional per-variant arithmetic
+/// cutoff suffix `_c<bits>` (e.g. `fx3r0_c118~s2`, `fx3r0_top_c123`).  It sets
+/// `TailParams::cutoff_bits` for that variant only (host side; the cutoff
+/// reaches the kernels as KParams.cutoff_hi).  A distinct name is a distinct
+/// signature family (iterations, hash and flags depend on the cutoff), while
+/// tree, endpoints and cases must still match (asserted per cohort).
+/// n73-port: copied from r3pr-gpu's tree (host only).
+fn split_cutoff(name: &str) -> (&str, Option<u32>) {
+    if let Some(pos) = name.rfind("_c") {
+        let digits = &name[pos + 2..];
+        if !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit()) {
+            return (&name[..pos], Some(digits.parse().unwrap()));
+        }
+    }
+    (name, None)
+}
+
+/// n73-port: completion ranges of the `_top/_bot/_u2/_l2/_m2` suffixes, relative to
+/// 2^N (so a name means the same range at every N and A):
+///   `_top` h >= 2^(A-1)               n in [2^(N-1), 2^N)    (N73: [2^72, 2^73))
+///   `_bot` h <  2^(A-1)               n <  2^(N-1)
+///   `_u2`  h >= 2^(A-2)               n in [2^(N-2), 2^N)    (N73: [2^71, 2^73))
+///   `_l2`  h <  2^(A-2)               n <  2^(N-2)
+///   `_m2`  2^(A-2) <= h < 2^(A-1)     n in [2^(N-2), 2^(N-1)) (N73: [2^71, 2^72))
+/// Partitions: full = _l2 + _u2, _u2 = _m2 + _top, _bot = _l2 + _m2.  The quarter
+/// ranges need A >= 8 (64-completion words); Screen::check refuses less at run time.
+fn range_screen(suffix: &str, a: u32) -> Option<Screen> {
+    let q = |lo: u32, hi: u32| Screen { h_lo: lo, h_hi: hi, ..Screen::default() };
+    let a2 = if a >= 2 { 1u32 << (a - 2) } else { 0 };
+    Some(match suffix {
+        "_top" => Screen::top(a),
+        "_bot" => Screen::bottom(a),
+        "_u2" => q(a2, 0),
+        "_l2" => q(0, a2),
+        "_m2" => q(a2, 2 * a2),
+        _ => return None,
+    })
+}
+
 fn tail_spec(name: &str, a: u32) -> Option<TailSpec> {
+    let (name, _) = split_cutoff(name);
     let fam = &name[..name.len().min(2)];
     let mut rest = &name[fam.len()..];
     let digit = match rest.as_bytes().first() {
@@ -259,8 +305,15 @@ fn tail_spec(name: &str, a: u32) -> Option<TailSpec> {
         screen.rows = true;
         screen.rows_from = if digits.is_empty() { 0 } else { digits.parse().ok()? };
     }
-    if let Some(r) = rest.strip_prefix("_top") { rest = r; screen = Screen { rows: screen.rows, rows_from: screen.rows_from, ..Screen::top(a) }; }
-    else if let Some(r) = rest.strip_prefix("_bot") { rest = r; screen = Screen { rows: screen.rows, rows_from: screen.rows_from, ..Screen::bottom(a) }; }
+    // n73-port: `_top` / `_bot` plus the quarter ranges `_u2` / `_l2` / `_m2` (range_screen).
+    for suffix in ["_top", "_bot", "_u2", "_l2", "_m2"] {
+        if let Some(r) = rest.strip_prefix(suffix) {
+            rest = r;
+            let range = range_screen(suffix, a).unwrap();
+            screen = Screen { rows: screen.rows, rows_from: screen.rows_from, ..range };
+            break;
+        }
+    }
     let diag = match rest {
         "" => 0,
         "_dload" => cv::gpu::SCREEN_DIAG_LOAD,
@@ -335,6 +388,10 @@ fn variant_tail(name: &str, cfg: &VerifyConfig) -> TailParams {
             .unwrap_or_else(|e| panic!("{name}: {} = {codes:?}: {e:#}", spec.key));
         let bits = wq_bits(&spec, &codes);
         tail.schedule = cv::runspec::WqSchedule::from_bits(bits).unwrap();
+        // r3pr-gpu: per-variant arithmetic cutoff (`_c<bits>`).
+        if let Some(bits) = split_cutoff(name).1 {
+            tail.cutoff_bits = bits;
+        }
     }
     tail
 }
@@ -401,12 +458,14 @@ struct Cohort {
     metadata: Value,
 }
 
+#[allow(clippy::too_many_arguments)]
 fn cohort(
     index: usize,
     count: usize,
     seed: u64,
     sampler: &Sampler,
     descendants: &BackwardDp,
+    extra_depths: &[(u32, BackwardDp)],
     rules: &Rules,
     walkback_cap: u32,
 ) -> Cohort {
@@ -420,6 +479,15 @@ fn cohort(
         .iter()
         .map(|draw| descendants.ways(PState::of(&draw.node)))
         .sum();
+    // n73-port: the same diagnostic at fixed depths (CV_FULLRANGE_CV_DEPTHS), so
+    // processes of different A (different M) can share one control variate.
+    let at: serde_json::Map<String, Value> = extra_depths
+        .iter()
+        .map(|(d, dp)| {
+            let s: u128 = draws.iter().map(|draw| dp.ways(PState::of(&draw.node))).sum();
+            (d.to_string(), json!(s.to_string()))
+        })
+        .collect();
     let classified: Vec<_> = draws
         .into_par_iter()
         .map(|draw| {
@@ -454,6 +522,7 @@ fn cohort(
         "cheap_rejected":cheap_rejected,"walk_rejected":walk_rejected,
         "accepted":roots.len(),"duplicates_retained":roots.len()-unique,
         "baseline_descendants":baseline_descendants.to_string(),
+        "baseline_descendants_at":at,
         "roots":roots,"sampling_seconds":started.elapsed().as_secs_f64(),
         "sampling_process_cpu_seconds":cpu_seconds()-cpu,
     });
@@ -844,8 +913,12 @@ fn validate_tail_queue(name: &str, report: &VerifyReport) {
     }
 }
 
-fn validate(wide: bool, a: u32, names: &[&str]) {
-    let mut cfg = config(if wide { 72 } else { 32 }, a, 12, 2);
+fn validate(wide: bool, n: u32, a: u32, names: &[&str]) {
+    // n73-port: validate-wide runs N (argument 8, default 72); the complete
+    // small-N profile runs CV_VALIDATE_N (default 32).
+    let small_n = env_number("CV_VALIDATE_N", 32) as u32;
+    assert!((a + 20..=40).contains(&small_n), "CV_VALIDATE_N in A + 20..=40 (entry 18 < M)");
+    let mut cfg = config(if wide { n } else { small_n }, a, 12, 2);
     cfg.class_b = Some(vec![12, 13]);
     let (cutoff, entry) = if wide { (50, 52) } else { (16, 18) };
     if wide {
@@ -897,16 +970,19 @@ fn validate(wide: bool, a: u32, names: &[&str]) {
         println!(
             "{}",
             json!({"type":"validation","variant":name,
-            "scope":if wide {"sixteen K52 packages, N72 with CPU fallback"} else {"complete N32 with CPU fallback"},
+            "scope":if wide { format!("sixteen K52 packages, N{} with CPU fallback", cfg.n) } else { format!("complete N{} with CPU fallback", cfg.n) },
+            "n":cfg.n,"a":cfg.a,"m":cfg.m(),
+            "h_range":cv::runspec::h_range(&screen_of(name, cfg.a), cfg.n, cfg.a),
             "screen":screen_of(name, cfg.a),
             "cpu_gpu_equal":true,"roots":cfg.units,"report":report})
         );
     }
 }
 
-fn validate_overflow(a: u32, names: &[&str]) {
+fn validate_overflow(n: u32, a: u32, names: &[&str]) {
     // c3-a: A is a parameter (was fixed at 10); 24 GPU classes at any A in 8..=12.
-    let mut cfg = config(72, a, 12, 24);
+    // n73-port: N is a parameter too (argument 8, default 72).
+    let mut cfg = config(n, a, 12, 24);
     cfg.class_b = Some((0..cfg.num_bv).map(|i| 12 + (i % 2) as u32).collect());
     cfg.tail.cutoff_bits = 110;
     let baseline = Rules::baseline();
@@ -977,7 +1053,9 @@ fn validate_overflow(a: u32, names: &[&str]) {
         println!(
             "{}",
             json!({"type":"validation","variant":name,"screen":screen_of(name, cfg.a),
-            "scope":"N72 forced GPU overflow, cutoff110, high-F all-one K52 root plus sixteen random K52 roots",
+            "scope":format!("N{} forced GPU overflow, cutoff110, high-F all-one K52 root plus sixteen random K52 roots", cfg.n),
+            "n":cfg.n,"a":cfg.a,"m":cfg.m(),
+            "h_range":cv::runspec::h_range(&screen_of(name, cfg.a), cfg.n, cfg.a),
             "cpu_gpu_equal":true,"flagged_origins_equal":true,"unresolved_flags":0,
             "cutoff_bits":cfg.tail.cutoff_bits,"roots":cfg.units,"report":report})
         );
@@ -991,6 +1069,8 @@ fn main() {
         |i: usize, default: usize| args.get(i).map(|s| s.parse().unwrap()).unwrap_or(default);
     let threads = number(3, 2);
     let a = number(7, 10) as u32;
+    // n73-port: N (argument 8; default 72, so every earlier command line is unchanged).
+    let n = number(8, 72) as u32;
     let names: Vec<_> = args
         .get(5)
         .map(String::as_str)
@@ -1003,7 +1083,10 @@ fn main() {
         .collect();
     // c3-a: A in 8..=12 (M = 72 - A in 60..=64: parent transport needs M <= 64,
     // entry 52 + device width M - 52 <= 12; the warp queue screens 2^(A-10) chunks).
+    // n73-port: the same limits for any N: A in 8..=12 and M = N - A in 60..=64
+    // (N73: A = 9..=12, M = 64..=61; N72: A = 8..=12).
     assert!((8..=12).contains(&a), "A must be in 8..=12");
+    assert!(n > a && (60..=64).contains(&(n - a)), "M = N - A must be in 60..=64 (N = {n}, A = {a})");
     assert!(threads > 0 && !names.is_empty());
     assert_eq!(names.iter().collect::<HashSet<_>>().len(), names.len());
     let full_names = names.clone();
@@ -1058,11 +1141,11 @@ fn main() {
         return;
     }
     if profile == "validate-device" {
-        validate_overflow(a, &names);
+        validate_overflow(n, a, &names);
         return;
     }
     if matches!(profile, "validate" | "validate-wide") {
-        validate(profile == "validate-wide", a, &names);
+        validate(profile == "validate-wide", n, a, &names);
         return;
     }
     assert!(matches!(profile, "target" | "census"));
@@ -1078,7 +1161,7 @@ fn main() {
     let profile_aggregate = profile_aggregate == 1;
     assert!(drawn > 0 && repetitions > 0 && count > 0);
     assert!(CHECKPOINT <= cutoff && cutoff <= entry);
-    let mut cfg = config(72, a, 27, 16);
+    let mut cfg = config(n, a, 27, 16);
     cfg.class_b = Some(
         args.get(6)
             .map(String::as_str)
@@ -1096,6 +1179,18 @@ fn main() {
     let sampler = Sampler::new(&baseline, CHECKPOINT, None);
     let descendants = BackwardDp::run(ParityRules::of(&baseline), 2, cfg.m(), None);
     let baseline_endpoint_population = descendants.ways(PState::of(&Node::root(&baseline)));
+    // n73-port: optional fixed control-variate depths (CV_FULLRANGE_CV_DEPTHS = "62,63"),
+    // reported per cohort as baseline_descendants_at and here with their exact populations.
+    let extra_depths: Vec<(u32, BackwardDp)> = std::env::var("CV_FULLRANGE_CV_DEPTHS")
+        .map(|v| v.split(',').map(|d| {
+            let d: u32 = d.trim().parse().expect("CV_FULLRANGE_CV_DEPTHS: depths");
+            assert!((CHECKPOINT..=80).contains(&d), "CV_FULLRANGE_CV_DEPTHS: depths in {CHECKPOINT}..=80");
+            (d, BackwardDp::run(ParityRules::of(&baseline), 2, d, None))
+        }).collect())
+        .unwrap_or_default();
+    let population_at: serde_json::Map<String, Value> = extra_depths.iter()
+        .map(|(d, dp)| (d.to_string(), json!(dp.ways(PState::of(&Node::root(&baseline))).to_string())))
+        .collect();
     println!(
         "{}",
         json!({
@@ -1105,6 +1200,7 @@ fn main() {
             "sampling_design":"fixed_baseline_draws_with_replacement",
             "baseline_population":sampler.population().to_string(),
             "baseline_endpoint_population":baseline_endpoint_population.to_string(),
+            "baseline_endpoint_population_at":population_at,
             "cohort_count":count,"draws_per_cohort":drawn,"seed":seed,
             "repetitions":repetitions,"aggregate_repetitions":aggregate_repetitions,
             "profile_aggregate":profile_aggregate,
@@ -1140,6 +1236,7 @@ fn main() {
             seeder.next_u64(),
             &sampler,
             &descendants,
+            &extra_depths,
             &cfg.rules,
             WALKBACK_CAP,
         );
@@ -1379,6 +1476,33 @@ mod tests {
     }
 
     #[test]
+    fn quarter_ranges_partition_the_completions_and_parse_with_cutoffs() {
+        // n73-port: full = _l2 + _u2, _u2 = _m2 + _top, _bot = _l2 + _m2 (64-completion words).
+        for a in 8..=12u32 {
+            let w = |s: &str| {
+                let sc = range_screen(s, a).unwrap();
+                sc.check(a).unwrap();
+                sc.word_range(a)
+            };
+            let all = (1usize << a) / 64;
+            assert_eq!(w("_l2"), (0, all / 4));
+            assert_eq!(w("_u2"), (all / 4, all));
+            assert_eq!(w("_m2"), (all / 4, all / 2));
+            assert_eq!(w("_top"), (all / 2, all));
+            assert_eq!(w("_bot"), (0, all / 2));
+        }
+        assert!(range_screen("_m2", 7).unwrap().check(7).is_err(), "quarter ranges need A >= 8");
+        let s = tail_spec("fx3r0_u2_c118", 10).unwrap();
+        assert!(s.screen.rows && s.screen.rows_from == 0 && s.screen.h_lo == 256 && s.screen.h_hi == 0);
+        assert_eq!(split_cutoff("fx3r0_u2_c118"), ("fx3r0_u2", Some(118)));
+        assert_eq!(split_cutoff("fx3r0_top"), ("fx3r0_top", None));
+        let s = tail_spec("fx3r0_m2", 11).unwrap();
+        assert_eq!((s.screen.h_lo, s.screen.h_hi), (512, 1024));
+        assert!(tail_spec("fx3r0_q2", 10).is_none());
+        assert_eq!(screen_of("fx3r0_l2~s2", 12).h_hi, 1024);
+    }
+
+    #[test]
     fn resolved_flagged_reports_are_accepted_and_unresolved_reports_rejected() {
         let cfg = config(32, 10, 12, 2);
         let mut tail = TailStats::new(2);
@@ -1400,8 +1524,8 @@ mod tests {
         let rules = Rules::improved(5);
         let sampler = Sampler::new(&baseline, 10, None);
         let descendants = BackwardDp::run(ParityRules::of(&baseline), 2, 14, None);
-        let sampled = cohort(0, 256, 1234, &sampler, &descendants, &rules, 16);
-        let same = cohort(0, 256, 1234, &sampler, &descendants, &rules, 16);
+        let sampled = cohort(0, 256, 1234, &sampler, &descendants, &[], &rules, 16);
+        let same = cohort(0, 256, 1234, &sampler, &descendants, &[], &rules, 16);
         assert_eq!(sampled.roots, same.roots);
         assert_eq!(sampled.metadata["drawn"], 256);
         assert!(sampled.metadata["duplicates_retained"].as_u64().unwrap() > 0);

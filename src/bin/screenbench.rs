@@ -15,6 +15,7 @@
 //!   x<C>           jump agent's kernel cv_kernel_x code C (e.g. x51); xa = per-class production code
 //!   s<C|a|d>[r][t|b][L|S|U][@<wq>]  screen kernel cv_kernel_xs (jump codes 49..53) or
 //!                  cv_kernel_jds (jd codes, c-final): r rows, t top half, b bottom half,
+//!                  u h >= 2^(A-2), l h < 2^(A-2), m 2^(A-2) <= h < 2^(A-1) (n73-port),
 //!                  L load-only, S screen-only, U screen + case setup (diagnostics, no jumps),
 //!                  P mod-9 word prefetch (no rows), Z lazy row-word fetch (rows), B 48-register
 //!                  launch bound (jd rows kernels); P/Z/B are
@@ -95,6 +96,11 @@ fn parse_variant(v: &str, a: u32) -> Variant {
                 'r' => screen.rows = true,
                 't' => screen = Screen { rows: screen.rows, ..Screen::top(a) },
                 'b' => screen = Screen { rows: screen.rows, ..Screen::bottom(a) },
+                // n73-port: quarter ranges (A >= 8): u = h >= 2^(A-2) (n >= 2^(N-2); N73: [2^71, 2^73)),
+                // l = h < 2^(A-2), m = 2^(A-2) <= h < 2^(A-1) (N73: [2^71, 2^72)).
+                'u' => screen = Screen { rows: screen.rows, h_lo: 1 << (a - 2), ..Screen::default() },
+                'l' => screen = Screen { rows: screen.rows, h_hi: 1 << (a - 2), ..Screen::default() },
+                'm' => screen = Screen { rows: screen.rows, h_lo: 1 << (a - 2), h_hi: 1 << (a - 1), ..Screen::default() },
                 'L' => diag = cv::gpu::SCREEN_DIAG_LOAD,
                 'S' => diag = cv::gpu::SCREEN_DIAG_SCAN,
                 'U' => diag = cv::gpu::SCREEN_DIAG_SETUP,
