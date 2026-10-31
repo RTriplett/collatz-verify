@@ -1062,6 +1062,92 @@ fn validate_overflow(n: u32, a: u32, names: &[&str]) {
     }
 }
 
+/// v-n73-sound (host only): the PRODUCTION shape through the measured Parents transport (device
+/// expansion of K52 parents, MODE 3) against the CPU reference.  16 GPU classes with the given class
+/// windows (F24 / W11), cutoff from CV_VALIDATE_CUTOFF (default: TailParams default 120), codes /
+/// layouts / rows / h range from the variant (CV_FX3 / CV_FX3_WQ), units = the all-one high-F K52 root,
+/// CV_VALIDATE_ROOTS (default 48) baseline-random K52 roots and CV_VALIDATE_HIGHF (default 4) roots per
+/// F_52 in 40..=50 step 2 (heavy classes), all drawn with seed CV_VALIDATE_SEED (default 20261526).
+fn validate_prod(n: u32, a: u32, windows: &str, names: &[&str]) {
+    let mut cfg = config(n, a, 27, 16);
+    cfg.class_b = Some(windows.split(',').map(|s| s.parse().unwrap()).collect());
+    assert_eq!(cfg.class_b.as_ref().unwrap().len(), cfg.num_bv);
+    if let Ok(c) = std::env::var("CV_VALIDATE_CUTOFF") {
+        cfg.tail.cutoff_bits = c.parse().expect("CV_VALIDATE_CUTOFF");
+    }
+    let random_roots = env_number("CV_VALIDATE_ROOTS", 48);
+    let per_f = env_number("CV_VALIDATE_HIGHF", 4);
+    let seed = env_number("CV_VALIDATE_SEED", 20261526) as u64;
+    let baseline = Rules::baseline();
+    let mut high = Node::root(&baseline);
+    while high.k < 52 {
+        high = high.children(&baseline)[1].expect("all-one residue remains odd");
+        assert!(high.cull(&baseline).is_none());
+    }
+    let mut roots = vec![high];
+    let sampler = Sampler::new(&baseline, 52, None);
+    let mut rng = Rng(seed);
+    while roots.len() < 1 + random_roots {
+        let draw = sampler.draw(&mut rng, Some(&cfg.rules));
+        if draw.culled.is_none() {
+            roots.push(draw.node);
+        }
+    }
+    for f in (40..=50).step_by(2) {
+        let s = Sampler::new(&baseline, 52, Some((f, f)));
+        let mut got = 0;
+        let mut tries = 0;
+        while got < per_f && tries < 100_000 {
+            tries += 1;
+            let draw = s.draw(&mut rng, Some(&cfg.rules));
+            if draw.culled.is_none() {
+                assert_eq!(draw.node.f, f);
+                roots.push(draw.node);
+                got += 1;
+            }
+        }
+    }
+    let unit_count = roots.len();
+    cfg.units = Some(roots);
+    let (compact, affine, chains, compressed) = engines(&cfg, 50, 52);
+    let cpu_for = |name: &str| {
+        let mut c = cfg.clone();
+        c.tail = variant_tail(name, &cfg);
+        let cpu = verify_cpu_with_expander(&c, &compact);
+        let affine_cpu = verify_cpu_with_expander(&c, &affine);
+        assert_eq!(signature(&cpu), signature(&affine_cpu));
+        assert_eq!(cpu.flagged.len(), cpu.flagged_rechecked);
+        cpu
+    };
+    let mut session_cfg = cfg.clone();
+    session_cfg.tail.screen.rows = names.iter().any(|n| screen_of(n, cfg.a).rows);
+    let mut gpu = GpuSession::new_experimental(&session_cfg).expect("GPU initialization");
+    assert!(!names.iter().any(|n| needs_measurement(n)), "validate-prod runs verification variants only");
+    gpu.set_terminal_table(affine.table_words()).expect("table upload");
+    prepare_jumps(&mut gpu, &names);
+    for name in names {
+        let t0 = Instant::now();
+        let cpu = cpu_for(name);
+        let cpu_s = t0.elapsed().as_secs_f64();
+        prepare_variant(&mut gpu, &affine, &compressed, name);
+        let report = run_variant(&mut gpu, &cfg, &compact, &affine, &chains, &compressed, name);
+        assert_eq!(signature(&cpu), signature(&report), "production validation {name}");
+        require_resolved(&report);
+        assert_eq!(report.flagged.len(), report.flagged_rechecked);
+        let gpu_eps: u64 = report.tail.endpoints[..cfg.num_bv].iter().sum();
+        assert!(gpu_eps > 0, "production validation must send endpoints to the GPU");
+        println!(
+            "{}",
+            json!({"type":"validation","variant":name,
+            "scope":format!("production shape (16 classes, windows {windows}), N{} Parents transport, {unit_count} K52 packages with CPU fallback", cfg.n),
+            "n":cfg.n,"a":cfg.a,"m":cfg.m(),"cutoff_bits":cfg.tail.cutoff_bits,"windows":windows,"seed":seed,
+            "h_range":cv::runspec::h_range(&screen_of(name, cfg.a), cfg.n, cfg.a),
+            "screen":screen_of(name, cfg.a),"cpu_seconds":cpu_s,
+            "cpu_gpu_equal":true,"roots":cfg.units,"report":report})
+        );
+    }
+}
+
 fn main() {
     let args: Vec<_> = std::env::args().skip(1).collect();
     let profile = args.first().map(String::as_str).unwrap_or("validate");
@@ -1146,6 +1232,12 @@ fn main() {
     }
     if matches!(profile, "validate" | "validate-wide") {
         validate(profile == "validate-wide", n, a, &names);
+        return;
+    }
+    if profile == "validate-prod" {
+        // v-n73-sound: argument 6 = the 16 class windows (as in the target profile).
+        let windows = args.get(6).map(String::as_str).expect("validate-prod needs the class windows (argument 6)");
+        validate_prod(n, a, windows, &names);
         return;
     }
     assert!(matches!(profile, "target" | "census"));
