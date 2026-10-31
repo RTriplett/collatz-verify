@@ -1,10 +1,14 @@
 //! Steps 2+3 on the CPU: enumerate the surviving completions of an endpoint
 //! and iterate each until it falls below its start.
 //!
-//! The stepping and the checksum replicate the reference CUDA kernel
-//! bit-for-bit (Barina's alternating odd-run / even-run loop on `T(n) + 1`,
-//! XOR of the low 32 bits after every double iteration), so a CPU run and a
-//! GPU run over the same cases produce the same hash.
+//! The stepping and the checksum replicate the CUDA kernels bit-for-bit, so
+//! a CPU run and a GPU run over the same cases produce the same hash.  With
+//! the default `TailParams::codes` that is the reference kernel's loop
+//! (Barina's alternating odd-run / even-run loop on `T(n) + 1`, XOR of the low
+//! 32 bits after every double iteration); a per-class tail code selects the
+//! jump / jd tails of `crate::jump` and `crate::jdip` instead (c3-hyg: the
+//! codes come from the run's own `TailParams`, the same value the GPU
+//! launches use; see `crate::runspec`).
 
 use crate::arith::{mod_pow3, POW3};
 use crate::lookahead::Lookahead;
@@ -19,11 +23,97 @@ pub struct TailParams {
     /// Apply the OEE state carried into the window (two cheap parity tests;
     /// Angeltveit's CPU `search2`).  Sound; removes ~0.3% of cases.
     pub tail_oee: bool,
+    /// Experimental completion screening (c-screen); the default keeps the
+    /// original mod-9 mask over every completion.
+    pub screen: Screen,
+    /// c3-hyg: per-class tail codes, the single source of the per-case
+    /// semantics for the CPU reference and the GPU (the default is the
+    /// original loop on every class).
+    pub codes: crate::runspec::TailCodes,
+    /// c3-hyg: per-class warp-queue scheduling (GPU only, no effect on the
+    /// work tuple); recorded in reports, and `GpuTuning::wq` must equal it.
+    pub schedule: crate::runspec::WqSchedule,
 }
 
 impl Default for TailParams {
     fn default() -> Self {
-        TailParams { cutoff_bits: 120, tail_oee: true }
+        TailParams {
+            cutoff_bits: 120,
+            tail_oee: true,
+            screen: Screen::default(),
+            codes: crate::runspec::TailCodes::original(),
+            schedule: crate::runspec::WqSchedule::none(),
+        }
+    }
+}
+
+/// Explicit per-run completion screening, applied identically by the CPU
+/// reference (`endpoint_work`, `jump::for_each_case`) and the GPU screen
+/// kernels (`cuda/screen.cuh`).
+///
+/// * `rows`: replace the mod-9 mask by the (12, 9) row table
+///   (`crate::rowsieve`); the run's `Lookahead` must carry the table.
+/// * `[h_lo, h_hi)`: verify only completions `n = n0 + h 2^M` with `h` in this
+///   range (multiples of 64; `h_hi = 0` means `2^A`).  `h_lo = 2^(A-1)` is the
+///   top half, `n >= 2^(N-1)`.  A restricted run is a sound verification of
+///   that range only when every smaller `n` is covered by another run or a
+///   published result (strong induction).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Screen {
+    pub rows: bool,
+    /// With `rows`: apply the table only to bitvector classes >= `rows_from`
+    /// and to the CPU-only classes beyond the last bitvector (per-class
+    /// gating; light classes are faster with the mod-9 mask on the GPU).
+    pub rows_from: u32,
+    pub h_lo: u32,
+    pub h_hi: u32,
+}
+
+impl Screen {
+    pub fn is_default(&self) -> bool {
+        *self == Screen::default()
+    }
+    /// The top half `h >= 2^(A-1)`, i.e. `n >= 2^(N-1)`.
+    pub fn top(a: u32) -> Self {
+        Screen { h_lo: 1 << (a - 1), ..Screen::default() }
+    }
+    /// The bottom half `h < 2^(A-1)`.
+    pub fn bottom(a: u32) -> Self {
+        Screen { h_hi: 1 << (a - 1), ..Screen::default() }
+    }
+    pub fn with_rows(mut self, rows: bool) -> Self {
+        self.rows = rows;
+        self
+    }
+    /// Does an endpoint of bitvector class `class` (None: CPU-only class) use the rows?
+    #[inline]
+    pub fn rows_for(&self, class: Option<usize>) -> bool {
+        self.rows && class.map_or(true, |c| c >= self.rows_from as usize)
+    }
+    /// c3-hyg: the screen is usable with `2^a` completions per endpoint
+    /// (the same conditions `word_range` asserts, as an error).
+    pub fn check(&self, a: u32) -> anyhow::Result<()> {
+        anyhow::ensure!((6..=31).contains(&a), "A = {a} outside 6..=31");
+        let total = 1u32 << a;
+        let hi = if self.h_hi == 0 { total } else { self.h_hi };
+        anyhow::ensure!(self.h_lo % 64 == 0 && hi % 64 == 0 && self.h_lo < hi && hi <= total,
+            "completion range [{}, {}) must be 64-aligned and non-empty within 2^A = {total} \
+             (the top/bottom halves need A >= 7)", self.h_lo, hi);
+        Ok(())
+    }
+    /// Range of 64-completion words `[lo, hi)` for `2^a` completions.
+    pub fn word_range(&self, a: u32) -> (usize, usize) {
+        let total = 1u32 << a;
+        let hi = if self.h_hi == 0 { total } else { self.h_hi };
+        assert!(self.h_lo % 64 == 0 && hi % 64 == 0 && self.h_lo < hi && hi <= total,
+                "screen range [{}, {}) must be 64-aligned within 2^A = {total}", self.h_lo, hi);
+        ((self.h_lo / 64) as usize, (hi / 64) as usize)
+    }
+    pub fn label(&self) -> String {
+        let mut v = Vec::new();
+        if self.rows { v.push(if self.rows_from > 0 { format!("rows(12,9)@c>={}", self.rows_from) } else { "rows(12,9)".to_string() }); }
+        if self.h_lo != 0 || self.h_hi != 0 { v.push(format!("h[{},{})", self.h_lo, if self.h_hi == 0 { "2^A".to_string() } else { self.h_hi.to_string() })); }
+        if v.is_empty() { "mod9".into() } else { v.join("+") }
     }
 }
 
@@ -32,7 +122,9 @@ impl Default for TailParams {
 pub struct TailStats {
     pub endpoints: Vec<u64>,
     pub cases: Vec<u64>,
-    /// Double iterations (one odd run + one even run, twice) summed over cases.
+    /// Iterations summed over cases, in each class's tail-code unit (code 0:
+    /// double iterations, one odd run + one even run, twice; jump / jd codes:
+    /// W-step jumps).  See `runspec::code_definition`.
     pub iters: Vec<u64>,
     pub hash: u32,
     #[serde(skip)]
@@ -201,9 +293,20 @@ pub fn endpoint_work(la: &Lookahead, tp: &TailParams, nd: &Node, mut on_flag: im
     let r9 = mod_pow3(nd.n0, 2) as usize;
     let p3 = POW3[nd.f as usize];
     let cutoff = 1u128 << tp.cutoff_bits;
+    // c3-hyg: this class's code from the run's own configuration (the GPU
+    // launches use the same TailParams::codes; CPU-only classes: code 0).
+    let class = la.bigindex(nd.f);
+    let xtail = crate::jump::tail_config_code(tp.codes.code(class));
+    let xb = class.map_or(la.b, |i| la.bs[i]);
+    let (w_lo, w_hi) = tp.screen.word_range(la.a);
+    let rows = la.screen_rows(&tp.screen, la.bigindex(nd.f));
+    let (row, phase) = rows.map_or((0, 0), |rs| (rs.row_index(nd.n0), rs.phase(nd.n0)));
     let mut w = EndpointWork::default();
-    for word in 0..la.mod9_words {
-        let mut t = la.completion_word(arr, start, r9, word);
+    for word in w_lo..w_hi {
+        let mut t = match rows {
+            Some(rs) => rs.word64(row, phase, word) & la.bv_word(arr, start, word),
+            None => la.completion_word(arr, start, r9, word),
+        };
         while t != 0 {
             let h = (64 * word) as u128 + t.trailing_zeros() as u128;
             t &= t - 1;
@@ -230,7 +333,11 @@ pub fn endpoint_work(la: &Lookahead, tp: &TailParams, nd: &Node, mut on_flag: im
                 }
             }
             let base = nd.n0 + (h << la.m);
-            let (hash, iters, flagged) = step_until_below(base, x + 1, cutoff);
+            let (hash, iters, flagged) = if xtail.kind == crate::jump::TailKind::Base {
+                step_until_below(base, x + 1, cutoff)
+            } else {
+                xtail.run_h(base, x, tp.cutoff_bits, xb, 485 * nd.f as i32 - 306 * la.m as i32)
+            };
             w.hash ^= hash;
             w.cases += 1;
             w.iters += iters;

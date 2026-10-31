@@ -30,11 +30,28 @@ pub struct Plan {
     pub n: u32,
     pub a: u32,
     pub b: u32,
+    /// Step-1 rules the subtrees were split with (`cv verify --plan` requires
+    /// the run to use the same rules).
     pub rules: String,
     pub target_seconds: f64,
     pub packages: Vec<Package>,
     pub total_endpoints: f64,
     pub total_gpu_seconds: f64,
+    /// c3-hyg: plan schema (absent = 1, the original format).
+    #[serde(default = "plan_schema_v1")]
+    pub schema_version: u32,
+    /// c3-hyg: the cost model's class layout (bitvector mode, windows, window
+    /// rules).  Costs only: a package's coverage depends on `rules` alone.
+    #[serde(default)]
+    pub bv_mode: Option<String>,
+    #[serde(default)]
+    pub class_windows: Option<Vec<u32>>,
+    #[serde(default)]
+    pub window: Option<String>,
+}
+
+fn plan_schema_v1() -> u32 {
+    1
 }
 
 /// Per-class backward DPs: `cost(node) = sum_i ways_i(node) * sec_i`.
@@ -102,5 +119,18 @@ pub fn plan(rules: &Rules, la: &Lookahead, n: u32, oracle: &CostOracle, target: 
     }
     let total_endpoints = packages.iter().map(|p| p.endpoints).sum();
     let total_gpu_seconds = packages.iter().map(|p| p.gpu_seconds).sum();
-    Plan { n, a: la.a, b: la.b, rules: rules.label(), target_seconds: target, packages, total_endpoints, total_gpu_seconds }
+    Plan {
+        n,
+        a: la.a,
+        b: la.b,
+        rules: rules.label(),
+        target_seconds: target,
+        packages,
+        total_endpoints,
+        total_gpu_seconds,
+        schema_version: 2,
+        bv_mode: Some(format!("{:?}", la.mode)),
+        class_windows: Some(la.bs.clone()),
+        window: Some(la.window.label()),
+    }
 }

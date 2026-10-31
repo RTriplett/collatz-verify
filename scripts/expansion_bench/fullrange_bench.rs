@@ -34,7 +34,7 @@ use cv::gpu::{GpuSession, GpuTransport, GpuTuning};
 use cv::lookahead::{BvMode, WindowRules};
 use cv::rules::{walkback_certificate, Rules};
 use cv::sample::{Rng, Sampler};
-use cv::tail::{TailParams, TailStats};
+use cv::tail::{Screen, TailParams, TailStats};
 use cv::tree::{Node, TreeStats};
 use cv::verify::{verify_cpu_with_expander, VerifyConfig, VerifyReport};
 use rayon::prelude::*;
@@ -129,6 +129,232 @@ fn signature(report: &VerifyReport) -> Value {
     );
     json!({"tree":report.tree,"tail":tail,"hash":report.hash,
         "flagged":flagged,"flagged_rechecked":report.flagged_rechecked})
+}
+
+// Jump tails redefine iterations, checksum and (conservative) flags; they must
+// keep the tree statistics and per-class endpoints and cases exactly.
+// Warp-queue variants jq/jq2/jq3 (no suffix) run the jx codes with the same
+// per-case semantics, so their full signature must equal jx's.  Every other
+// tail variant is its own signature family.
+/// c3-a: work-preserving per-variant pipeline options appended to a variant name:
+///   `<variant>[~s<streams>][~b<log2 endpoints per launch>][~t<producer threads>][~e<parent entry depth>]`
+/// e.g. `fxr2_top~s2~b19`.  Streams <= the session's slots (CV_GPU_SLOTS, default 3); launch size a power of
+/// two in [2^14, 2^20]; producer threads run the CPU expansion in a dedicated rayon pool; the entry depth moves
+/// the CPU/device boundary of the baseline-only levels (the full-check cutoff, CV_FULLRANGE_CUTOFF, is unchanged,
+/// so trees, endpoints and cases are identical; the per-cohort work and signature asserts check this).
+/// Target profile only.  The trial record keeps the full name.
+#[derive(Clone, Copy, Default, Debug)]
+struct RunOpts {
+    slots: u32,
+    batch_log2: u32,
+    threads: usize,
+    entry: u32,
+}
+
+fn split_opts(name: &str) -> (&str, RunOpts) {
+    let mut it = name.split('~');
+    let base = it.next().unwrap();
+    let mut o = RunOpts::default();
+    for part in it {
+        assert!(!part.is_empty(), "empty option in {name}");
+        let (k, v) = part.split_at(1);
+        let v: u32 = v.parse().unwrap_or_else(|_| panic!("bad option ~{part} in {name}"));
+        match k {
+            "s" => { assert!((1..=8).contains(&v), "~s<streams> in 1..=8"); o.slots = v }
+            "b" => { assert!((14..=20).contains(&v), "~b<log2 batch> in 14..=20"); o.batch_log2 = v }
+            "t" => { assert!((1..=8).contains(&v), "~t<threads> in 1..=8"); o.threads = v as usize }
+            "e" => o.entry = v,
+            _ => panic!("unknown option ~{part} in {name}"),
+        }
+    }
+    (base, o)
+}
+
+fn base_name(name: &str) -> &str {
+    name.split('~').next().unwrap()
+}
+
+struct Extras {
+    engines: std::collections::HashMap<u32, Affine>,
+    pools: std::collections::HashMap<usize, rayon::ThreadPool>,
+}
+static EXTRAS: std::sync::OnceLock<Extras> = std::sync::OnceLock::new();
+
+/// Build the extra entry-depth engines and producer pools the variant options ask for.
+fn setup_extras(cfg: &VerifyConfig, cutoff: u32, names: &[&str]) {
+    let mut engines = std::collections::HashMap::new();
+    let mut pools = std::collections::HashMap::new();
+    for name in names {
+        let (_, o) = split_opts(name);
+        if o.entry > 0 && !engines.contains_key(&o.entry) {
+            assert!(o.entry >= cutoff && o.entry < cfg.m() && cfg.m() - o.entry <= 12,
+                "~e{}: entry must be in [cutoff {cutoff}, M) with M - entry <= 12", o.entry);
+            engines.insert(o.entry, Affine::new(cfg.m(), cutoff, o.entry, &cfg.rules));
+        }
+        if o.threads > 0 && !pools.contains_key(&o.threads) {
+            pools.insert(o.threads, rayon::ThreadPoolBuilder::new().num_threads(o.threads).build().unwrap());
+        }
+    }
+    assert!(EXTRAS.set(Extras { engines, pools }).is_ok());
+}
+
+fn engine_for<'a>(affine: &'a Affine, o: &RunOpts) -> &'a Affine {
+    if o.entry == 0 {
+        return affine;
+    }
+    &EXTRAS.get().expect("variant options need setup_extras").engines[&o.entry]
+}
+
+fn family(name: &str) -> &str {
+    let name = base_name(name);
+    if matches!(name, "jq" | "jq2" | "jq3") { "jx" } else if tail_spec(name, 10).is_some() { name } else { "base" }
+}
+
+/// c-final: tail variants (per-class tail codes, optional per-class warp-queue
+/// scheduler bits, explicit completion screen):
+///   <fam>[2|3][r[N]][_top|_bot][_dload|_dscan|_dsetup|_pf|_lz]
+/// fam = jx (jump tails, CV_JX / CV_JX2 / CV_JX3 codes; c-screen),
+///       jd (jd window-dip tails, CV_JD / CV_JD2 / CV_JD3 codes; c-tail),
+///       jq (CV_JX codes + warp-queue specs CV_JQ_WQ / CV_JQ2_WQ / CV_JQ3_WQ; c-sched),
+///       fx (final: CV_FX / CV_FX2 / CV_FX3 codes, optional warp-queue specs
+///           CV_FX_WQ / CV_FX2_WQ / CV_FX3_WQ; unset = per-thread kernels).
+/// `r[N]` = (12, 9) row table instead of mod 9 (for classes >= N; N = 0 if
+/// omitted); `_top`/`_bot` = completions h >= 2^(A-1) / h < 2^(A-1); `_d*` =
+/// diagnostic kernels (not verifications: load records only / screen only /
+/// screen + case setup); `_pf` / `_lz` / `_lb` = work-preserving scan options
+/// (mod-9 word prefetch / lazy row words / 48-register launch bound of the jd
+/// rows kernels).  Warp-queue specs are
+/// v<layout>[.k<K>][.c<log2 fetch>][.o<blocks/SM>] or `-` (per-thread), one for
+/// all classes or one per class.
+#[derive(Clone, Copy)]
+struct TailSpec {
+    key: &'static str,
+    wq_key: Option<&'static str>,
+    screen: Screen,
+    diag: u32,
+}
+
+fn tail_spec(name: &str, a: u32) -> Option<TailSpec> {
+    let fam = &name[..name.len().min(2)];
+    let mut rest = &name[fam.len()..];
+    let digit = match rest.as_bytes().first() {
+        Some(b'2') => { rest = &rest[1..]; 2 }
+        Some(b'3') => { rest = &rest[1..]; 3 }
+        _ => 1,
+    };
+    let (key, wq_key): (&'static str, Option<&'static str>) = match (fam, digit) {
+        ("jx", 1) => ("CV_JX", None), ("jx", 2) => ("CV_JX2", None), ("jx", 3) => ("CV_JX3", None),
+        ("jd", 1) => ("CV_JD", None), ("jd", 2) => ("CV_JD2", None), ("jd", 3) => ("CV_JD3", None),
+        ("jq", 1) => ("CV_JX", Some("CV_JQ_WQ")), ("jq", 2) => ("CV_JX", Some("CV_JQ2_WQ")),
+        ("jq", 3) => ("CV_JX", Some("CV_JQ3_WQ")),
+        ("fx", 1) => ("CV_FX", Some("CV_FX_WQ")), ("fx", 2) => ("CV_FX2", Some("CV_FX2_WQ")),
+        ("fx", 3) => ("CV_FX3", Some("CV_FX3_WQ")),
+        _ => return None,
+    };
+    let mut screen = Screen::default();
+    if let Some(r) = rest.strip_prefix('r') {
+        // r[N]: rows for bitvector classes >= N (default all)
+        let digits: String = r.chars().take_while(|c| c.is_ascii_digit()).collect();
+        rest = &r[digits.len()..];
+        screen.rows = true;
+        screen.rows_from = if digits.is_empty() { 0 } else { digits.parse().ok()? };
+    }
+    if let Some(r) = rest.strip_prefix("_top") { rest = r; screen = Screen { rows: screen.rows, rows_from: screen.rows_from, ..Screen::top(a) }; }
+    else if let Some(r) = rest.strip_prefix("_bot") { rest = r; screen = Screen { rows: screen.rows, rows_from: screen.rows_from, ..Screen::bottom(a) }; }
+    let diag = match rest {
+        "" => 0,
+        "_dload" => cv::gpu::SCREEN_DIAG_LOAD,
+        "_dscan" => cv::gpu::SCREEN_DIAG_SCAN,
+        "_dsetup" => cv::gpu::SCREEN_DIAG_SETUP,
+        // work-preserving scan options (verifications): mod-9 prefetch / lazy rows
+        "_pf" => cv::gpu::SCREEN_OPT_M9PF,
+        "_lz" => cv::gpu::SCREEN_OPT_LAZY,
+        // c-final: jd rows kernels with the 48-register launch bound
+        "_lb" => cv::gpu::SCREEN_OPT_LB5,
+        _ => return None,
+    };
+    Some(TailSpec { key, wq_key, screen, diag })
+}
+
+fn is_diagnostic(name: &str) -> bool {
+    let name = base_name(name);
+    tail_spec(name, 10).is_some_and(|s| matches!(s.diag, cv::gpu::SCREEN_DIAG_LOAD | cv::gpu::SCREEN_DIAG_SCAN | cv::gpu::SCREEN_DIAG_SETUP))
+}
+
+/// Screen of a variant (default for every non-tail variant).
+fn screen_of(name: &str, a: u32) -> Screen {
+    let name = base_name(name);
+    tail_spec(name, a).map_or(Screen::default(), |s| s.screen)
+}
+
+/// Per-class tail codes of a tail variant (from its environment key).
+fn tail_codes(spec: &TailSpec) -> Vec<u32> {
+    let default = "33,35,35,35,35,35,35,43,43,43,43,43,43,43,43,43";
+    let codes = std::env::var(spec.key).unwrap_or_else(|_| {
+        assert!(spec.key.starts_with("CV_JX"), "{} must list the per-class tail codes", spec.key);
+        default.into()
+    });
+    codes.split(',').map(|c| c.trim().parse().unwrap()).collect()
+}
+
+/// Warp-queue bits of a tail variant (one spec for every class or one per
+/// class; classes beyond the list and classes with code 0 stay per-thread).
+fn wq_bits(spec: &TailSpec, codes: &[u32]) -> [u32; 32] {
+    let mut bits = [0u32; 32];
+    if let Some(wk) = spec.wq_key {
+        match std::env::var(wk) {
+            Ok(specs) => {
+                let specs: Vec<&str> = specs.split(',').collect();
+                assert!(specs.len() <= 32, "{wk}: at most 32 specs");
+                for (i, b) in bits.iter_mut().enumerate() {
+                    let sp = if specs.len() == 1 { Some(specs[0]) } else { specs.get(i).copied() };
+                    let code = if codes.len() == 1 { codes.first() } else { codes.get(i) }.copied().unwrap_or(0);
+                    *b = match sp {
+                        Some(sp) if code != 0 => cv::gpu::parse_wq(sp).unwrap(),
+                        _ => 0,
+                    };
+                }
+            }
+            Err(_) => assert!(spec.key.starts_with("CV_FX"), "{} needs {wk}", spec.key),
+        }
+    }
+    bits
+}
+
+/// c3-hyg: the TailParams of a variant on `cfg`: its screen, per-class tail
+/// codes and warp-queue schedule.  The CPU reference (validation profiles,
+/// CPU-only classes) and the GPU tuning are both built from this value;
+/// gpu_run refuses a tuning that differs.  Floor codes are allowed here
+/// (benchmark), and make the run measurement-only.
+fn variant_tail(name: &str, cfg: &VerifyConfig) -> TailParams {
+    let mut tail = cfg.tail;
+    if let Some(spec) = tail_spec(name, cfg.a) {
+        let codes = tail_codes(&spec);
+        tail.screen = spec.screen;
+        tail.codes = cv::runspec::TailCodes::measurement(&codes, cfg.num_bv)
+            .unwrap_or_else(|e| panic!("{name}: {} = {codes:?}: {e:#}", spec.key));
+        let bits = wq_bits(&spec, &codes);
+        tail.schedule = cv::runspec::WqSchedule::from_bits(bits).unwrap();
+    }
+    tail
+}
+
+/// Does a variant need the measurement-only opt-in (diagnostic kernels or
+/// jd floor codes)?
+fn needs_measurement(name: &str) -> bool {
+    let name = base_name(name);
+    is_diagnostic(name)
+        || tail_spec(name, 10).is_some_and(|s| tail_codes(&s).iter().any(|&c| cv::runspec::is_floor_code(c)))
+}
+
+/// Tree and endpoints must be identical for every variant; cases only within
+/// the same screen (rows / h range change the case set by design).
+fn work_signature(report: &VerifyReport) -> Value {
+    json!({"tree":report.tree,"endpoints":report.tail.endpoints})
+}
+
+fn case_signature(report: &VerifyReport) -> Value {
+    json!({"cases":report.tail.cases})
 }
 
 fn require_resolved(report: &VerifyReport) {
@@ -441,7 +667,15 @@ fn prepare_jumps(gpu: &mut GpuSession, names: &[&str]) {
 
 // Keep uploads and table switching outside all warm pipeline timings.
 fn prepare_variant(gpu: &mut GpuSession, affine: &Affine, compact: &CompactExperiments, name: &str) {
+    let (name, opts) = split_opts(name);
+    let affine = engine_for(affine, &opts);
     let name = name.strip_suffix("_1k").unwrap_or(name);
+    if let Some(spec) = tail_spec(name, 10) {
+        // jd dip tables: built once per process (host), uploaded into this
+        // session's context before the timed run (c3-hyg: per context).
+        let codes: Vec<u32> = tail_codes(&spec).into_iter().filter(|&c| c >= 64).collect();
+        gpu.prepare_jd_tables(&codes).expect("jd table upload");
+    }
     if let Some(index) = compact_chain_index(name) {
         gpu.set_chain_table(compact.chains[index].tables()).expect("compact chain upload");
     } else if name == "early_parents" {
@@ -466,8 +700,12 @@ fn run_variant(
     compressed: &CompactExperiments,
     name: &str,
 ) -> VerifyReport {
+    let (name, opts) = split_opts(name);
+    let affine = engine_for(affine, &opts);
     let words = affine.table_words();
     let mut tuning = GpuTuning::default();
+    tuning.run_slots = opts.slots;
+    tuning.run_batch = if opts.batch_log2 > 0 { 1 << opts.batch_log2 } else { 0 };
     if name.ends_with("_1k") {
         tuning.group_chunk_records = 1024;
     }
@@ -507,6 +745,22 @@ fn run_variant(
         tuning.oee_mask = true;
         tuning.tail_jump_bits = jump_width(name);
     }
+    let mut variant_cfg = None;
+    if let Some(spec) = tail_spec(name, cfg.a) {
+        // Experimental tails: novote_oee plus per-class variant codes.
+        tuning.overflow_vote = false;
+        tuning.readonly_powers = false;
+        tuning.oee_mask = true;
+        // c3-hyg: codes, warp-queue bits and screen from the variant's
+        // TailParams (CPU fallback and GPU alike).
+        let mut c = cfg.clone();
+        c.tail = variant_tail(name, cfg);
+        tuning.xtail = c.tail.codes.gpu_xtail();
+        tuning.wq = c.tail.schedule.bits();
+        tuning.screen_diag = spec.diag;
+        variant_cfg = Some(c);
+    }
+    let cfg = variant_cfg.as_ref().unwrap_or(cfg);
     if let Some((budget, capacity, workers)) = tail_offload(name) {
         tuning.tail_budget = budget;
         tuning.tail_queue_capacity = capacity;
@@ -518,7 +772,8 @@ fn run_variant(
         tuning.early_group_bits = width;
         tuning.early_cpu_workers = workers;
     }
-    match name {
+    let pool = (opts.threads > 0).then(|| &EXTRAS.get().expect("variant options need setup_extras").pools[&opts.threads]);
+    let mut run = move || match name {
         "early_parents" => gpu.run_transport_tuned(cfg, &compressed.early, GpuTransport::Parents,
                                                    compressed.early.table_words(), tuning),
         "compact66" | "compact48" | "compact_defer24" | "compact_defer32" | "compact_defer24_cap262k_w2"
@@ -544,10 +799,17 @@ fn run_variant(
         | "novote_oee" | "novote_oee128" | "novote_oee512" => {
             gpu.run_transport_tuned(cfg, affine, GpuTransport::Parents, words, tuning)
         }
+        name if tail_spec(name, cfg.a).is_some() => {
+            gpu.run_transport_tuned(cfg, affine, GpuTransport::Parents, words, tuning)
+        }
         name if tail_offload(name).is_some() || early_screen(name).is_some() => {
             gpu.run_transport_tuned(cfg, affine, GpuTransport::Parents, words, tuning)
         }
         _ => panic!("unknown variant {name}"),
+    };
+    match pool {
+        Some(p) => p.install(run),
+        None => run(),
     }
     .expect("GPU full-range cohort run")
 }
@@ -604,14 +866,28 @@ fn validate(wide: bool, a: u32, names: &[&str]) {
         });
     }
     let (compact, affine, chains, compressed) = engines(&cfg, cutoff, entry);
-    let cpu = verify_cpu_with_expander(&cfg, &compact);
-    let affine_cpu = verify_cpu_with_expander(&cfg, &affine);
-    assert_eq!(signature(&cpu), signature(&affine_cpu));
-    let mut gpu = GpuSession::new_experimental(&cfg).expect("GPU initialization");
+    // c-screen / c3-hyg: one CPU reference per variant, with the variant's own
+    // TailParams (rows / h range / per-class tail codes), the value its GPU
+    // tuning is built from.
+    let cpu_for = |name: &str| {
+        let mut c = cfg.clone();
+        c.tail = variant_tail(name, &cfg);
+        let cpu = verify_cpu_with_expander(&c, &compact);
+        let affine_cpu = verify_cpu_with_expander(&c, &affine);
+        assert_eq!(signature(&cpu), signature(&affine_cpu));
+        cpu
+    };
+    let mut session_cfg = cfg.clone();
+    session_cfg.tail.screen.rows = names.iter().any(|n| screen_of(n, cfg.a).rows);
+    let mut gpu = GpuSession::new_experimental(&session_cfg).expect("GPU initialization");
+    if names.iter().any(|n| needs_measurement(n)) {
+        gpu.allow_measurement_only().expect("measurement opt-in");
+    }
     gpu.set_terminal_table(affine.table_words())
         .expect("table upload");
     prepare_jumps(&mut gpu, &names);
     for name in names {
+        let cpu = cpu_for(name);
         prepare_variant(&mut gpu, &affine, &compressed, name);
         let report = run_variant(&mut gpu, &cfg, &compact, &affine, &chains, &compressed, name);
         assert_eq!(signature(&cpu), signature(&report), "validation {name}");
@@ -622,13 +898,15 @@ fn validate(wide: bool, a: u32, names: &[&str]) {
             "{}",
             json!({"type":"validation","variant":name,
             "scope":if wide {"sixteen K52 packages, N72 with CPU fallback"} else {"complete N32 with CPU fallback"},
+            "screen":screen_of(name, cfg.a),
             "cpu_gpu_equal":true,"roots":cfg.units,"report":report})
         );
     }
 }
 
-fn validate_overflow(names: &[&str]) {
-    let mut cfg = config(72, 10, 12, 24);
+fn validate_overflow(a: u32, names: &[&str]) {
+    // c3-a: A is a parameter (was fixed at 10); 24 GPU classes at any A in 8..=12.
+    let mut cfg = config(72, a, 12, 24);
     cfg.class_b = Some((0..cfg.num_bv).map(|i| 12 + (i % 2) as u32).collect());
     cfg.tail.cutoff_bits = 110;
     let baseline = Rules::baseline();
@@ -650,19 +928,30 @@ fn validate_overflow(names: &[&str]) {
     }
     cfg.units = Some(roots);
     let (compact, affine, chains, compressed) = engines(&cfg, 50, 52);
-    let cpu = verify_cpu_with_expander(&cfg, &compact);
-    let affine_cpu = verify_cpu_with_expander(&cfg, &affine);
-    assert_eq!(signature(&cpu), signature(&affine_cpu));
-    assert!(
-        !cpu.flagged.is_empty(),
-        "overflow audit must exercise flag path"
-    );
-    assert_eq!(cpu.flagged.len(), cpu.flagged_rechecked);
-    let mut gpu = GpuSession::new_experimental(&cfg).expect("GPU initialization");
+    let cpu_for = |name: &str| {
+        let mut c = cfg.clone();
+        c.tail = variant_tail(name, &cfg);
+        let cpu = verify_cpu_with_expander(&c, &compact);
+        let affine_cpu = verify_cpu_with_expander(&c, &affine);
+        assert_eq!(signature(&cpu), signature(&affine_cpu));
+        assert!(
+            !cpu.flagged.is_empty(),
+            "overflow audit must exercise flag path"
+        );
+        assert_eq!(cpu.flagged.len(), cpu.flagged_rechecked);
+        cpu
+    };
+    let mut session_cfg = cfg.clone();
+    session_cfg.tail.screen.rows = names.iter().any(|n| screen_of(n, cfg.a).rows);
+    let mut gpu = GpuSession::new_experimental(&session_cfg).expect("GPU initialization");
+    if names.iter().any(|n| needs_measurement(n)) {
+        gpu.allow_measurement_only().expect("measurement opt-in");
+    }
     gpu.set_terminal_table(affine.table_words())
         .expect("table upload");
     prepare_jumps(&mut gpu, &names);
     for name in names {
+        let cpu = cpu_for(name);
         prepare_variant(&mut gpu, &affine, &compressed, name);
         let report = run_variant(&mut gpu, &cfg, &compact, &affine, &chains, &compressed, name);
         assert_eq!(
@@ -687,7 +976,7 @@ fn validate_overflow(names: &[&str]) {
         }
         println!(
             "{}",
-            json!({"type":"validation","variant":name,
+            json!({"type":"validation","variant":name,"screen":screen_of(name, cfg.a),
             "scope":"N72 forced GPU overflow, cutoff110, high-F all-one K52 root plus sixteen random K52 roots",
             "cpu_gpu_equal":true,"flagged_origins_equal":true,"unresolved_flags":0,
             "cutoff_bits":cfg.tail.cutoff_bits,"roots":cfg.units,"report":report})
@@ -712,9 +1001,13 @@ fn main() {
         })
         .split(',')
         .collect();
-    assert!((8..=10).contains(&a));
+    // c3-a: A in 8..=12 (M = 72 - A in 60..=64: parent transport needs M <= 64,
+    // entry 52 + device width M - 52 <= 12; the warp queue screens 2^(A-10) chunks).
+    assert!((8..=12).contains(&a), "A must be in 8..=12");
     assert!(threads > 0 && !names.is_empty());
     assert_eq!(names.iter().collect::<HashSet<_>>().len(), names.len());
+    let full_names = names.clone();
+    let names: Vec<&str> = names.iter().map(|n| base_name(n)).collect();
     assert!(names.iter().all(|name| tail_offload(name).is_some() || early_screen(name).is_some() || matches!(
         *name,
         "parents"
@@ -741,7 +1034,10 @@ fn main() {
             | "early_parents" | "compact66" | "compact48"
             | "early_parents_1k" | "compact66_1k" | "compact48_1k"
             | "novote_oee_1k"
-    )));
+    ) || tail_spec(name, a).is_some()));
+    let names = full_names;
+    assert!(profile == "target" || names.iter().all(|n| !n.contains('~')),
+        "variant options (~s ~b ~t ~e) are supported by the target profile only");
     rayon::ThreadPoolBuilder::new()
         .num_threads(threads)
         .build_global()
@@ -762,7 +1058,7 @@ fn main() {
         return;
     }
     if profile == "validate-device" {
-        validate_overflow(&names);
+        validate_overflow(a, &names);
         return;
     }
     if matches!(profile, "validate" | "validate-wide") {
@@ -794,6 +1090,7 @@ fn main() {
     assert_eq!(cfg.class_b.as_ref().unwrap().len(), cfg.num_bv);
     let started = Instant::now();
     let (compact, affine, chains, compressed) = engines(&cfg, cutoff, entry);
+    setup_extras(&cfg, cutoff, &names);
     let engine_setup_seconds = started.elapsed().as_secs_f64();
     let baseline = Rules::baseline();
     let sampler = Sampler::new(&baseline, CHECKPOINT, None);
@@ -855,14 +1152,24 @@ fn main() {
     }
     let started = Instant::now();
     let cpu = cpu_seconds();
-    let mut gpu = GpuSession::new_experimental(&cfg).expect("GPU initialization");
+    // c-screen: the session carries the row table when any variant uses it.
+    let mut session_cfg = cfg.clone();
+    session_cfg.tail.screen.rows = names.iter().any(|n| screen_of(n, a).rows);
+    let mut gpu = GpuSession::new_experimental(&session_cfg).expect("GPU initialization");
+    // c3-hyg: diagnostic variants and jd floor codes are measurement-only
+    // kernels; their reports say measurement_only.
+    if names.iter().any(|n| needs_measurement(n)) {
+        gpu.allow_measurement_only().expect("measurement opt-in");
+    }
     gpu.set_terminal_table(affine.table_words())
         .expect("table upload");
     prepare_jumps(&mut gpu, &names);
     println!(
         "{}",
         json!({"type":"gpu_setup","wall_seconds":started.elapsed().as_secs_f64(),
-        "process_cpu_seconds":cpu_seconds()-cpu})
+        "process_cpu_seconds":cpu_seconds()-cpu,
+        "row_table":session_cfg.tail.screen.rows,
+        "variant_screens":names.iter().map(|n| json!({"variant":n,"screen":screen_of(n, a),"diagnostic":is_diagnostic(n)})).collect::<Vec<_>>()})
     );
     cfg.units = Some(
         cohorts
@@ -872,15 +1179,30 @@ fn main() {
             .copied()
             .collect(),
     );
-    let mut warmup_signature = None;
+    let mut warmup_signature: std::collections::HashMap<String, Value> = Default::default();
+    let mut warmup_work = None;
+    let mut warmup_cases: std::collections::HashMap<String, Value> = Default::default();
     for name in &names {
         prepare_variant(&mut gpu, &affine, &compressed, name);
         let report = run_variant(&mut gpu, &cfg, &compact, &affine, &chains, &compressed, name);
         require_resolved(&report);
-        if let Some(want) = &warmup_signature {
+        if let Some(want) = warmup_signature.get(family(name)) {
             assert_eq!(*want, signature(&report), "warmup {name}");
         } else {
-            warmup_signature = Some(signature(&report));
+            warmup_signature.insert(family(name).to_string(), signature(&report));
+        }
+        if let Some(want) = &warmup_work {
+            assert_eq!(*want, work_signature(&report), "warmup work {name}");
+        } else {
+            warmup_work = Some(work_signature(&report));
+        }
+        if !is_diagnostic(name) {
+            let key = screen_of(name, a).label();
+            if let Some(want) = warmup_cases.get(&key) {
+                assert_eq!(*want, case_signature(&report), "warmup cases {name}");
+            } else {
+                warmup_cases.insert(key, case_signature(&report));
+            }
         }
         println!(
             "{}",
@@ -888,6 +1210,9 @@ fn main() {
         );
     }
     let mut expected: Vec<Option<Value>> = vec![None; count];
+    let mut expected_family: std::collections::HashMap<(usize, String), Value> = Default::default();
+    let mut expected_work: Vec<Option<Value>> = vec![None; count];
+    let mut expected_cases: std::collections::HashMap<(usize, String), Value> = Default::default();
     // Rotate cohort and variant order between repetitions to avoid binding a
     // particular cohort or variant to warmup, clock drift, or desktop activity.
     for repetition in 0..repetitions {
@@ -905,14 +1230,34 @@ fn main() {
                 let wall = started.elapsed().as_secs_f64();
                 let cpu = cpu_seconds() - cpu;
                 require_resolved(&report);
-                if let Some(want) = &expected[index] {
+                if family(name) == "base" {
+                    if let Some(want) = &expected[index] {
+                        assert_eq!(*want, signature(&report), "cohort {index} variant {name}");
+                    } else {
+                        expected[index] = Some(signature(&report));
+                    }
+                } else if let Some(want) = expected_family.get(&(index, family(name).to_string())) {
                     assert_eq!(*want, signature(&report), "cohort {index} variant {name}");
                 } else {
-                    expected[index] = Some(signature(&report));
+                    expected_family.insert((index, family(name).to_string()), signature(&report));
+                }
+                if let Some(want) = &expected_work[index] {
+                    assert_eq!(*want, work_signature(&report), "cohort {index} work {name}");
+                } else {
+                    expected_work[index] = Some(work_signature(&report));
+                }
+                if !is_diagnostic(name) {
+                    let key = (index, screen_of(name, a).label());
+                    if let Some(want) = expected_cases.get(&key) {
+                        assert_eq!(*want, case_signature(&report), "cohort {index} cases {name}");
+                    } else {
+                        expected_cases.insert(key, case_signature(&report));
+                    }
                 }
                 println!(
                     "{}",
                     json!({"type":"trial","cohort":index,"variant":name,
+                    "screen":screen_of(name, a),"diagnostic":is_diagnostic(name),
                     "repetition":repetition,"cohort_order_position":cohort_position,
                     "order_position":order_position,"drawn":drawn,
                     "wall_seconds":wall,"process_cpu_seconds":cpu,"variant_prepare_seconds":variant_prepare_seconds,
@@ -935,8 +1280,23 @@ fn main() {
             "scope":"same accepted draws concatenated; measures flush and partial-batch overhead, not an independent sampling replicate"})
         );
         cfg.units = Some(roots);
-        let combined_signature = aggregate_signature(&expected, cfg.m(), cfg.num_bv);
-        let mut aggregate_expected = None;
+        // Per signature family (base, or a jump-tail family whose iterations,
+        // hash and conservative flags are redefined): the combined cohort
+        // signature that the concatenated run must reproduce exactly.
+        let mut combined_signatures: std::collections::HashMap<String, Value> = Default::default();
+        for name in &names {
+            let fam = family(name).to_string();
+            if combined_signatures.contains_key(&fam) {
+                continue;
+            }
+            let parts: Vec<Option<Value>> = if fam == "base" {
+                expected.clone()
+            } else {
+                (0..count).map(|i| expected_family.get(&(i, fam.clone())).cloned()).collect()
+            };
+            combined_signatures.insert(fam, aggregate_signature(&parts, cfg.m(), cfg.num_bv));
+        }
+        let mut aggregate_expected: std::collections::HashMap<String, Value> = Default::default();
         for repetition in 0..aggregate_repetitions {
             for order_position in 0..names.len() {
                 let name = names[(order_position + repetition) % names.len()];
@@ -951,16 +1311,17 @@ fn main() {
                 let cpu = cpu_seconds() - cpu;
                 profile_aggregate_stop(profile_aggregate);
                 require_resolved(&report);
-                if let Some(want) = &aggregate_expected {
+                let fam = family(name).to_string();
+                if let Some(want) = aggregate_expected.get(&fam) {
                     assert_eq!(*want, signature(&report), "aggregate {name}");
                 } else {
-                    aggregate_expected = Some(signature(&report));
+                    aggregate_expected.insert(fam.clone(), signature(&report));
                 }
                 // Every tree/per-class counter, XOR hash, flagged-origin
                 // multiset and recheck total must compose across cohorts.
                 assert_eq!(
                     signature(&report),
-                    combined_signature,
+                    combined_signatures[&fam],
                     "aggregate work and flags"
                 );
                 println!(

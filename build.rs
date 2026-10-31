@@ -7,6 +7,13 @@ fn main() {
     println!("cargo:rerun-if-changed=cuda/kernel.cu");
     println!("cargo:rerun-if-changed=cuda/grouped_tail.cuh");
     println!("cargo:rerun-if-changed=cuda/compact_chain.cuh");
+    println!("cargo:rerun-if-changed=cuda/xtail.cuh");
+    println!("cargo:rerun-if-changed=cuda/screen.cuh");
+    println!("cargo:rerun-if-changed=cuda/jdip.cuh");
+    println!("cargo:rerun-if-changed=cuda/jdscreen.cuh");
+    println!("cargo:rerun-if-changed=cuda/wq_jump.cuh");
+    println!("cargo:rerun-if-changed=cuda/wq_jd.cuh");
+    println!("cargo:rerun-if-changed=cuda/twophase.cuh");
     if env::var_os("CARGO_FEATURE_CUDA").is_none() {
         return;
     }

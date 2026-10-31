@@ -152,6 +152,10 @@ pub struct Lookahead {
     /// `mod9[r]` bit `h` set iff `(r + h 2^M) mod 9` is not 2, 4, 5 or 8.
     pub mod9: Vec<u64>,
     pub mod9_words: usize,
+    /// Experimental (12, 9) row table (`crate::rowsieve`), attached explicitly
+    /// with `with_rows`; a run uses it only when its `TailParams::screen`
+    /// asks for it.
+    pub rows: Option<Arc<crate::rowsieve::RowSieve>>,
     /// Per array: fraction of set bits, and set-bit fractions restricted to
     /// patterns allowed under OEE states 2 and 1 (see `crate::tail`).
     pub density: Vec<f64>,
@@ -297,6 +301,7 @@ impl Lookahead {
                 words: (1usize << (b - 6)) + tail_words,
                 mod9,
                 mod9_words: tail_words,
+                rows: None,
                 density: Vec::new(),
                 density_oee2: Vec::new(),
                 density_oee1: Vec::new(),
@@ -376,6 +381,7 @@ impl Lookahead {
             words,
             mod9,
             mod9_words: tail_words,
+            rows: None,
             density,
             density_oee2,
             density_oee1,
@@ -384,6 +390,41 @@ impl Lookahead {
 
     pub fn has_arrays(&self) -> bool {
         !self.bv.is_empty()
+    }
+
+    /// Attach (or remove) the experimental row table; it must match (M, A).
+    pub fn with_rows(mut self, rows: Option<Arc<crate::rowsieve::RowSieve>>) -> Self {
+        if let Some(r) = &rows {
+            assert!(r.m == self.m && r.a == self.a, "row table built for M={} A={}, lookahead has M={} A={}", r.m, r.a, self.m, self.a);
+        }
+        self.rows = rows;
+        self
+    }
+
+    /// The row table a run with `screen` uses (None: mod-9 mask).  Panics if
+    /// the run asks for rows that were never attached, so a CPU reference can
+    /// never silently fall back to a different case set.
+    #[inline]
+    pub fn screen_rows(&self, screen: &crate::tail::Screen, class: Option<usize>) -> Option<&crate::rowsieve::RowSieve> {
+        if screen.rows_for(class) {
+            Some(self.rows.as_deref().expect("screen.rows requested but no row table is attached (Lookahead::with_rows)"))
+        } else {
+            None
+        }
+    }
+
+    /// The bitvector part of a completion word (all ones without an array).
+    #[inline(always)]
+    pub fn bv_word(&self, arr: Option<usize>, start: u64, w: usize) -> u64 {
+        match arr {
+            Some(i) => {
+                let base = i * self.words + (start / 64) as usize + w;
+                let off = (start % 64) as u32;
+                let lo = self.bv[base];
+                if off == 0 { lo } else { (lo >> off) | (self.bv[base + 1] << (64 - off)) }
+            }
+            None => u64::MAX,
+        }
     }
 
     /// Per-class windows: class `i < windows.len()` gets `windows[i]` (the

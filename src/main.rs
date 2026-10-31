@@ -171,6 +171,45 @@ enum Cmd {
         plan: Option<PathBuf>,
         #[arg(long)]
         package: Option<String>,
+        /// c3-hyg: with --plan, run every package of --package separately (one
+        /// GPU session, arrays built once), each split into this many
+        /// contiguous slices of its node list, and record each part's work
+        /// tuple in the report's `parts`.  A part can then be re-run alone
+        /// (--slice) as a CPU spot check.
+        #[arg(long, default_value_t = 1)]
+        slices: usize,
+        /// c3-hyg: with --plan: run only slice K (0-based, of --slices) of each package.
+        #[arg(long)]
+        slice: Option<usize>,
+        /// Tail code per bitvector class (cuda/xtail.cuh, cuda/jdip.cuh; comma
+        /// list: one code for every class or exactly one per class; 0 = the
+        /// original loop).  c3-hyg: the single source of the per-case
+        /// semantics for the CPU reference AND the GPU (the CPU-only classes
+        /// always run the original loop).  On the GPU it selects the no-vote
+        /// early-OEE kernels.  Measurement-only floor codes (125..127) are
+        /// refused.  `--gpu-xtail` is the round-2 name.
+        #[arg(long, alias = "gpu-xtail")]
+        tail_codes: Option<String>,
+        /// Warp-queue scheduler spec per class (cuda/wq_jump.cuh), e.g. v43.k8
+        /// (one for every class or one per class; `-` keeps the per-thread
+        /// kernel).  GPU scheduling only: no effect on the work tuple; CPU runs
+        /// accept and record it so that a CPU spot check's report carries the
+        /// same configuration.  Needs --tail-codes.
+        #[arg(long)]
+        gpu_wq: Option<String>,
+        /// Use the (12, 9) row table (c-screen) instead of the mod-9 mask for
+        /// bitvector classes >= N and the CPU-only classes (CPU and GPU alike).
+        /// Unset: mod 9 everywhere.
+        #[arg(long)]
+        rows_from: Option<u32>,
+        /// Verify only completions n >= 2^(N-1) (top half; sound only with every
+        /// n < 2^(N-1) verified elsewhere), or only n < 2^(N-1).  Needs A >= 7.
+        #[arg(long, value_parser = ["full", "top", "bottom"], default_value = "full")]
+        range: String,
+        /// Explicit completion range LO..HI: completions n = n0 + h 2^M with h
+        /// in [LO, HI) (multiples of 64, HI <= 2^A).  Overrides --range.
+        #[arg(long)]
+        h_range: Option<String>,
     },
     /// Export path-candidate metrics from an existing verification JSON report.
     /// Replays captured overflow starts on the CPU; does not repeat verification.
@@ -268,19 +307,51 @@ fn main() -> Result<()> {
         rayon::ThreadPoolBuilder::new().num_threads(t).build_global()?;
     }
     match cli.cmd {
-        Cmd::Verify { n, shape, rules, split, no_tail_oee, cutoff_bits, gpu, json, path_records, plan, package } => {
+        Cmd::Verify { n, shape, rules, split, no_tail_oee, cutoff_bits, gpu, json, path_records, plan, package, slices,
+                      slice, tail_codes, gpu_wq, rows_from, range, h_range } => {
             if let (Some(report), Some(paths)) = (&json, &path_records) {
                 ensure_distinct_paths(report, paths)?;
             }
             if cutoff_bits > 123 || cutoff_bits < n {
                 bail!("cutoff-bits must be in [N, 123]");
             }
+            // c3-hyg: the CPU semantics come from --tail-codes only.
+            cv::runspec::reject_legacy_env()?;
+            ensure!(n > shape.a && n - shape.a <= cv::verify::MAX_M,
+                "M = N - A must be in 1..={}; raise A", cv::verify::MAX_M);
+            let rules_built = rules.build()?;
+            let mut plan_record = None;
+            ensure!(slices >= 1 && slice.is_none_or(|k| k < slices), "--slice K needs 0 <= K < --slices");
+            ensure!(plan.is_some() || (slices == 1 && slice.is_none()), "--slices / --slice need --plan and --package");
+            // (package id, slice, nodes) of every part this run executes.
+            let mut parts: Vec<(usize, usize, Vec<cv::tree::Node>)> = Vec::new();
             let units = match (&plan, &package) {
                 (Some(p), Some(spec)) => {
-                    let pl: cv::units::Plan = serde_json::from_str(&fs::read_to_string(p)?)?;
+                    let bytes = fs::read(p)?;
+                    let pl: cv::units::Plan = serde_json::from_slice(&bytes)?;
                     if pl.n != n || pl.a != shape.a {
                         bail!("plan was made for N={} A={}", pl.n, pl.a);
                     }
+                    // c3-hyg: `cv plan` splits the tree with the parity part of its
+                    // --rules (pm_inf / mix / walkback stripped) and records that label.
+                    // The run's parity rules must be the plan's; the run's own value
+                    // rules then apply below the plan's nodes (any sound rules keep the
+                    // coverage; the report records both).
+                    let parity = Rules { pm_inf: false, mix: None, walkback: None, ..rules_built.clone() };
+                    ensure!(pl.rules == parity.label(),
+                        "plan was made with rules {} but this run's parity rules are {}; pass matching --rules / \
+                         --no-pm1 / --no-oee / --no-root-oee", pl.rules, parity.label());
+                    plan_record = Some(cv::runspec::PlanRecord {
+                        file: p.to_string_lossy().into_owned(),
+                        file_digest: format!("{:016x}", cv::runspec::fnv1a64(bytes.iter().copied())),
+                        packages: spec.clone(),
+                        plan_n: pl.n,
+                        plan_a: pl.a,
+                        plan_b: pl.b,
+                        plan_rules: pl.rules.clone(),
+                        slices,
+                        slice,
+                    });
                     let (lo, hi) = match spec.split_once("..") {
                         Some((a, b)) => (a.parse::<usize>()?, b.parse::<usize>()?),
                         None => {
@@ -288,16 +359,56 @@ fn main() -> Result<()> {
                             (i, i + 1)
                         }
                     };
-                    let nodes: Vec<cv::tree::Node> =
-                        pl.packages.into_iter().filter(|x| x.id >= lo && x.id < hi).flat_map(|x| x.nodes).collect();
-                    if nodes.is_empty() {
+                    let mut packages: Vec<cv::units::Package> =
+                        pl.packages.into_iter().filter(|x| x.id >= lo && x.id < hi).collect();
+                    packages.sort_by_key(|x| x.id);
+                    if packages.is_empty() {
                         bail!("no packages in {spec}");
                     }
+                    // c3-hyg: deterministic contiguous slices of each package's node list.
+                    for pk in &packages {
+                        let len = pk.nodes.len();
+                        for k in 0..slices {
+                            if slice.is_some_and(|want| want != k) {
+                                continue;
+                            }
+                            parts.push((pk.id, k, pk.nodes[k * len / slices..(k + 1) * len / slices].to_vec()));
+                        }
+                    }
+                    let nodes: Vec<cv::tree::Node> = parts.iter().flat_map(|p| p.2.iter().copied()).collect();
                     Some(nodes)
                 }
                 (None, None) => None,
                 _ => bail!("--plan and --package go together"),
             };
+            // c3-hyg: one configuration for the CPU and GPU paths.
+            let codes = match &tail_codes {
+                Some(spec) => cv::runspec::TailCodes::parse(spec, shape.nbv)?,
+                None => cv::runspec::TailCodes::original(),
+            };
+            ensure!(gpu_wq.is_none() || tail_codes.is_some(), "--gpu-wq needs --tail-codes (jump or jd codes)");
+            let schedule = match &gpu_wq {
+                Some(spec) => cv::runspec::WqSchedule::parse(spec, shape.nbv)?,
+                None => cv::runspec::WqSchedule::none(),
+            };
+            let mut screen = match (h_range.as_deref(), range.as_str()) {
+                (Some(r), _) => {
+                    let (lo, hi) = r.split_once("..").context("--h-range LO..HI")?;
+                    cv::tail::Screen { h_lo: lo.trim().parse()?, h_hi: hi.trim().parse()?, ..Default::default() }
+                }
+                (None, "top" | "bottom") => {
+                    ensure!(shape.a >= 7, "--range top|bottom needs A >= 7 (64-completion words)");
+                    if range == "top" { cv::tail::Screen::top(shape.a) } else { cv::tail::Screen::bottom(shape.a) }
+                }
+                _ => cv::tail::Screen::default(),
+            };
+            if screen.h_hi == 1u32 << shape.a {
+                screen.h_hi = 0; // canonical: 0 = 2^A
+            }
+            if let Some(r) = rows_from {
+                screen.rows = true;
+                screen.rows_from = r;
+            }
             let cfg = VerifyConfig {
                 n,
                 a: shape.a,
@@ -307,11 +418,22 @@ fn main() -> Result<()> {
                 window: shape.window(),
                 class_b: shape.class_windows()?,
                 split,
-                rules: rules.build()?,
-                tail: TailParams { cutoff_bits, tail_oee: !no_tail_oee },
+                rules: rules_built,
+                tail: TailParams { cutoff_bits, tail_oee: !no_tail_oee, screen, codes, schedule, ..TailParams::default() },
                 units,
             };
-            let rep = if gpu { run_gpu(&cfg)? } else { verify_cpu(&cfg) };
+            cfg.validate()?;
+            let mut rep = if !parts.is_empty() {
+                run_parts(&cfg, &parts, slices, gpu, tail_codes.is_some())?
+            } else if gpu {
+                run_gpu(&cfg, tail_codes.is_some())?
+            } else {
+                verify_cpu(&cfg)
+            };
+            if let Some(pr) = plan_record {
+                rep.config.units.plan = Some(pr);
+            }
+            ensure!(!rep.measurement_only, "measurement-only run: not a verification");
             println!(
                 "N={} A={} B={} rules={} backend={} units={} tree_nodes={} endpoints={} cases={} iters={} hash={} flagged={} rechecked={} seconds={:.2}",
                 rep.n, rep.a, rep.b, rep.rules, rep.backend, rep.units, rep.tree_nodes, rep.endpoints, rep.cases,
@@ -433,10 +555,12 @@ fn main() -> Result<()> {
             }
         }
         Cmd::Measure { n, shape, rules, per_class, gpu_per_class, gpu, seed, no_tail_oee, tree_samples, direct, json } => {
+            // c3-hyg: the CPU reference of `cv measure` is the original loop.
+            cv::runspec::reject_legacy_env()?;
             let extra = rules.build()?;
             let baseline = Rules { pm_inf: false, mix: None, walkback: None, ..extra.clone() };
             let extra = (!extra.is_parity_only()).then_some(extra);
-            let tail = TailParams { cutoff_bits: 120, tail_oee: !no_tail_oee };
+            let tail = TailParams { cutoff_bits: 120, tail_oee: !no_tail_oee, ..TailParams::default() };
             let cfg = cv::measure::MeasureConfig {
                 n,
                 a: shape.a,
@@ -503,7 +627,8 @@ fn path_artifact(report: &serde_json::Value, source_report: Option<&Path>) -> Re
     // nor whole-range coverage can be reconstructed from their flag lists.
     let mut verification = serde_json::Map::new();
     for field in ["n", "a", "b", "num_bv", "bv_mode", "class_b", "window", "rules", "backend",
-        "verification_scope", "cutoff_bits", "tail_oee", "units", "tree_nodes", "endpoints", "cases", "iters", "hash"] {
+        "verification_scope", "measurement_only", "config", "cutoff_bits", "tail_oee", "units", "tree_nodes",
+        "endpoints", "cases", "iters", "hash"] {
         verification.insert(field.into(), report[field].clone());
     }
     Ok(json!({
@@ -629,13 +754,114 @@ fn gpu_check(_la: &Lookahead) -> Result<(u64, u64, f64)> {
     bail!("built without the `cuda` feature")
 }
 
+/// c3-hyg: a plan run, part by part (package, slice): each part is a separate
+/// run of the same configuration on its own nodes, in one GPU session (arrays
+/// built once) or on the CPU.  The report's totals combine the parts exactly
+/// as one run over all their nodes would (sums, XOR hash, flag multiset), and
+/// `parts` records each part's work tuple for spot checks.
+fn run_parts(cfg: &VerifyConfig, parts: &[(usize, usize, Vec<cv::tree::Node>)], slices: usize, gpu: bool, tuned: bool)
+    -> Result<cv::verify::VerifyReport> {
+    let t0 = std::time::Instant::now();
+    let mut runner = PartRunner::new(cfg, gpu, tuned)?;
+    let mut tree = cv::tree::TreeStats::new(cfg.m());
+    let mut tail = cv::tail::TailStats::new(cfg.num_bv);
+    let mut units = 0;
+    let mut records = Vec::new();
+    let mut gpu_parts = Vec::new();
+    for (package, slice, nodes) in parts {
+        let mut pc = cfg.clone();
+        pc.units = Some(nodes.clone());
+        let r = runner.run(&pc)?;
+        ensure!(r.flagged_rechecked == r.flagged.len(), "package {package} slice {slice}: unresolved flags");
+        records.push(cv::runspec::PartRecord::of(*package, *slice, slices, nodes, &r));
+        tree.merge(&r.tree);
+        tail.merge(&r.tail);
+        units += r.units;
+        if let Some(g) = r.gpu {
+            gpu_parts.push(g);
+        }
+    }
+    let backend = if gpu { "gpu" } else { "cpu" };
+    let mut rep = cv::verify::VerifyReport::new(cfg, backend, units, tree, tail, t0.elapsed().as_secs_f64());
+    rep.parts = Some(records);
+    if gpu {
+        rep.gpu = Some(serde_json::json!({ "parts": gpu_parts }));
+    }
+    Ok(rep)
+}
+
+/// Runs parts on the CPU or in one persistent GPU session.
+enum PartRunner {
+    Cpu,
+    #[cfg(feature = "cuda")]
+    Gpu { session: Box<cv::gpu::GpuSession>, transport: cv::gpu::GpuTransport, tuning: cv::gpu::GpuTuning },
+}
+
+impl PartRunner {
+    #[cfg(feature = "cuda")]
+    fn new(cfg: &VerifyConfig, gpu: bool, tuned: bool) -> Result<Self> {
+        if !gpu {
+            return Ok(PartRunner::Cpu);
+        }
+        if !tuned {
+            ensure!(cfg.tail.screen.is_default(),
+                "--rows-from / --range / --h-range on the GPU need --tail-codes (jump or jd codes)");
+        }
+        let screened = !cfg.tail.screen.is_default();
+        let session = if screened { cv::gpu::GpuSession::new_experimental(cfg)? } else { cv::gpu::GpuSession::new(cfg)? };
+        let transport = if screened { cv::gpu::GpuTransport::Affine32 } else { cv::gpu::GpuTransport::Replay16 };
+        let tuning = if tuned {
+            cv::gpu::GpuTuning {
+                overflow_vote: false,
+                readonly_powers: false,
+                oee_mask: true,
+                xtail: cfg.tail.codes.gpu_xtail(),
+                wq: cfg.tail.schedule.bits(),
+                ..Default::default()
+            }
+        } else {
+            cv::gpu::GpuTuning::default()
+        };
+        Ok(PartRunner::Gpu { session: Box::new(session), transport, tuning })
+    }
+    #[cfg(not(feature = "cuda"))]
+    fn new(_cfg: &VerifyConfig, gpu: bool, _tuned: bool) -> Result<Self> {
+        ensure!(!gpu, "built without the `cuda` feature");
+        Ok(PartRunner::Cpu)
+    }
+    fn run(&mut self, cfg: &VerifyConfig) -> Result<cv::verify::VerifyReport> {
+        match self {
+            PartRunner::Cpu => Ok(verify_cpu(cfg)),
+            #[cfg(feature = "cuda")]
+            PartRunner::Gpu { session, transport, tuning } =>
+                session.run_transport_tuned(cfg, &cv::expansion::DfsExpander, *transport, &[], *tuning),
+        }
+    }
+}
+
+/// c3-hyg: the GPU run of `cfg`.  With --tail-codes the per-class codes and
+/// warp-queue bits come from `cfg.tail` (the values the CPU path uses);
+/// gpu_run refuses any difference.
 #[cfg(feature = "cuda")]
-fn run_gpu(cfg: &VerifyConfig) -> Result<cv::verify::VerifyReport> {
-    cv::gpu::verify_gpu(cfg)
+fn run_gpu(cfg: &VerifyConfig, tuned: bool) -> Result<cv::verify::VerifyReport> {
+    if !tuned {
+        ensure!(cfg.tail.screen.is_default(),
+            "--rows-from / --range / --h-range on the GPU need --tail-codes (jump or jd codes)");
+        return cv::gpu::verify_gpu(cfg);
+    }
+    let tuning = cv::gpu::GpuTuning {
+        overflow_vote: false,
+        readonly_powers: false,
+        oee_mask: true,
+        xtail: cfg.tail.codes.gpu_xtail(),
+        wq: cfg.tail.schedule.bits(),
+        ..Default::default()
+    };
+    cv::gpu::verify_gpu_tuned(cfg, tuning)
 }
 
 #[cfg(not(feature = "cuda"))]
-fn run_gpu(_cfg: &VerifyConfig) -> Result<cv::verify::VerifyReport> {
+fn run_gpu(_cfg: &VerifyConfig, _tuned: bool) -> Result<cv::verify::VerifyReport> {
     bail!("built without the `cuda` feature")
 }
 

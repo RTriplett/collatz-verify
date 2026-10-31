@@ -106,6 +106,7 @@ extern "C" {
     fn cv_gpu_download_bv(ctx: *mut c_void, start: usize, host: *mut u32, words: usize) -> i32;
     fn cv_gpu_mem_info(free: *mut usize, total: *mut usize) -> i32;
     fn cv_gpu_host_free(p: *mut u32);
+    fn cv_gpu_current_context_id() -> u64;
     fn cv_gpu_launch(
         ctx: *mut c_void,
         slot: i32,
@@ -117,6 +118,15 @@ extern "C" {
         p: *const KParams,
     ) -> i32;
     fn cv_gpu_enable_experimental(ctx: *mut c_void, cap: usize) -> i32;
+    // c3-hyg: per-context dip tables (cuda/jdip.cuh jd_upload), measurement
+    // opt-in, context identity, warp-queue layout kinds, jd traits.
+    fn cv_jd_upload(ctx: *mut c_void, wd: u32, dq: u32, desc: u32, quanta: *const u16, n: u64) -> i32;
+    fn cv_jd_present(ctx: *mut c_void, wd: u32, dq: u32, desc: u32) -> i32;
+    fn cv_gpu_allow_measurement(ctx: *mut c_void, allow: i32) -> i32;
+    fn cv_gpu_context_ok(ctx: *mut c_void) -> i32;
+    fn cv_wq_layout_kind(v: u32) -> i32;
+    fn cv_tp_layout_kind(v: u32) -> i32;
+    fn cv_jd_code_traits(tv: u32, out: *mut i32) -> i32;
     fn cv_gpu_set_tail_jump(ctx: *mut c_void, width: u32) -> i32;
     fn cv_gpu_set_tail_capacity(ctx: *mut c_void, capacity: u32) -> i32;
     fn cv_gpu_wait_deferred(ctx: *mut c_void, slot: i32, attempts: *mut u32,
@@ -155,6 +165,7 @@ extern "C" {
         tp: *const u32,
         p: *const KParams,
     ) -> i32;
+    fn cv_gpu_last_dbg(ctx: *mut c_void, slot: i32, out6: *mut u64) -> i32;
     fn cv_gpu_wait(
         ctx: *mut c_void,
         slot: i32,
@@ -168,6 +179,123 @@ extern "C" {
     ) -> i32;
     fn cv_gpu_free(ctx: *mut c_void);
     fn cudaDeviceSynchronize() -> i32;
+    fn cv_gpu_launch_scr(
+        ctx: *mut c_void,
+        slot: i32,
+        input: *const u32,
+        endpoints: u32,
+        records: u32,
+        mode: u32,
+        bv_offset: usize,
+        magic: u64,
+        tp: *const u32,
+        p: *const KParams,
+        spec: *const ScreenSpec,
+    ) -> i32;
+    fn cv_gpu_screen_words(
+        ctx: *mut c_void,
+        slot: i32,
+        input: *const u32,
+        endpoints: u32,
+        bv_offset: usize,
+        magic: u64,
+        tp: *const u32,
+        p: *const KParams,
+        spec: *const ScreenSpec,
+        out: *mut u32,
+    ) -> i32;
+    fn cv_gpu_upload_rows(
+        ctx: *mut c_void,
+        bits: *const u32,
+        nwords: usize,
+        rowmap: *const u16,
+        kbits: u32,
+        row_words: u32,
+        d: u32,
+        minv: u32,
+        limb_c: *const u32,
+        a: u32,
+    ) -> i32;
+}
+
+/// c-screen: the CUDA `ScreenSpec` (cuda/screen.cuh).  All zero is the
+/// ordinary launch.  `diag` selects a diagnostic flavour that is not a
+/// verification (4 load-only, 8 screen-only, 16 screen + case setup).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
+pub struct ScreenSpec {
+    pub rows: u32,
+    pub w_first: u32,
+    pub w_end: u32,
+    pub diag: u32,
+}
+
+/// jd FD3 codes with screened per-thread kernels (cuda/jdscreen.cuh JDS_CODES).
+pub const JDS_CODES: [u32; 7] = [90, 91, 93, 95, 96, 103, 111];
+/// Tail codes the warp-queue scheduler can run with a screen (cuda/wq_jd.cuh WQS_JD).
+pub const WQS_CODES: [u32; 3] = [91, 92, 95];
+/// jd FD3 codes the warp-queue scheduler runs (cuda/wq_jd.cuh wq_jd_code).
+pub const WQ_JD_CODES: [u32; 4] = [91, 92, 94, 95];
+
+/// Can a launch of this tail code carry a non-default `ScreenSpec`?
+pub fn screen_code_ok(code: u32) -> bool {
+    (49..=53).contains(&code) || JDS_CODES.contains(&code)
+}
+pub fn wq_screen_code_ok(code: u32) -> bool {
+    WQS_CODES.contains(&code)
+}
+
+pub const SCREEN_DIAG_LOAD: u32 = 4;
+pub const SCREEN_DIAG_SCAN: u32 = 8;
+pub const SCREEN_DIAG_SETUP: u32 = 16;
+/// Scan options (work-preserving): mod-9 word prefetch (no rows) and lazy
+/// row-word fetch (rows); carried in the same `diag` field.
+pub const SCREEN_OPT_M9PF: u32 = 32;
+pub const SCREEN_OPT_LAZY: u32 = 64;
+/// c-final: rows flavours of the jd screen kernels compiled with the
+/// 48-register launch bound (cuda/jdscreen.cuh SCR_LB5); work-preserving.
+pub const SCREEN_OPT_LB5: u32 = 128;
+
+impl ScreenSpec {
+    /// Device request for launches of bitvector class `class` in a run with
+    /// `screen` on `la` (u32 completion words; per-class row gating).
+    pub fn of(screen: &crate::tail::Screen, la: &Lookahead, class: usize, diag: u32) -> Result<Self> {
+        ensure!(matches!(diag, 0 | SCREEN_DIAG_LOAD | SCREEN_DIAG_SCAN | SCREEN_DIAG_SETUP | SCREEN_OPT_M9PF | SCREEN_OPT_LAZY
+                         | SCREEN_OPT_LB5),
+            "invalid screen diagnostic/option {diag}");
+        let (lo64, hi64) = screen.word_range(la.a);
+        let words32 = (1u32 << la.a) / 32;
+        let (w_first, w_end) = ((2 * lo64) as u32, (2 * hi64) as u32);
+        ensure!(!screen.rows || la.rows.is_some(), "screen.rows requested but the lookahead carries no row table");
+        let rows = screen.rows_for(Some(class));
+        // Options apply where they are defined (M9PF without rows, LAZY with rows).
+        let diag = match diag {
+            SCREEN_OPT_M9PF if rows => 0,
+            SCREEN_OPT_LAZY if !rows => 0,
+            SCREEN_OPT_LB5 if !rows => 0,
+            d => d,
+        };
+        Ok(ScreenSpec {
+            rows: rows as u32,
+            w_first,
+            w_end: if w_end == words32 { 0 } else { w_end },
+            diag,
+        })
+    }
+    pub fn is_default(&self) -> bool {
+        *self == ScreenSpec::default()
+    }
+}
+
+/// Upload `la`'s row table (if any) into a context.
+fn upload_rows(ctx: *mut c_void, la: &Lookahead) -> Result<()> {
+    let Some(r) = &la.rows else { return Ok(()) };
+    let rc = unsafe {
+        cv_gpu_upload_rows(ctx, r.bits.as_ptr(), r.bits.len(), r.rowmap.as_ptr(), r.k, r.row_words as u32,
+                           r.d, r.minv32, r.limb_c.as_ptr(), r.a)
+    };
+    ensure!(rc == 0, "row table upload failed");
+    Ok(())
 }
 
 pub fn device_name() -> String {
@@ -320,6 +448,21 @@ const CHAIN_INV3: [u32; 65] = {
 };
 
 const BATCH: usize = 1 << 20;
+
+/// c3-a: endpoints per pipeline launch (CV_GPU_BATCH: a power of two in [2^14, BATCH], default BATCH).
+/// Buffers keep BATCH capacity; only the point at which a class buffer is considered full moves.
+fn batch_fill() -> usize {
+    static FILL: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+    *FILL.get_or_init(|| match std::env::var("CV_GPU_BATCH") {
+        Ok(v) => {
+            let b: usize = v.parse().expect("CV_GPU_BATCH");
+            assert!(b.is_power_of_two() && ((1 << 14)..=BATCH).contains(&b),
+                "CV_GPU_BATCH must be a power of two in [16384, {BATCH}]");
+            b
+        }
+        Err(_) => BATCH,
+    })
+}
 /// Endpoints buffered per worker per class before touching shared state.
 const CHUNK: usize = 1 << 12;
 /// Concurrent CUDA streams (override with CV_GPU_SLOTS; 1 = serialized,
@@ -406,6 +549,126 @@ pub struct GpuTuning {
     pub early_group_bits: u32,
     #[serde(skip_serializing_if = "default_tail_workers")]
     pub early_cpu_workers: u32,
+    /// Experimental tail variant per bitvector class (cuda/xtail.cuh codes;
+    /// 0 keeps the original loop). Requires the no-vote early-OEE kernel.
+    /// (32 entries since c-screen: the forced-overflow fixture has 24 classes.)
+    #[serde(skip_serializing_if = "no_xtail")]
+    pub xtail: [u8; 32],
+    /// c-screen diagnostic kernel flavour (0 = verify; see `ScreenSpec`).
+    #[serde(skip_serializing_if = "zero_jump_bits")]
+    pub screen_diag: u32,
+    /// Warp-queue scheduler bits per class (cuda/wq_jump.cuh: bit 22 set, K in
+    /// bits 3-7, log2 fetch in 10-12, blocks/SM cap in 13-15, layout in 16-20
+    /// plus bit 23).  Zero keeps the per-thread kernel. Requires a jump code in
+    /// `xtail`.  (32 entries, as `xtail`.)
+    #[serde(skip_serializing_if = "no_wq")]
+    pub wq: [u32; 32],
+    /// c3-a: CUDA streams used by this run (0 = every session slot); at most the session's slot count.
+    #[serde(skip_serializing_if = "zero_jump_bits")]
+    pub run_slots: u32,
+    /// c3-a: endpoints per launch for this run (0 = CV_GPU_BATCH or BATCH); a power of two in [2^14, BATCH].
+    #[serde(skip_serializing_if = "zero_jump_bits")]
+    pub run_batch: u32,
+}
+
+fn no_xtail(x: &[u8; 32]) -> bool { x.iter().all(|&c| c == 0) }
+fn no_wq(x: &[u32; 32]) -> bool { x.iter().all(|&c| c == 0) }
+
+/// Allowed warp-queue fields of `GpuTuning::wq` (bit 21, the timing-only
+/// capped test tail, is deliberately excluded from verification runs).
+pub use crate::runspec::WQ_FIELDS;
+/// c3-final (c3-2ph): two-phase kernel fields and codes (shared with CPU runs).
+pub use crate::runspec::{is_two_phase, TP_CODES, TP_FIELDS};
+
+/// Warp-queue bits from a spec `v<layout>[.k<K>][.c<log2 fetch>][.o<blocks/SM>]`
+/// (fetch defaults to 2 endpoints); `-` or `0` keeps the per-thread kernel.
+/// (c3-hyg: the parser lives in `crate::runspec`, shared with CPU runs.)
+pub fn parse_wq(spec: &str) -> Result<u32> {
+    crate::runspec::parse_wq_spec(spec)
+}
+
+/// Is a screen diagnostic measurement-only (load-only / screen-only /
+/// screen + setup kernels run no tails, or no screening)?
+pub fn measurement_diag(diag: u32) -> bool {
+    matches!(diag, SCREEN_DIAG_LOAD | SCREEN_DIAG_SCAN | SCREEN_DIAG_SETUP)
+}
+
+/// c3-hyg: the CUDA traits of a jd code (valid, w, wd, dq, ka, desc, floor,
+/// lay), for the consistency check against `jump::jd_kind`.  Host-only call;
+/// creates no CUDA context.
+pub fn jd_code_traits(code: u32) -> [i32; 8] {
+    let mut out = [0i32; 8];
+    unsafe { cv_jd_code_traits(code, out.as_mut_ptr()) };
+    out
+}
+
+/// c3-hyg: warp-queue layout kind (bit 0 valid, bit 1 per-case digest
+/// layout, bit 2 instrumented counters).  Host-only call.
+pub fn wq_layout_kind(layout: u32) -> i32 {
+    unsafe { cv_wq_layout_kind(layout) }
+}
+
+/// c3-final: two-phase layout kind (cuda/twophase.cuh TpCfg<V>): bit 0 valid,
+/// bit 1 per-case digest (DIG), bit 2 instrumented counters (INSTR).
+pub fn tp_layout_kind(layout: u32) -> i32 {
+    unsafe { cv_tp_layout_kind(layout) }
+}
+
+/// Layout V of warp-queue pad bits (bits 16-20 plus bit 23).
+pub fn wq_layout_of(wq: u32) -> u32 {
+    ((wq >> 16) & 31) | (((wq >> 23) & 1) << 5)
+}
+
+/// c3-hyg: accumulate `KOut.dbg` of one launch chunk into `acc`.  Digest
+/// layouts (sum, XOR, count) XOR word 1 and sum the others; every other
+/// layout's counters are sums.  (Round 2 summed the XOR digest word too.)
+pub fn accumulate_dbg(acc: &mut [u64; 6], chunk: &[u64; 6], wq: u32) {
+    // c3-final: two-phase digest layouts (c3-2ph's DIG copies) XOR word 1 too.
+    let kind = if is_two_phase(wq) { tp_layout_kind((wq >> 16) & 31) } else { wq_layout_kind(wq_layout_of(wq)) };
+    let digest = wq != 0 && (kind & 2) != 0;
+    for i in 0..6 {
+        acc[i] = if digest && i == 1 { acc[i] ^ chunk[i] } else { acc[i].wrapping_add(chunk[i]) };
+    }
+}
+
+/// Host dip quanta of a jd key (cached process-wide: pure CPU data, built
+/// sequentially because this can run on the pipeline's GPU thread while every
+/// rayon worker waits for it).
+fn jd_host_quanta(wd: u32, dq: u32, desc: bool) -> Arc<Vec<u16>> {
+    static CACHE: Mutex<Vec<((u32, u32, bool), Arc<Vec<u16>>)>> = Mutex::new(Vec::new());
+    if let Some((_, q)) = CACHE.lock().unwrap().iter().find(|(k, _)| *k == (wd, dq, desc)) {
+        return Arc::clone(q);
+    }
+    let t = crate::jdip::DipTable::build_seq(wd, crate::jump::production_window_rules(), dq, desc);
+    let q = Arc::new(t.quanta());
+    let mut cache = CACHE.lock().unwrap();
+    if let Some((_, existing)) = cache.iter().find(|(k, _)| *k == (wd, dq, desc)) {
+        return Arc::clone(existing);
+    }
+    cache.push(((wd, dq, desc), Arc::clone(&q)));
+    q
+}
+
+/// c3-hyg: upload the dip tables of `codes` (cuda/jdip.cuh codes >= 64) into
+/// one context, unless that context already holds them.  The tables are per
+/// context (cuda/devtables.cuh): a new context, or one created after a device
+/// reset, uploads its own.
+fn upload_jd_ctx(ctx: *mut c_void, codes: &[u32]) -> Result<()> {
+    for &code in codes {
+        if code < 64 {
+            continue;
+        }
+        let Some(crate::jump::TailKind::JumpDip { wd, dq, desc, .. }) = crate::jump::jd_kind(code) else {
+            bail!("not a jd code: {code}");
+        };
+        if unsafe { cv_jd_present(ctx, wd, dq, desc as u32) } == 1 {
+            continue;
+        }
+        let q = jd_host_quanta(wd, dq, desc);
+        let rc = unsafe { cv_jd_upload(ctx, wd, dq, desc as u32, q.as_ptr(), q.len() as u64) };
+        ensure!(rc == 0, "cv_jd_upload failed for code {code} (wd {wd}, dq {dq}, desc {desc}): {rc}");
+    }
+    Ok(())
 }
 
 fn zero_jump_bits(bits: &u32) -> bool { *bits == 0 }
@@ -430,6 +693,11 @@ impl Default for GpuTuning {
             early_mode: 0,
             early_group_bits: 10,
             early_cpu_workers: 1,
+            xtail: [0; 32],
+            screen_diag: 0,
+            wq: [0; 32],
+            run_slots: 0,
+            run_batch: 0,
         }
     }
 }
@@ -453,6 +721,10 @@ impl GpuTuning {
             "grouped descriptor chunk limit must be in 1..=4096");
         ensure!(matches!(self.tail_jump_bits, 0 | 8 | 10 | 12 | 14),
             "tail jump width must be 0, 8, 10, 12 or 14");
+        ensure!(self.run_batch == 0 || (self.run_batch.is_power_of_two()
+            && ((1u32 << 14)..=BATCH as u32).contains(&self.run_batch)),
+            "run_batch must be 0 or a power of two in [16384, {BATCH}]");
+        ensure!(self.run_slots <= 8, "run_slots must be in 0..=8");
         ensure!(self.tail_jump_bits == 0 || (!self.overflow_vote && !self.readonly_powers && self.oee_mask),
             "tail jumps require the no-vote, early-OEE kernel");
         let block = match self.block_threads {
@@ -476,6 +748,10 @@ struct Pinned {
     capacity: usize,
     endpoints: usize,
     records: usize,
+    /// c3-hyg: CUDA context the buffer was allocated in (0: ids unavailable).
+    /// A reset context has already released it; freeing it again could free
+    /// a newer allocation at the same address, so `drop` then leaks the handle.
+    ctx_id: u64,
 }
 unsafe impl Send for Pinned {}
 
@@ -496,6 +772,7 @@ impl Pinned {
             capacity,
             endpoints: 0,
             records: 0,
+            ctx_id: unsafe { cv_gpu_current_context_id() },
         })
     }
     fn room(&self) -> usize {
@@ -510,7 +787,9 @@ impl Pinned {
 
 impl Drop for Pinned {
     fn drop(&mut self) {
-        unsafe { cv_gpu_host_free(self.ptr) };
+        if self.ctx_id == 0 || unsafe { cv_gpu_current_context_id() } == self.ctx_id {
+            unsafe { cv_gpu_host_free(self.ptr) };
+        }
     }
 }
 
@@ -658,6 +937,8 @@ struct Shared<'a> {
     group_chunk_records: usize,
     totals: Mutex<(TreeStats, TailStats)>,
     send_ns: AtomicU64,
+    /// c3-a: endpoints per launch for this run.
+    fill: usize,
 }
 
 impl Shared<'_> {
@@ -678,12 +959,13 @@ impl Shared<'_> {
                     }
                 }
                 let buf = slot.as_mut().unwrap();
-                let n = chunk.len().min((BATCH - buf.endpoints) * words);
+                let fill = self.fill;
+                let n = chunk.len().min((fill - buf.endpoints) * words);
                 buf.append(&chunk[..n]);
                 buf.endpoints += n / words;
                 buf.records += n / words;
                 chunk = &chunk[n..];
-                if buf.endpoints == BATCH {
+                if buf.endpoints == fill {
                     slot.take()
                 } else {
                     None
@@ -721,7 +1003,8 @@ impl Shared<'_> {
                         }
                     }
                     let buf = slot.as_mut().unwrap();
-                    let take = remaining.min(BATCH - buf.endpoints);
+                    let fill = self.fill;
+                    let take = remaining.min(fill - buf.endpoints);
                     record[12] = take as u32;
                     record[13] = buf.endpoints as u32;
                     buf.append(&record);
@@ -733,7 +1016,7 @@ impl Shared<'_> {
                         record[11] += take as u32;
                     }
                     remaining -= take;
-                    if buf.endpoints == BATCH {
+                    if buf.endpoints == fill {
                         slot.take()
                     } else {
                         None
@@ -957,6 +1240,28 @@ impl Drop for GpuSink<'_, '_> {
     }
 }
 
+/// c3-hyg: one configuration source.  The per-class codes and warp-queue bits
+/// a GPU run launches must be the run's own `TailParams` values (which the
+/// CPU reference, the CPU-only classes and the report use); measurement-only
+/// configurations need the session's explicit opt-in.
+pub fn check_gpu_config(tail: &crate::tail::TailParams, tuning: &GpuTuning, num_bv: usize, measurement_ok: bool)
+    -> Result<()> {
+    ensure!(tuning.xtail == tail.codes.gpu_xtail(),
+        "GPU tail codes {:?} differ from the run's tail codes {:?}: set GpuTuning::xtail from TailParams::codes \
+         (the single source of the per-class semantics)",
+        &tuning.xtail[..num_bv.min(32)], tail.codes.per_class(num_bv.min(32)));
+    ensure!(tuning.wq == tail.schedule.bits(),
+        "GPU warp-queue bits differ from the run's schedule: set GpuTuning::wq from TailParams::schedule");
+    tail.codes.check(num_bv, tail.cutoff_bits)?;
+    tail.schedule.check(&tail.codes, num_bv)?;
+    let measurement = tail.codes.is_measurement() || measurement_diag(tuning.screen_diag);
+    ensure!(!measurement || measurement_ok,
+        "measurement-only configuration refused (jd floor code or screen diagnostic {}): not a verification; \
+         benchmarks opt in with allow_measurement_only()", tuning.screen_diag);
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
 fn gpu_run(
     ctx: *mut c_void,
     la: &Lookahead,
@@ -966,12 +1271,76 @@ fn gpu_run(
     nslots: usize,
     transport: GpuTransport,
     tuning: GpuTuning,
+    measurement_ok: bool,
 ) -> Result<GpuStats> {
+    check_gpu_config(&tail, &tuning, la.num_bv, measurement_ok)?;
+    // c3-a: a run may use fewer streams than the session holds (work-preserving).
+    let nslots = if tuning.run_slots > 0 { nslots.min(tuning.run_slots as usize) } else { nslots };
     let mut params = class_params(la, tail.cutoff_bits, tail.tail_oee);
     let tuning_bits = tuning.bits()?;
     for (_, param) in &mut params {
         param.pad = tuning_bits;
         param.tail_budget = tuning.tail_budget;
+    }
+    for (class, (_, param)) in params.iter_mut().enumerate() {
+        let code = tuning.xtail.get(class).copied().unwrap_or(0) as u32;
+        if code != 0 {
+            ensure!(tuning_bits == 5 && tuning.tail_budget == 0 && tuning.early_every == 0,
+                "experimental tails require the plain no-vote early-OEE kernel");
+            ensure!(matches!(crate::jump::xv_kind(code), Some(crate::jump::TailKind::Jump { skip_window: false, .. })
+                | Some(crate::jump::TailKind::JumpPrefix { .. }) | Some(crate::jump::TailKind::Base)
+                | Some(crate::jump::TailKind::JumpDip { .. })),
+                "pipeline xtail must not use window-dependent descent skipping");
+            param.pad |= code << 24;
+            if code >= 64 {
+                // jd tails: H0 = 485 F - 306 M of this class (cuda/jdip.cuh);
+                // c3-hyg: this context's dip tables (a no-op when prepared).
+                upload_jd_ctx(ctx, &[code])?;
+                param.tail_budget = la.cutoffs[class] as u32;
+            }
+        }
+        let wq = tuning.wq.get(class).copied().unwrap_or(0);
+        if wq != 0 && is_two_phase(wq) {
+            ensure!(wq & !TP_FIELDS == 0, "two-phase bits {wq:#x} outside the verification fields");
+            ensure!(TP_CODES.contains(&code),
+                "the two-phase kernel runs jd FD3 codes {TP_CODES:?} (class {class} has {code})");
+            ensure!(la.a <= 13, "the two-phase kernel needs A <= 13");
+            param.pad |= wq;
+        } else if wq != 0 {
+            ensure!(wq & !WQ_FIELDS == 0 && wq & (1 << 22) != 0,
+                "warp-queue bits {wq:#x} outside the verification fields");
+            ensure!((49..=53).contains(&code) || WQ_JD_CODES.contains(&code),
+                "the warp-queue scheduler runs jump codes 49..53 or jd FD3 codes {WQ_JD_CODES:?} (class {class} has {code})");
+            param.pad |= wq;
+        }
+    }
+    // c-screen: explicit completion screening for this run (row table, h range,
+    // diagnostics). It runs only on the jump screen kernels, never silently on
+    // a kernel that would ignore it.
+    let specs: Vec<ScreenSpec> = (0..la.num_bv).map(|c| ScreenSpec::of(&tail.screen, la, c, tuning.screen_diag))
+        .collect::<Result<_>>()?;
+    if specs.iter().any(|s| !s.is_default()) {
+        ensure!(tuning.early_every == 0 && tuning.tail_budget == 0,
+            "screening cannot combine with early CPU screening or tail deferral");
+        ensure!(matches!(transport, GpuTransport::Affine32 | GpuTransport::Parents | GpuTransport::CompactChain),
+            "screening requires an exact-iterate GPU transport");
+        for class in 0..la.num_bv {
+            if specs[class].is_default() {
+                continue;   // this class runs the ordinary (unscreened) launch
+            }
+            let code = tuning.xtail.get(class).copied().unwrap_or(0) as u32;
+            let wq = tuning.wq.get(class).copied().unwrap_or(0);
+            if is_two_phase(wq) {
+                ensure!(TP_CODES.contains(&code) && tuning.screen_diag == 0,
+                    "class {class}: the two-phase kernel screens codes {TP_CODES:?} without diagnostics (has {code})");
+            } else if wq == 0 {
+                ensure!(screen_code_ok(code),
+                    "screening requires a jump code 49..53 or a jd code {JDS_CODES:?} (class {class} has {code})");
+            } else {
+                ensure!(wq_screen_code_ok(code),
+                    "class {class}: the warp-queue scheduler screens only codes {WQS_CODES:?} (has {code})");
+            }
+        }
     }
     let mut deferred = (tuning.tail_budget > 0)
         .then(|| DeferredWorkers::new(la.num_bv, tuning.tail_cpu_workers as usize, tail.cutoff_bits));
@@ -981,7 +1350,7 @@ fn gpu_run(
     } else { None };
     let mut st = GpuStats {
         device: device_name(),
-        batch: BATCH,
+        batch: if tuning.run_batch > 0 { tuning.run_batch as usize } else { batch_fill() },
         classes: vec![Default::default(); la.num_bv],
         early_class_endpoints: vec![0; la.num_bv],
         early_class_cases: vec![0; la.num_bv],
@@ -1134,6 +1503,9 @@ fn gpu_run(
                 if screened {
                     cv_gpu_launch_screen_ex(ctx, slot as i32, ptr, n, records,
                         transport as u32, *offset, la.magic64[idx], tp.as_ptr(), p)
+                } else if !specs[idx].is_default() {
+                    cv_gpu_launch_scr(ctx, slot as i32, ptr, n, records, transport as u32, *offset,
+                        la.magic64[idx], tp.as_ptr(), p, &specs[idx])
                 } else if transport == GpuTransport::Replay16 {
                     cv_gpu_launch(
                         ctx,
@@ -1246,6 +1618,7 @@ struct RunCommand {
     reply: SyncSender<Result<GpuStats>>,
     transport: GpuTransport,
     tuning: GpuTuning,
+    measurement_ok: bool,
 }
 
 enum Command {
@@ -1258,6 +1631,12 @@ enum Command {
     PrepareTailOffload { capacity: u32, reply: SyncSender<Result<()>> },
     PrepareEarlyScreen { reply: SyncSender<Result<()>> },
     UploadChain { tables: ChainTables, reply: SyncSender<Result<()>> },
+    /// c3-hyg: upload jd dip tables into the worker's context.
+    PrepareJd { codes: Vec<u32>, reply: SyncSender<Result<()>> },
+    /// c3-hyg: let the worker's context run measurement-only kernels.
+    AllowMeasurement { reply: SyncSender<Result<()>> },
+    /// c3-hyg: is the worker's context still current (not reset)?
+    CheckContext { reply: SyncSender<Result<()>> },
 }
 
 /// Reusable production GPU pipeline. One worker owns the CUDA context,
@@ -1276,6 +1655,8 @@ pub struct GpuSession {
     chain_tables: Option<ChainTables>,
     tail_capacity: u32,
     early_prepared: bool,
+    /// c3-hyg: set by `allow_measurement_only` (benchmarks only).
+    measurement_ok: bool,
     pub setup_seconds: f64,
     pub build_seconds: f64,
 }
@@ -1333,6 +1714,7 @@ impl GpuSession {
                         "experimental GPU buffer allocation failed"
                     );
                 }
+                upload_rows(ctx.0, &worker_la)?;
                 let build = if worker_la.has_arrays() {
                     0.0
                 } else {
@@ -1364,6 +1746,7 @@ impl GpuSession {
                             nslots,
                             command.transport,
                             command.tuning,
+                            command.measurement_ok,
                         );
                         let failed = result.is_err();
                         let _ = command.reply.send(result);
@@ -1419,6 +1802,30 @@ impl GpuSession {
                         let _ = reply.send(result);
                         failed
                     }
+                    Command::PrepareJd { codes, reply } => {
+                        let result = upload_jd_ctx(ctx.0, &codes);
+                        let failed = result.is_err();
+                        let _ = reply.send(result);
+                        failed
+                    }
+                    Command::AllowMeasurement { reply } => {
+                        let result = if unsafe { cv_gpu_allow_measurement(ctx.0, 1) } == 0 {
+                            Ok(())
+                        } else { Err(anyhow::anyhow!("measurement opt-in failed")) };
+                        let failed = result.is_err();
+                        let _ = reply.send(result);
+                        failed
+                    }
+                    Command::CheckContext { reply } => {
+                        let result = if unsafe { cv_gpu_context_ok(ctx.0) } == 1 {
+                            Ok(())
+                        } else {
+                            Err(anyhow::anyhow!("GPU context is not current (the CUDA context was reset): refused"))
+                        };
+                        let failed = result.is_err();
+                        let _ = reply.send(result);
+                        failed
+                    }
                 };
                 if failed {
                     worker_pool.close();
@@ -1450,9 +1857,41 @@ impl GpuSession {
             chain_tables: None,
             tail_capacity: 0,
             early_prepared: false,
+            measurement_ok: false,
             setup_seconds: t0.elapsed().as_secs_f64(),
             build_seconds,
         })
+    }
+
+    /// c3-hyg: upload the dip tables of these jd codes (>= 64; others are
+    /// ignored) into this session's context, outside timed runs.  `gpu_run`
+    /// uploads missing tables itself, so this only moves the cost.
+    pub fn prepare_jd_tables(&mut self, codes: &[u32]) -> Result<()> {
+        let codes: Vec<u32> = codes.iter().copied().filter(|&c| c >= 64).collect();
+        if codes.is_empty() {
+            return Ok(());
+        }
+        let (reply, result) = sync_channel(1);
+        self.commands.as_ref().unwrap().send(Command::PrepareJd { codes, reply })
+            .map_err(|_| anyhow::anyhow!("GPU worker has stopped"))?;
+        result.recv().map_err(|_| anyhow::anyhow!("GPU worker stopped during jd table upload"))??;
+        Ok(())
+    }
+
+    /// c3-hyg: explicit opt-in for measurement-only kernels (jd floor codes
+    /// 125..127, screen diagnostics `_dload/_dscan/_dsetup`).  Benchmark
+    /// binaries only; every report of such a run is marked
+    /// `measurement_only` and is not a verification.
+    pub fn allow_measurement_only(&mut self) -> Result<()> {
+        if self.measurement_ok {
+            return Ok(());
+        }
+        let (reply, result) = sync_channel(1);
+        self.commands.as_ref().unwrap().send(Command::AllowMeasurement { reply })
+            .map_err(|_| anyhow::anyhow!("GPU worker has stopped"))?;
+        result.recv().map_err(|_| anyhow::anyhow!("GPU worker stopped during measurement opt-in"))??;
+        self.measurement_ok = true;
+        Ok(())
     }
 
     pub fn run<E: Expander>(&mut self, cfg: &VerifyConfig, expander: &E) -> Result<VerifyReport> {
@@ -1579,7 +2018,14 @@ impl GpuSession {
         terminal_words: &[TerminalWord], tuning: GpuTuning,
     ) -> Result<VerifyReport> {
         tuning.bits()?;
+        // c3-hyg: the configuration's own limits and the single code source.
+        cfg.validate()?;
+        crate::runspec::reject_legacy_env()?;
+        check_gpu_config(&cfg.tail, &tuning, cfg.num_bv, self.measurement_ok)?;
         validate_gpu_config(cfg)?;
+        ensure!(!cfg.tail.screen.rows || self.la.rows.is_some(),
+            "this run screens with the row table, but the session was created without one \
+             (create it from a configuration whose tail.screen.rows is set)");
         if tuning.early_every > 0 {
             ensure!(self.experimental && self.early_prepared,
                 "prepare early screen buffers before timing offload");
@@ -1619,6 +2065,14 @@ impl GpuSession {
             !self.pool.closed.load(Ordering::Acquire),
             "GPU session is closed after a previous error"
         );
+        // c3-hyg: a reset context has also lost its pinned buffers, which the
+        // producers below write; refuse before they start.
+        {
+            let (reply, result) = sync_channel(1);
+            self.commands.as_ref().unwrap().send(Command::CheckContext { reply })
+                .map_err(|_| anyhow::anyhow!("GPU worker has stopped"))?;
+            result.recv().map_err(|_| anyhow::anyhow!("GPU worker stopped during the context check"))??;
+        }
         let t0 = Instant::now();
         let m = cfg.m();
         let la = &self.la;
@@ -1637,6 +2091,7 @@ impl GpuSession {
                 reply,
                 transport,
                 tuning,
+                measurement_ok: self.measurement_ok,
             }))
             .map_err(|_| anyhow::anyhow!("GPU worker has stopped"))?;
         let shared = Shared {
@@ -1649,6 +2104,7 @@ impl GpuSession {
             group_chunk_records: tuning.group_chunk_records as usize,
             totals: Mutex::new((TreeStats::new(m), TailStats::new(la.num_bv))),
             send_ns: AtomicU64::new(0),
+            fill: if tuning.run_batch > 0 { tuning.run_batch as usize } else { batch_fill() },
         };
         let producer_start = Instant::now();
         units.par_iter().for_each_init(
@@ -1710,6 +2166,9 @@ impl GpuSession {
         gpu.producer_pool_wait_seconds = pool.wait_ns.load(Ordering::Relaxed) as f64 / 1e9;
         gpu.producer_queue_send_seconds = send_ns as f64 / 1e9;
         let mut rep = VerifyReport::new(cfg, "gpu", units.len(), top, tail, seconds);
+        if measurement_diag(tuning.screen_diag) {
+            rep.mark_measurement_only();
+        }
         rep.gpu = Some(serde_json::to_value(&gpu)?);
         Ok(rep)
     }
@@ -1737,6 +2196,26 @@ pub fn verify_gpu(cfg: &VerifyConfig) -> Result<VerifyReport> {
     Ok(rep)
 }
 
+/// `verify_gpu` with explicit kernel tuning (e.g. jump tails in the warp-queue
+/// scheduler: `cv verify --gpu --tail-codes ... --gpu-wq ...`).  c3-hyg: the
+/// tuning's per-class codes and warp-queue bits must equal `cfg.tail.codes`
+/// and `cfg.tail.schedule`, which a CPU run of the same configuration uses.
+pub fn verify_gpu_tuned(cfg: &VerifyConfig, tuning: GpuTuning) -> Result<VerifyReport> {
+    let t0 = Instant::now();
+    // c-final: screened runs (row table / h range) need exact iterates (mode 2):
+    // the host computes T^M(n0) (Affine32 transport, experimental buffers).
+    let screened = !cfg.tail.screen.is_default();
+    let mut session = if screened { GpuSession::new_experimental(cfg)? } else { GpuSession::new(cfg)? };
+    let transport = if screened { GpuTransport::Affine32 } else { GpuTransport::Replay16 };
+    let mut rep = session.run_transport_tuned(cfg, &DfsExpander, transport, &[], tuning)?;
+    drop(session);
+    rep.seconds = t0.elapsed().as_secs_f64();
+    if let Some(gpu) = rep.gpu.as_mut() {
+        gpu["setup_included_in_report_seconds"] = serde_json::json!(true);
+    }
+    Ok(rep)
+}
+
 /// Serialized kernel timing on caller-supplied endpoints (for `cv measure`).
 /// With host arrays they are uploaded once; otherwise the two family arrays
 /// of the class being timed are built on the device (B up to 39, memory
@@ -1753,7 +2232,16 @@ pub struct GpuBench {
     /// Work checksum and overflow count from the most recent isolated run.
     pub last_hash: u32,
     pub last_flags: u64,
+    /// Warp-queue instrumentation counters summed over the most recent run_x
+    /// (trips, active lane-steps, pop rounds, materializations, screens, U).
+    pub last_dbg: [u64; 6],
+    /// Sorted flagged starts of the most recent run_x (exact multiset).
+    pub last_flag_list: Vec<u128>,
     flagbuf: Vec<u32>,
+    buf2: Option<Pinned>,
+    /// c3-hyg: endpoints per launch (BATCH by default; smaller values let
+    /// tests exercise the per-chunk accumulation of totals and digests).
+    launch_chunk: usize,
 }
 
 impl GpuBench {
@@ -1775,6 +2263,7 @@ impl GpuBench {
         if ctx.is_null() {
             bail!("cv_gpu_init failed");
         }
+        upload_rows(ctx, la)?;
         let per_class = !la.has_arrays();
         if per_class {
             upload_mix(ctx, la)?;
@@ -1803,7 +2292,46 @@ impl GpuBench {
             last_hash: 0,
             last_flags: 0,
             flagbuf: vec![0u32; 4 << 16],
+            last_dbg: [0; 6],
+            last_flag_list: Vec::new(),
+            buf2: None,
+            launch_chunk: BATCH,
         })
+    }
+
+    /// c3-hyg: explicit opt-in for measurement-only kernels in this bench's
+    /// context (jd floor codes, screen diagnostics, the capped test tail).
+    pub fn allow_measurement_only(&mut self) -> Result<()> {
+        ensure!(unsafe { cv_gpu_allow_measurement(self.ctx, 1) } == 0, "measurement opt-in failed");
+        Ok(())
+    }
+
+    /// c3-hyg: endpoints per launch for run_x / run_xs_wq (1..=BATCH).
+    pub fn set_launch_chunk(&mut self, endpoints: usize) -> Result<()> {
+        ensure!((1..=BATCH).contains(&endpoints), "launch chunk must be in 1..={BATCH}");
+        self.launch_chunk = endpoints;
+        Ok(())
+    }
+
+    /// c3-hyg: does this bench's context still match the calling thread's
+    /// current device and CUDA context?
+    pub fn context_ok(&self) -> bool {
+        unsafe { cv_gpu_context_ok(self.ctx) == 1 }
+    }
+
+    /// c3-hyg: refuse to run on a stale context.  A device reset also frees
+    /// the context's pinned host buffers, so this must come before any
+    /// endpoint is packed (writing them would fault).
+    fn check_context(&self) -> Result<()> {
+        ensure!(self.context_ok(),
+            "GPU context is not current (other device, or the CUDA context was reset): refused");
+        Ok(())
+    }
+
+    /// c3-hyg: upload jd dip tables into this bench's context (run_x and
+    /// run_xs_wq also do it on demand).
+    pub fn prepare_jd_tables(&mut self, codes: &[u32]) -> Result<()> {
+        upload_jd_ctx(self.ctx, codes)
     }
 
     /// Median of `reps` timed runs (after one untimed warm-up run).
@@ -1817,8 +2345,285 @@ impl GpuBench {
     }
 
     /// Run `nodes` (all of bitvector class `idx`) in full batches, one at a time.
+    /// `CV_PAD` (tuning bits, e.g. 5) and `CV_XV` (experimental tail variant)
+    /// override the original kernel for experiments; `CV_TAIL` must name the
+    /// matching CPU reference (see `crate::jump`).
     pub fn run(&mut self, idx: usize, nodes: &[Node]) -> Result<GpuClassStats> {
-        self.run_tuned(idx, nodes, GpuTuning::default())
+        let pad: u32 = std::env::var("CV_PAD").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+        let xv: u32 = std::env::var("CV_XV").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+        if pad == 0 && xv == 0 {
+            return self.run_tuned(idx, nodes, GpuTuning::default());
+        }
+        // c3-hyg: no skipped descent tests (CV_TAIL, which used to choose
+        // them, is refused); `cv measure` compares the GPU's cases and
+        // iterations with the original-loop CPU reference and fails loudly
+        // when CV_XV selects different semantics.
+        let mode2 = std::env::var("CV_MODE2").map_or(false, |v| v == "1");
+        self.run_x(idx, nodes, pad | (xv << 24), 0, mode2)
+    }
+
+    /// Experimental timing: raw pad bits (tuning | variant << 24), the jump
+    /// variant's skipped descent checks, and optionally exact-iterate (mode 2)
+    /// records as produced by production parent expansion.
+    pub fn run_x(&mut self, idx: usize, nodes: &[Node], pad: u32, skip: u32, mode2: bool) -> Result<GpuClassStats> {
+        self.check_context()?;
+        self.last_hash = 0;
+        self.last_flags = 0;
+        self.last_dbg = [0; 6];
+        self.last_flag_list.clear();
+        if mode2 && self.buf2.is_none() {
+            ensure!(unsafe { cv_gpu_enable_experimental(self.ctx, BATCH) } == 0, "cv_gpu_enable_experimental failed");
+            self.buf2 = Some(Pinned::try_alloc_words(8)?);
+        }
+        let la = &self.la;
+        let (offset, mut params) = if self.per_class {
+            let words = la.array_words(idx);
+            if self.resident != Some(idx) {
+                if unsafe { cv_gpu_alloc_bv(self.ctx, la.families * words) } != 0 {
+                    bail!("cannot allocate {} x 2^{} bits of bitvectors on the device", la.families, la.bs[idx]);
+                }
+                for fam in 0..la.families {
+                    self.build_seconds += build_array(self.ctx, la, fam * words, fam, idx)?;
+                }
+                self.resident = Some(idx);
+            }
+            let fam_stride = if la.families == 2 { words as u64 } else { 0 };
+            (0, KParams::new(la, idx, self.cutoff_bits, self.tail_oee, fam_stride))
+        } else {
+            class_params(la, self.cutoff_bits, self.tail_oee).swap_remove(idx)
+        };
+        params.pad = pad;
+        params.tail_budget = if pad >> 24 != 0 { skip } else { 0 };
+        if pad >> 24 >= 64 {
+            upload_jd_ctx(self.ctx, &[pad >> 24])?;   // c3-hyg: this bench's context
+            params.tail_budget = la.cutoffs[idx] as u32;
+        }
+        let wq_bits = if pad & (1 << 22) != 0 { pad & (WQ_FIELDS | (1 << 21)) } else { 0 };
+        let mut st = GpuClassStats::default();
+        let f = la.offset + idx as u32;
+        let p3 = POW3[f as usize];
+        let tp = [p3 as u32, (p3 >> 32) as u32, (p3 >> 64) as u32, (p3 >> 96) as u32];
+        let m = la.m;
+        for part in nodes.chunks(self.launch_chunk) {
+            let buf = if mode2 { self.buf2.as_mut().unwrap() } else { &mut self.buf };
+            buf.len = 0;
+            for nd in part {
+                debug_assert_eq!(nd.f, f);
+                buf.append(&[
+                    nd.n0 as u32,
+                    (nd.n0 >> 32) as u32,
+                    (nd.n0 >> 64) as u32,
+                    ((nd.n0 >> 96) as u32) | ((nd.oee as u32) << 30) | ((la.family(nd.ne) as u32) << 29),
+                ]);
+                if mode2 {
+                    debug_assert_eq!(crate::arith::t_iter(nd.n0, m).0, nd.m);
+                    buf.append(&[nd.m as u32, (nd.m >> 32) as u32, (nd.m >> 64) as u32, (nd.m >> 96) as u32]);
+                }
+            }
+            let ptr = buf.ptr;
+            let (mut ms, mut cases, mut iters, mut hash, mut nf) = (0f32, 0u64, 0u64, 0u32, 0u32);
+            unsafe {
+                if cv_gpu_launch_ex(self.ctx, 0, ptr, part.len() as u32, part.len() as u32, if mode2 { 2 } else { 0 },
+                                    offset, la.magic64[idx], tp.as_ptr(), &params) != 0
+                    || cv_gpu_wait(self.ctx, 0, &mut ms, &mut cases, &mut iters, &mut hash, &mut nf,
+                                   self.flagbuf.as_mut_ptr(), 1 << 16) != 0
+                {
+                    bail!("kernel failed (pad {pad:#x}, mode2 {mode2})");
+                }
+                let mut dbg = [0u64; 6];
+                if cv_gpu_last_dbg(self.ctx, 0, dbg.as_mut_ptr()) == 0 {
+                    accumulate_dbg(&mut self.last_dbg, &dbg, wq_bits);   // c3-hyg: XOR the digest word
+                }
+            }
+            ensure!(nf <= 1 << 16, "flag buffer overflow ({nf} flags in one launch)");
+            for i in 0..nf as usize {
+                let w = &self.flagbuf[4 * i..4 * i + 4];
+                self.last_flag_list.push(w[0] as u128 | (w[1] as u128) << 32 | (w[2] as u128) << 64 | (w[3] as u128) << 96);
+            }
+            st.launches += 1;
+            self.last_hash ^= hash;
+            self.last_flags += nf as u64;
+            st.endpoints += part.len() as u64;
+            st.cases += cases;
+            st.iters += iters;
+            st.kernel_seconds += ms as f64 / 1e3;
+        }
+        self.last_flag_list.sort_unstable();
+        Ok(st)
+    }
+
+    /// c-screen: exact-iterate (MODE 2) timing of a jump code (49..53) with an
+    /// explicit screen and optional diagnostic flavour.  The CPU reference
+    /// must use the same `screen` with this bench's lookahead (which carries
+    /// the row table it uploaded), so GPU and CPU always screen alike.
+    pub fn run_xs(&mut self, idx: usize, nodes: &[Node], code: u32, screen: &crate::tail::Screen, diag: u32)
+        -> Result<GpuClassStats> {
+        self.run_xs_wq(idx, nodes, code, 0, screen, diag)
+    }
+
+    /// c-final: as `run_xs`, for jump codes 49..53 and the screened jd codes
+    /// (`JDS_CODES`, H0 = 485 F - 306 M in tail_budget), optionally through the
+    /// warp-queue scheduler (`wq` = scheduler pad bits, 0 = per-thread kernel).
+    /// A default screen uses the ordinary launch (cv_kernel_x / cv_kernel_jd /
+    /// the warp queue without screening).
+    pub fn run_xs_wq(&mut self, idx: usize, nodes: &[Node], code: u32, wq: u32, screen: &crate::tail::Screen, diag: u32)
+        -> Result<GpuClassStats> {
+        self.check_context()?;
+        let spec = ScreenSpec::of(screen, &self.la, idx, diag)?;
+        if is_two_phase(wq) {
+            ensure!(TP_CODES.contains(&code) && diag == 0, "two-phase kernels take jd codes {TP_CODES:?} without diagnostics");
+            ensure!(wq & !TP_FIELDS == 0, "two-phase bits {wq:#x}");
+        } else if wq == 0 {
+            ensure!(spec.is_default() || screen_code_ok(code), "screen kernels take jump codes 49..53 or jd codes {JDS_CODES:?}");
+        } else {
+            ensure!(spec.is_default() || wq_screen_code_ok(code), "warp-queue screens take codes {WQS_CODES:?}");
+        }
+        ensure!(wq & !(WQ_FIELDS | (1 << 21)) == 0, "warp-queue bits {wq:#x}");
+        self.last_hash = 0;
+        self.last_flags = 0;
+        self.last_dbg = [0; 6];
+        self.last_flag_list.clear();
+        if self.buf2.is_none() {
+            ensure!(unsafe { cv_gpu_enable_experimental(self.ctx, BATCH) } == 0, "cv_gpu_enable_experimental failed");
+            self.buf2 = Some(Pinned::try_alloc_words(8)?);
+        }
+        let la = &self.la;
+        let (offset, mut params) = if self.per_class {
+            let words = la.array_words(idx);
+            if self.resident != Some(idx) {
+                if unsafe { cv_gpu_alloc_bv(self.ctx, la.families * words) } != 0 {
+                    bail!("cannot allocate {} x 2^{} bits of bitvectors on the device", la.families, la.bs[idx]);
+                }
+                for fam in 0..la.families {
+                    self.build_seconds += build_array(self.ctx, la, fam * words, fam, idx)?;
+                }
+                self.resident = Some(idx);
+            }
+            let fam_stride = if la.families == 2 { words as u64 } else { 0 };
+            (0, KParams::new(la, idx, self.cutoff_bits, self.tail_oee, fam_stride))
+        } else {
+            class_params(la, self.cutoff_bits, self.tail_oee).swap_remove(idx)
+        };
+        params.pad = 5 | (code << 24) | wq;
+        params.tail_budget = 0;
+        if code >= 64 {
+            upload_jd_ctx(self.ctx, &[code])?;   // c3-hyg: this bench's context
+            params.tail_budget = la.cutoffs[idx] as u32;
+        }
+        let mut st = GpuClassStats::default();
+        let f = la.offset + idx as u32;
+        let p3 = POW3[f as usize];
+        let tp = [p3 as u32, (p3 >> 32) as u32, (p3 >> 64) as u32, (p3 >> 96) as u32];
+        for part in nodes.chunks(self.launch_chunk) {
+            let buf = self.buf2.as_mut().unwrap();
+            buf.len = 0;
+            for nd in part {
+                debug_assert_eq!(nd.f, f);
+                buf.append(&[
+                    nd.n0 as u32,
+                    (nd.n0 >> 32) as u32,
+                    (nd.n0 >> 64) as u32,
+                    ((nd.n0 >> 96) as u32) | ((nd.oee as u32) << 30) | ((la.family(nd.ne) as u32) << 29),
+                    nd.m as u32, (nd.m >> 32) as u32, (nd.m >> 64) as u32, (nd.m >> 96) as u32,
+                ]);
+            }
+            let ptr = buf.ptr;
+            let (mut ms, mut cases, mut iters, mut hash, mut nf) = (0f32, 0u64, 0u64, 0u32, 0u32);
+            unsafe {
+                if cv_gpu_launch_scr(self.ctx, 0, ptr, part.len() as u32, part.len() as u32, 2,
+                                     offset, la.magic64[idx], tp.as_ptr(), &params, &spec) != 0
+                    || cv_gpu_wait(self.ctx, 0, &mut ms, &mut cases, &mut iters, &mut hash, &mut nf,
+                                   self.flagbuf.as_mut_ptr(), 1 << 16) != 0
+                {
+                    bail!("screen kernel failed (code {code}, wq {wq:#x}, spec {spec:?})");
+                }
+                let mut dbg = [0u64; 6];
+                if cv_gpu_last_dbg(self.ctx, 0, dbg.as_mut_ptr()) == 0 {
+                    accumulate_dbg(&mut self.last_dbg, &dbg, wq);   // c3-hyg: XOR the digest word
+                }
+            }
+            ensure!(nf <= 1 << 16, "flag buffer overflow ({nf} flags in one launch)");
+            for i in 0..nf as usize {
+                let w = &self.flagbuf[4 * i..4 * i + 4];
+                self.last_flag_list.push(w[0] as u128 | (w[1] as u128) << 32 | (w[2] as u128) << 64 | (w[3] as u128) << 96);
+            }
+            st.launches += 1;
+            self.last_hash ^= hash;
+            self.last_flags += nf as u64;
+            st.endpoints += part.len() as u64;
+            st.cases += cases;
+            st.iters += iters;
+            st.kernel_seconds += ms as f64 / 1e3;
+        }
+        self.last_flag_list.sort_unstable();
+        Ok(st)
+    }
+
+    /// c-screen: completion words of `nodes` from the cooperative per-lane-word
+    /// routine (cuda/screen.cuh `scr_word`, one warp per endpoint), as a
+    /// warp-queue scheduler would form them; `words32` u32 words per endpoint.
+    pub fn screen_words(&mut self, idx: usize, nodes: &[Node], screen: &crate::tail::Screen) -> Result<Vec<u32>> {
+        self.check_context()?;
+        let spec = ScreenSpec::of(screen, &self.la, idx, 0)?;
+        if self.buf2.is_none() {
+            ensure!(unsafe { cv_gpu_enable_experimental(self.ctx, BATCH) } == 0, "cv_gpu_enable_experimental failed");
+            self.buf2 = Some(Pinned::try_alloc_words(8)?);
+        }
+        let la = &self.la;
+        let words32 = (1usize << la.a) / 32;
+        // The words reuse the slot's 32-byte-per-endpoint affine buffer.
+        let chunk = (BATCH * 8 / words32).max(1);
+        let (offset, params) = if self.per_class {
+            let words = la.array_words(idx);
+            if self.resident != Some(idx) {
+                if unsafe { cv_gpu_alloc_bv(self.ctx, la.families * words) } != 0 {
+                    bail!("cannot allocate the class arrays");
+                }
+                for fam in 0..la.families {
+                    self.build_seconds += build_array(self.ctx, la, fam * words, fam, idx)?;
+                }
+                self.resident = Some(idx);
+            }
+            let fam_stride = if la.families == 2 { words as u64 } else { 0 };
+            (0, KParams::new(la, idx, self.cutoff_bits, self.tail_oee, fam_stride))
+        } else {
+            class_params(la, self.cutoff_bits, self.tail_oee).swap_remove(idx)
+        };
+        let f = la.offset + idx as u32;
+        let p3 = POW3[f as usize];
+        let tp = [p3 as u32, (p3 >> 32) as u32, (p3 >> 64) as u32, (p3 >> 96) as u32];
+        let mut out = vec![0u32; nodes.len() * words32];
+        for (ci, part) in nodes.chunks(chunk).enumerate() {
+            let buf = self.buf2.as_mut().unwrap();
+            buf.len = 0;
+            for nd in part {
+                buf.append(&[
+                    nd.n0 as u32, (nd.n0 >> 32) as u32, (nd.n0 >> 64) as u32,
+                    ((nd.n0 >> 96) as u32) | ((nd.oee as u32) << 30) | ((la.family(nd.ne) as u32) << 29),
+                    nd.m as u32, (nd.m >> 32) as u32, (nd.m >> 64) as u32, (nd.m >> 96) as u32,
+                ]);
+            }
+            let dst = &mut out[ci * chunk * words32..(ci * chunk + part.len()) * words32];
+            ensure!(unsafe { cv_gpu_screen_words(self.ctx, 0, buf.ptr, part.len() as u32, offset, la.magic64[idx],
+                tp.as_ptr(), &params, &spec, dst.as_mut_ptr()) } == 0, "screen words failed");
+        }
+        Ok(out)
+    }
+
+    /// Replace one class's window (forces that class's arrays to be rebuilt
+    /// on the next per-class launch).  For window sweeps.
+    pub fn set_class_window(&mut self, idx: usize, b: u32) -> Result<()> {
+        ensure!(self.per_class, "window changes need per-class device arrays");
+        ensure!(b >= self.la.a && b <= crate::lookahead::MAX_B, "window {b} out of range");
+        self.la.bs[idx] = b;
+        if self.resident == Some(idx) {
+            self.resident = None;
+        }
+        Ok(())
+    }
+
+    pub fn lookahead(&self) -> &Lookahead {
+        &self.la
     }
 
     /// Serialized timing with the same opt-in choices as the pipeline.
@@ -1828,6 +2633,7 @@ impl GpuBench {
         nodes: &[Node],
         tuning: GpuTuning,
     ) -> Result<GpuClassStats> {
+        self.check_context()?;
         let tuning_bits = tuning.bits()?;
         ensure!(tuning.tail_budget == 0, "CPU continuation requires the full GPU pipeline");
         ensure!(tuning.early_every == 0, "early CPU screening requires the full GPU pipeline");
@@ -1908,6 +2714,8 @@ impl GpuBench {
                     bail!("kernel failed");
                 }
             }
+            // c3-hyg: the flag buffer holds 65536 starts; more is an error, never a silent drop.
+            ensure!(nf <= 1 << 16, "flag buffer overflow ({nf} flags in one launch)");
             st.launches += 1;
             self.last_hash ^= hash;
             self.last_flags += nf as u64;
@@ -2116,5 +2924,99 @@ mod tuning_tests {
             GpuTuning { early_cpu_workers: 0, ..tuned },
             GpuTuning { early_cpu_workers: 9, ..tuned },
         ] { assert!(invalid.bits().is_err()); }
+    }
+}
+
+#[cfg(test)]
+mod wq_spec_tests {
+    use super::*;
+
+    #[test]
+    fn warp_queue_specs_encode_the_pad_fields() {
+        assert_eq!(parse_wq("-").unwrap(), 0);
+        assert_eq!(parse_wq("0").unwrap(), 0);
+        assert_eq!(parse_wq("v17").unwrap(), (1 << 22) | (17 << 16) | (1 << 10));
+        assert_eq!(parse_wq("v2.k16.c3.o1").unwrap(), (1 << 22) | (2 << 16) | (1 << 13) | (3 << 10) | (16 << 3));
+        assert!(parse_wq("k8").is_err());
+        assert!(parse_wq("v64").is_err());
+        assert_eq!(parse_wq("v40").unwrap(), (1 << 23) | (1 << 22) | (8 << 16) | (1 << 10));
+        assert!(parse_wq("v2.x1").is_err());
+        assert_eq!(parse_wq("t1").unwrap(), (1 << 21) | (1 << 16) | (1 << 10));
+        assert_eq!(parse_wq("t16.k4.c2.o3").unwrap(), (1 << 21) | (16 << 16) | (3 << 13) | (2 << 10) | (4 << 3));
+        assert!(parse_wq("t32").is_err());
+        assert!(is_two_phase(parse_wq("t4").unwrap()) && !is_two_phase(parse_wq("v43.k8").unwrap()));
+        assert_eq!(parse_wq("v31.k8").unwrap() & !WQ_FIELDS, 0);
+    }
+}
+
+#[cfg(test)]
+mod hygiene_tests {
+    //! c3-hyg host-side checks (no CUDA context: these call host-only
+    //! functions of the CUDA library).
+    use super::*;
+    use crate::jump::{jd_kind, TailKind};
+
+    #[test]
+    fn cuda_jd_traits_match_the_cpu_semantics_table() {
+        for code in 0..=255u32 {
+            let t = jd_code_traits(code);
+            match jd_kind(code) {
+                Some(TailKind::JumpDip { w, wd, dq, ka, desc }) => {
+                    assert_eq!(t[0], 1, "code {code} known to the CPU but not to CUDA");
+                    assert_eq!((t[1], t[2], t[3], t[4], t[5] != 0), (w as i32, wd as i32, dq as i32, ka as i32, desc),
+                        "code {code}: CUDA traits differ from cv::jump::jd_kind");
+                    assert_eq!(t[6] != 0, crate::runspec::is_floor_code(code), "code {code}: floor flag");
+                    assert_eq!(t[7] == 1, crate::jdip::fd3_key(wd, dq) && t[6] == 0, "code {code}: FD3 layout");
+                }
+                _ => assert_eq!(t[0], 0, "code {code} known to CUDA but not to the CPU"),
+            }
+        }
+    }
+
+    #[test]
+    fn digest_word_is_xored_across_chunks_only_for_digest_layouts() {
+        assert_eq!(wq_layout_kind(52) & 3, 3, "layout 52 is a digest layout");
+        assert_eq!(wq_layout_kind(43) & 3, 1, "layout 43 (production) is not");
+        assert_eq!(wq_layout_kind(24) & 5, 5, "layout 24 is instrumented");
+        assert_eq!(wq_layout_kind(63), 0);
+        let dig = parse_wq("v52.k8").unwrap();
+        let mut acc = [0u64; 6];
+        for chunk in [[5u64, 0xF0, 2, 0, 0, 0], [7, 0x0F, 3, 0, 0, 0], [1, 0xFF, 1, 0, 0, 0]] {
+            accumulate_dbg(&mut acc, &chunk, dig);
+        }
+        assert_eq!(acc[..3], [13, 0x00, 6], "sum, XOR, count");
+        let mut acc = [0u64; 6];
+        for chunk in [[5u64, 0xF0, 2, 1, 1, 4], [7, 0x0F, 3, 1, 1, 4]] {
+            accumulate_dbg(&mut acc, &chunk, parse_wq("v24").unwrap());
+        }
+        assert_eq!(acc, [12, 0xFF, 5, 2, 2, 8]);
+    }
+
+    #[test]
+    fn gpu_config_must_equal_the_run_tail_params() {
+        let mut tail = crate::tail::TailParams::default();
+        tail.codes = crate::runspec::TailCodes::parse("93,91,93", 3).unwrap();
+        tail.schedule = crate::runspec::WqSchedule::parse("-,v43.k8,-", 3).unwrap();
+        let ok = GpuTuning { xtail: tail.codes.gpu_xtail(), wq: tail.schedule.bits(), ..GpuTuning::default() };
+        assert!(check_gpu_config(&tail, &ok, 3, false).is_ok());
+        let mut bad = ok;
+        bad.xtail[2] = 0;
+        assert!(check_gpu_config(&tail, &bad, 3, false).is_err(), "class 2 would run the original loop");
+        let mut bad = ok;
+        bad.xtail[3] = 93;
+        assert!(check_gpu_config(&tail, &bad, 3, false).is_err(), "a code beyond the run's classes");
+        let mut bad = ok;
+        bad.wq[1] = 0;
+        assert!(check_gpu_config(&tail, &bad, 3, false).is_err());
+        assert!(check_gpu_config(&crate::tail::TailParams::default(), &GpuTuning::default(), 16, false).is_ok());
+        let diag = GpuTuning { screen_diag: SCREEN_DIAG_SCAN, ..ok };
+        assert!(check_gpu_config(&tail, &diag, 3, false).is_err());
+        assert!(check_gpu_config(&tail, &diag, 3, true).is_ok());
+        let mut floor = tail;
+        floor.codes = crate::runspec::TailCodes::measurement(&[127], 3).unwrap();
+        floor.schedule = crate::runspec::WqSchedule::none();
+        let ft = GpuTuning { xtail: floor.codes.gpu_xtail(), ..GpuTuning::default() };
+        assert!(check_gpu_config(&floor, &ft, 3, false).is_err());
+        assert!(check_gpu_config(&floor, &ft, 3, true).is_ok());
     }
 }

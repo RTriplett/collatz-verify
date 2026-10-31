@@ -35,6 +35,32 @@ pub struct VerifyConfig {
 pub const MAX_M: u32 = 80;
 
 impl VerifyConfig {
+    /// c3-hyg: every limit the CPU and GPU paths rely on, as an error rather
+    /// than an assert deep inside a worker: M <= 80, 6 <= A <= B <= 39, the
+    /// cutoff (<= 123; >= 96 + K for jump / jd codes), the screen's completion
+    /// range, the per-class tail codes and warp-queue specs (one per class),
+    /// and the row table's needs (M >= 12, A <= 16).
+    pub fn validate(&self) -> anyhow::Result<()> {
+        use anyhow::ensure;
+        ensure!(self.n > self.a, "N = {} must exceed A = {}", self.n, self.a);
+        ensure!(self.n - self.a <= MAX_M, "M = N - A = {} exceeds {MAX_M}; raise A", self.n - self.a);
+        ensure!(self.a >= 6 && self.a <= self.b && self.b <= crate::lookahead::MAX_B,
+            "need 6 <= A <= B <= {} (A = {}, B = {})", crate::lookahead::MAX_B, self.a, self.b);
+        ensure!(self.num_bv >= 1, "need at least one bitvector class");
+        if let Some(w) = &self.class_b {
+            ensure!(w.len() <= self.num_bv && w.iter().all(|&x| x >= self.a && x <= crate::lookahead::MAX_B),
+                "class windows must number at most num_bv and lie in [A, {}]", crate::lookahead::MAX_B);
+        }
+        ensure!(self.tail.cutoff_bits <= 123, "cutoff-bits {} exceeds 123 (128-bit tail arithmetic)", self.tail.cutoff_bits);
+        self.tail.screen.check(self.a)?;
+        if self.tail.screen.rows {
+            ensure!(self.n - self.a >= 12 && self.a <= 16, "the (12, 9) row table needs M >= 12 and A <= 16");
+        }
+        self.tail.codes.check(self.num_bv, self.tail.cutoff_bits)?;
+        self.tail.schedule.check(&self.tail.codes, self.num_bv)?;
+        Ok(())
+    }
+
     pub fn m(&self) -> u32 {
         assert!(self.n - self.a <= MAX_M, "M = N - A = {} exceeds {MAX_M}; raise A", self.n - self.a);
         self.n - self.a
@@ -45,12 +71,19 @@ impl VerifyConfig {
     /// Host arrays up to B = 30; beyond that windows are evaluated directly on
     /// the CPU and the GPU builds its arrays on the device.
     pub fn lookahead(&self) -> Lookahead {
-        if let Some(w) = &self.class_b {
+        let la = if let Some(w) = &self.class_b {
             Lookahead::meta(self.m(), self.a, self.b, self.num_bv, self.bv_mode, &self.window).with_class_windows(w)
         } else if self.b > 30 {
             Lookahead::meta(self.m(), self.a, self.b, self.num_bv, self.bv_mode, &self.window)
         } else {
             Lookahead::build_ext(self.m(), self.a, self.b, self.num_bv, self.bv_mode, &self.window)
+        };
+        // c-screen: the row table is attached only when this configuration's
+        // screen asks for it (explicit; cached per (M, A)).
+        if self.tail.screen.rows {
+            la.with_rows(Some(crate::rowsieve::RowSieve::standard(self.m(), self.a)))
+        } else {
+            la
         }
     }
     /// Work units: the given package, or the breadth-first split frontier.
@@ -73,8 +106,17 @@ pub struct VerifyReport {
     pub window: String,
     pub rules: String,
     pub backend: String,
-    /// Whether this invocation covers the whole search or selected subtrees.
+    /// What this invocation covers: `full_range`, `selected_work_units`,
+    /// `top_half`, `bottom_half`, `h_range[lo,hi)` (and combinations with
+    /// `selected_work_units+`), or `measurement_only_not_a_verification`.
+    /// c3-hyg: derived from `config` (the h range and the units).
     pub verification_scope: String,
+    /// c3-hyg: true for benchmark runs with measurement-only kernels.
+    pub measurement_only: bool,
+    /// c3-hyg: the configuration record (identical for the CPU and GPU paths):
+    /// h range, screen, per-class codes and windows, bitvector rules,
+    /// warp-queue specs, cutoff, and the work-definition version.
+    pub config: crate::runspec::RunRecord,
     pub cutoff_bits: u32,
     pub tail_oee: bool,
     pub threads: usize,
@@ -93,10 +135,23 @@ pub struct VerifyReport {
     /// Backend-specific timings (GPU kernel time per class etc.).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gpu: Option<serde_json::Value>,
+    /// c3-hyg: plan runs: the work tuple of every part (package, slice).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parts: Option<Vec<crate::runspec::PartRecord>>,
+}
+
+impl VerifyReport {
+    /// c3-hyg: mark a report as measurement-only (not a verification).
+    pub fn mark_measurement_only(&mut self) {
+        self.measurement_only = true;
+        self.config.measurement_only = true;
+        self.verification_scope = self.config.scope_label();
+    }
 }
 
 impl VerifyReport {
     pub fn new(cfg: &VerifyConfig, backend: &str, units: usize, tree: TreeStats, tail: TailStats, seconds: f64) -> Self {
+        let config = crate::runspec::RunRecord::of(cfg);
         VerifyReport {
             n: cfg.n,
             a: cfg.a,
@@ -107,7 +162,9 @@ impl VerifyReport {
             window: cfg.window.label(),
             rules: cfg.rules.label(),
             backend: backend.into(),
-            verification_scope: if cfg.units.is_some() { "selected_work_units" } else { "full_range" }.into(),
+            verification_scope: config.scope_label(),
+            measurement_only: config.measurement_only,
+            config,
             cutoff_bits: cfg.tail.cutoff_bits,
             tail_oee: cfg.tail.tail_oee,
             threads: rayon::current_num_threads(),
@@ -123,6 +180,7 @@ impl VerifyReport {
             tree,
             tail,
             gpu: None,
+            parts: None,
         }
     }
 }
@@ -136,6 +194,12 @@ pub fn verify_cpu(cfg: &VerifyConfig) -> VerifyReport {
 /// Work-unit generation still uses `cfg.rules`; the custom expansion policy
 /// governs descendants of those already-surviving units.
 pub fn verify_cpu_with_expander<E: Expander>(cfg: &VerifyConfig, expander: &E) -> VerifyReport {
+    // c3-hyg: refuse invalid configurations and the round-2 environment
+    // selectors loudly, before any work (callers that want an error value use
+    // `VerifyConfig::validate` first, as `cv verify` does).
+    if let Err(e) = cfg.validate().and_then(|_| crate::runspec::reject_legacy_env()) {
+        panic!("invalid verification configuration: {e:#}");
+    }
     let t0 = Instant::now();
     let m = cfg.m();
     let la = cfg.lookahead();
@@ -227,6 +291,84 @@ mod tests {
             }
             dfs::<_, STATS>(root, target, rules, &mut Compact(sink), stats);
         }
+    }
+
+    fn small_cfg(screen: crate::tail::Screen, codes: crate::runspec::TailCodes) -> VerifyConfig {
+        let rules = Rules::improved(3);
+        VerifyConfig {
+            n: 26,
+            a: 8,
+            b: 12,
+            num_bv: 4,
+            bv_mode: BvMode::Shared,
+            window: WindowRules { pm_inf: true, mix: rules.mix.clone() },
+            class_b: None,
+            split: 10,
+            rules,
+            tail: TailParams { screen, codes, ..TailParams::default() },
+            units: None,
+        }
+    }
+
+    #[test]
+    fn reports_name_their_h_range_and_halves_partition_the_full_run() {
+        // c3-hyg regression: `cv verify --range top|bottom` reported "full_range".
+        use crate::runspec::TailCodes;
+        use crate::tail::Screen;
+        for codes in [TailCodes::original(), TailCodes::parse("93,91,90,111", 4).unwrap()] {
+            let full = verify_cpu(&small_cfg(Screen::default(), codes));
+            let top = verify_cpu(&small_cfg(Screen::top(8), codes));
+            let bot = verify_cpu(&small_cfg(Screen::bottom(8), codes));
+            assert_eq!(full.verification_scope, "full_range");
+            assert_eq!(top.verification_scope, "top_half");
+            assert_eq!(bot.verification_scope, "bottom_half");
+            assert_eq!((top.config.h_range.h_lo, top.config.h_range.h_hi), (128, 256));
+            assert_eq!((bot.config.h_range.h_lo, bot.config.h_range.h_hi), (0, 128));
+            assert_eq!(top.config.tail_codes, codes.per_class(4));
+            assert!(top.cases > 0 && bot.cases > 0);
+            assert_eq!(top.cases + bot.cases, full.cases);
+            assert_eq!(top.iters + bot.iters, full.iters);
+            let h = |r: &VerifyReport| u32::from_str_radix(&r.hash, 16).unwrap();
+            assert_eq!(h(&top) ^ h(&bot), h(&full));
+            assert_eq!(top.tail.endpoints, full.tail.endpoints);
+            let json = serde_json::to_value(&top).unwrap();
+            assert_eq!(json["config"]["h_range"]["kind"], "top_half");
+            assert_eq!(json["config"]["work_definition"]["version"], crate::runspec::WORK_DEFINITION_VERSION);
+            assert_eq!(json["config"]["bitvector"]["class_windows"], serde_json::json!([12, 12, 12, 12]));
+        }
+        let mut units = small_cfg(Screen::top(8), TailCodes::original());
+        units.units = Some(vec![Node::root(&units.rules)]);
+        assert_eq!(verify_cpu(&units).verification_scope, "selected_work_units+top_half");
+    }
+
+    #[test]
+    fn cpu_reference_takes_every_class_code_from_the_run() {
+        // c3-hyg regression: the CPU semantics came from CV_XTAIL_CPU and
+        // classes beyond its list silently ran the original loop.  Now each
+        // class runs exactly the configured code: changing one class's code
+        // changes only that class's iterations.
+        use crate::runspec::TailCodes;
+        use crate::tail::Screen;
+        let base = verify_cpu(&small_cfg(Screen::default(), TailCodes::parse("93,93,93,93", 4).unwrap()));
+        let alt = verify_cpu(&small_cfg(Screen::default(), TailCodes::parse("90,93,93,93", 4).unwrap()));
+        let orig = verify_cpu(&small_cfg(Screen::default(), TailCodes::original()));
+        assert_eq!(base.tail.cases, orig.tail.cases, "codes do not change the case set");
+        assert!(base.tail.cases[0] > 0 && base.tail.endpoints[4] > 0, "fixture exercises class 0 and the CPU-only classes");
+        assert_eq!(base.tail.iters[1..], alt.tail.iters[1..]);
+        assert_ne!(base.tail.iters[0], alt.tail.iters[0]);
+        assert_ne!(base.tail.iters[0], orig.tail.iters[0], "jumps are not double iterations");
+        assert_eq!(base.tail.iters[4], orig.tail.iters[4], "CPU-only classes run the original loop");
+        let mut bad = small_cfg(Screen::default(), TailCodes::parse("93,91", 2).unwrap());
+        assert!(bad.validate().is_err(), "two codes for four classes");
+        bad.tail.codes = TailCodes::parse("93", 4).unwrap();
+        bad.tail.cutoff_bits = 102;
+        assert!(bad.validate().is_err(), "W11 needs cutoff >= 103");
+        bad.tail.cutoff_bits = 124;
+        assert!(bad.validate().is_err());
+        bad.tail.cutoff_bits = 120;
+        bad.tail.screen = Screen::top(8);
+        bad.a = 6;
+        assert!(bad.validate().is_err(), "halves need A >= 7");
     }
 
     #[test]

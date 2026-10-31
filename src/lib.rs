@@ -21,10 +21,14 @@ pub mod early_cpu;
 pub mod expansion;
 #[cfg(feature = "cuda")]
 pub mod gpu;
+pub mod jdip;
+pub mod jump;
 pub mod lookahead;
 pub mod measure;
 pub mod path_records;
+pub mod rowsieve;
 pub mod rules;
+pub mod runspec;
 pub mod sample;
 pub mod tail;
 pub mod tree;

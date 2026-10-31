@@ -13,10 +13,12 @@
 // transports pack the residue into 8 bytes, supply its iterate in 32 bytes,
 // or expand shared parent/suffix records on the device before verification.
 
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
 
 typedef uint32_t u32;
 typedef uint64_t u64;
@@ -50,6 +52,9 @@ struct KOut {
     unsigned long long iters;
     u32 hash;
     u32 flags;
+    u32 next;   // warp-queue scheduler: dynamic endpoint counter (zeroed per launch)
+    u32 pad2;
+    unsigned long long dbg[6];   // warp-queue instrumented layouts only
 };
 
 // Exact state at the same double-iteration boundary used by the checksum and
@@ -72,6 +77,15 @@ __device__ __forceinline__ void add_aval(u32 b0, u32 b1, u32 b2, u32 b3, u32 ava
         default: o3 |= lo; break;
     }
 }
+
+#include "devtables.cuh"   // c3-hyg: per-context table caches (host only)
+#include "xtail.cuh"
+#include "screen.cuh"
+#include "jdip.cuh"
+#include "jdscreen.cuh"
+#include "wq_jump.cuh"
+#include "wq_jd.cuh"
+#include "twophase.cuh"
 
 template<int MODE, bool OVERFLOW_VOTE = true, bool READONLY_POWERS = false, bool OEE_MASK = false,
          bool TAIL_JUMP = false, bool TAIL_DEFER = false>
@@ -302,23 +316,40 @@ done:
 // prefilter OEE; bits 8..9 select 256(default), 128, or 512 threads;
 // bits 16..20 select the experimental chained transition width (0 disables).
 template<int MODE>
-void cv_launch_tuned(const u32* bv, const u32* mod9, const u32* input, u32 n,
+bool cv_launch_tuned(DevTables& tabs, const u32* bv, const u32* mod9, const u32* input, u32 n,
                      u64 magic, const u32* tp, KParams p, KOut* out, u32* flags,
                      u32 blocks, u32 threads, cudaStream_t stream,
                      const TailJumpEntry* jump_table,
                      TailContinuation* deferred, u32* deferred_count) {
+    if (const u32 xv = p.pad >> 24) {
+        // Experimental tail variants (cuda/xtail.cuh; codes >= 64: cuda/jdip.cuh);
+        // validated by the caller.
+        // An unknown code launches nothing and must fail the launch (c-screen).
+        if (xv >= 64) {
+            if (!jd_launch<MODE>(tabs, xv, bv, mod9, input, n, magic, tp, p, out, flags, blocks, threads, stream)) {
+                fprintf(stderr, "jd tail variant %u failed to launch\n", xv);
+                return false;
+            }
+            return true;
+        }
+        if (!x_launch<MODE>(tabs, xv, bv, mod9, input, n, magic, tp, p, out, flags, blocks, threads, stream)) {
+            fprintf(stderr, "unknown experimental tail variant %u\n", xv);
+            return false;
+        }
+        return true;
+    }
     if constexpr (MODE == 2) {
         if (p.tail_budget) {
             cv_kernel<2, false, false, true, false, true><<<blocks, threads, 0, stream>>>(
                 bv, mod9, input, n, magic, tp[0], tp[1], tp[2], tp[3], p, out, flags,
                 nullptr, deferred, deferred_count);
-            return;
+            return true;
         }
     }
     if (jump_table) {
         cv_kernel<MODE, false, false, true, true><<<blocks, threads, 0, stream>>>(
             bv, mod9, input, n, magic, tp[0], tp[1], tp[2], tp[3], p, out, flags, jump_table);
-        return;
+        return true;
     }
 #define LAUNCH_TUNED(VOTE, RO, OEE) \
     cv_kernel<MODE, VOTE, RO, OEE><<<blocks, threads, 0, stream>>>( \
@@ -334,6 +365,7 @@ void cv_launch_tuned(const u32* bv, const u32* mod9, const u32* input, u32 n,
         case 7: LAUNCH_TUNED(false, true, true); break;
     }
 #undef LAUNCH_TUNED
+    return true;
 }
 
 // One block per parent/class descriptor. Only its actual terminal survivors
@@ -561,18 +593,75 @@ struct Ctx {
     u32* d_chain_words;
     std::vector<ChainProgramGpu> h_chain_programs;
     TailJumpEntry* d_tail_jump[4];
+    // c-screen row table (cuda/screen.cuh); rows_params.rows == nullptr until uploaded.
+    ScreenParams rows_params;
+    u32 rows_words32;  // completion words the table was built for (2^A / 32)
     int nslots;
     Slot slots[8];
     u32 flag_cap;
     u32 tail_cap;
+    WqState* wq;    // warp-queue scheduler: per-context tables and occupancy cache
+    // c3-hyg additions (host only).
+    DevTables* tables;            // this context's jump/dip tables and launch caches
+    unsigned long long ctx_id;    // CUDA context id at creation (0: driver ids unavailable)
+    int measurement_ok;           // cv_gpu_allow_measurement: floor codes, screen diagnostics, capped test tail
+    unsigned long long mix_off[17];   // offsets of the uploaded mixed-word tables (MIX_OFF image)
+    u32 mix_j_max;                // largest 3^j table uploaded (0: none)
 };
+
+// c3-hyg: identity of the calling thread's current CUDA context.  The driver
+// entry points are resolved through the runtime (no libcuda link dependency);
+// cuCtxGetId ids are unique for the lifetime of the process, so a context
+// created after cudaDeviceReset never matches one recorded before it.
+typedef CUresult (*cv_pfn_ctx_get_current)(CUcontext*);
+typedef CUresult (*cv_pfn_ctx_get_id)(CUcontext, unsigned long long*);
+static unsigned long long cv_current_ctx_id() {
+    static cv_pfn_ctx_get_current get_current = nullptr;
+    static cv_pfn_ctx_get_id get_id = nullptr;
+    static std::once_flag once;
+    std::call_once(once, [] {
+        void* f = nullptr;
+        cudaDriverEntryPointQueryResult q = cudaDriverEntryPointSymbolNotFound;
+        if (cudaGetDriverEntryPointByVersion("cuCtxGetCurrent", &f, 12000, cudaEnableDefault, &q) == cudaSuccess &&
+            q == cudaDriverEntryPointSuccess) get_current = (cv_pfn_ctx_get_current)f;
+        f = nullptr;
+        q = cudaDriverEntryPointSymbolNotFound;
+        if (cudaGetDriverEntryPointByVersion("cuCtxGetId", &f, 12000, cudaEnableDefault, &q) == cudaSuccess &&
+            q == cudaDriverEntryPointSuccess) get_id = (cv_pfn_ctx_get_id)f;
+    });
+    if (!get_current || !get_id) return 0;
+    CUcontext cur = nullptr;
+    if (get_current(&cur) != CUDA_SUCCESS || !cur) return 0;
+    unsigned long long id = 0;
+    if (get_id(cur, &id) != CUDA_SUCCESS) return 0;
+    return id;
+}
+
+// Is `c` usable from this thread: same device, same (not reset) CUDA context?
+static bool cv_ctx_current(const Ctx* c) {
+    int dev = -1;
+    if (!c || !c->tables || cudaGetDevice(&dev) != cudaSuccess || dev != c->tables->device) return false;
+    if (c->ctx_id == 0) return true;
+    unsigned long long id = cv_current_ctx_id();
+    if (id == 0) {           // no context bound to this thread yet: bind the primary context and re-check
+        cudaFree(0);
+        id = cv_current_ctx_id();
+    }
+    return id == c->ctx_id;
+}
+
+#define CV_CTX_CHECK(c) do { if (!cv_ctx_current(c)) { \
+    fprintf(stderr, "cv: GPU context %p is not current on this thread (other device, or the CUDA context was reset); refused\n", (const void*)(c)); \
+    return -1; } } while (0)
 
 #define CK(x) do { cudaError_t e_ = (x); if (e_ != cudaSuccess) { \
     fprintf(stderr, "CUDA error %s at %s:%d\n", cudaGetErrorString(e_), __FILE__, __LINE__); return -1; } } while (0)
 
 extern "C" int cv_gpu_device_name(char* buf, int len) {
     cudaDeviceProp prop;
-    if (cudaGetDeviceProperties(&prop, 0) != cudaSuccess) return -1;
+    int dev = 0;
+    if (cudaGetDevice(&dev) != cudaSuccess) return -1;   // c3-hyg: the current device, not device 0
+    if (cudaGetDeviceProperties(&prop, dev) != cudaSuccess) return -1;
     snprintf(buf, len, "%s (sm_%d%d, %d SMs)", prop.name, prop.major, prop.minor, prop.multiProcessorCount);
     return 0;
 }
@@ -587,6 +676,16 @@ extern "C" void* cv_gpu_init(const u32* bv, size_t bv_words, size_t bv_stride, c
     c->d_mix = nullptr;
     c->nslots = nslots > 8 ? 8 : nslots;
     c->flag_cap = 1 << 16;
+    c->wq = new WqState();
+    c->tables = new DevTables();
+    c->wq->dt = c->tables;
+    {
+        int dev = 0;
+        cudaGetDevice(&dev);
+        cudaDeviceGetAttribute(&c->wq->sms, cudaDevAttrMultiProcessorCount, dev);
+        c->tables->device = dev;
+        c->tables->sms = c->wq->sms;
+    }
     c->mod9_words = mod9_words;
     cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync);
     if (bv_words > 0) {  // otherwise arrays are built on the device later
@@ -609,7 +708,64 @@ extern "C" void* cv_gpu_init(const u32* bv, size_t bv_words, size_t bv_stride, c
         cudaMalloc(&s.d_flags, (size_t)c->flag_cap * 16);
         cudaHostAlloc(&s.h_flags, (size_t)c->flag_cap * 16, cudaHostAllocDefault);
     }
+    c->ctx_id = cv_current_ctx_id();   // the context now exists (allocations above)
     return c;
+}
+
+// c3-hyg: measurement-only launches (jd floor codes 125..127, screen
+// diagnostics SCR_LOAD / SCR_SCAN / SCR_SETUP, the warp queue's capped test
+// tail) are refused unless the context opted in.  Only benchmark binaries opt
+// in; their reports are not verifications.
+extern "C" int cv_gpu_allow_measurement(void* ctx, int allow) {
+    Ctx* c = (Ctx*)ctx;
+    if (!c) return -1;
+    c->measurement_ok = allow ? 1 : 0;
+    return 0;
+}
+
+// c3-hyg: 1 when ctx can be used from this thread (its device and CUDA context are current).
+extern "C" int cv_gpu_context_ok(void* ctx) { return cv_ctx_current((Ctx*)ctx) ? 1 : 0; }
+
+// c3-hyg: per-context dip table upload (2^wd u16 quanta; see cuda/jdip.cuh jd_upload).
+extern "C" int cv_jd_upload(void* ctx, u32 wd, u32 dq, u32 desc, const unsigned short* quanta, u64 n) {
+    Ctx* c = (Ctx*)ctx;
+    if (!c) return -1;
+    CV_CTX_CHECK(c);
+    for (int i = 0; i < c->nslots; i++) if (c->slots[i].busy) return -1;
+    return jd_upload(*c->tables, wd, dq, desc, quanta, n);
+}
+
+// c3-hyg: 1 when this context holds the dip table of (wd, dq, desc).
+extern "C" int cv_jd_present(void* ctx, u32 wd, u32 dq, u32 desc) {
+    Ctx* c = (Ctx*)ctx;
+    if (!c) return -1;
+    return jd_present(*c->tables, wd, dq, desc) ? 1 : 0;
+}
+
+// c3-hyg: warp-queue layout kind for host-side accounting of KOut.dbg:
+// bit 0 valid, bit 1 per-case digest (DIG: dbg[0] sum, dbg[1] XOR, dbg[2]
+// count), bit 2 instrumented counters (INSTR: dbg[0..6] sums).
+extern "C" int cv_wq_layout_kind(u32 v) {
+    switch (v) {
+#define WK(V) case V: return WqCfg<V>::valid ? (1 | (WqCfg<V>::DIG ? 2 : 0) | (WqCfg<V>::INSTR ? 4 : 0)) : 0;
+        WK(0) WK(1) WK(2) WK(3) WK(4) WK(5) WK(6) WK(7) WK(8) WK(9) WK(10) WK(11) WK(12) WK(13) WK(14) WK(15) WK(16)
+        WK(17) WK(18) WK(19) WK(20) WK(21) WK(22) WK(23) WK(24) WK(25) WK(26) WK(27) WK(28) WK(29) WK(30)
+        WK(31) WK(32) WK(33) WK(34) WK(35) WK(36) WK(37) WK(38) WK(39) WK(40) WK(41) WK(42) WK(43)
+        WK(44) WK(45) WK(46) WK(47) WK(48) WK(49) WK(50) WK(51) WK(52)
+#undef WK
+        default: return 0;
+    }
+}
+
+// c3-final: the same query for two-phase layouts (cuda/twophase.cuh TpCfg<V>):
+// bit 0 valid, bit 1 per-case digest (DIG), bit 2 instrumented counters (INSTR).
+extern "C" int cv_tp_layout_kind(u32 v) {
+    switch (v) {
+#define TK(V) case V: return TpCfg<V>::valid ? (1 | (TpCfg<V>::DIG ? 2 : 0) | (TpCfg<V>::INSTR ? 4 : 0)) : 0;
+        TP_LAYOUTS(TK)
+#undef TK
+        default: return 0;
+    }
 }
 
 extern "C" u32* cv_gpu_host_alloc(size_t bytes) {
@@ -618,7 +774,22 @@ extern "C" u32* cv_gpu_host_alloc(size_t bytes) {
     return p;
 }
 
-extern "C" void cv_gpu_host_free(u32* p) { cudaFreeHost(p); }
+// c3-hyg: a failed free (a pointer whose context is gone) must not leave its
+// non-sticky error in the runtime's last-error state for a later check.
+extern "C" void cv_gpu_host_free(u32* p) {
+    if (cudaFreeHost(p) != cudaSuccess) (void)cudaGetLastError();
+}
+
+// c3-hyg: id of this thread's CUDA context, binding the device's primary
+// context first when none is current (0 when ids are unavailable).
+extern "C" unsigned long long cv_gpu_current_context_id() {
+    unsigned long long id = cv_current_ctx_id();
+    if (id == 0) {
+        cudaFree(0);
+        id = cv_current_ctx_id();
+    }
+    return id;
+}
 
 // Allocate only for experiments which request continuations. All slots are
 // replaced transactionally; unread continuations cannot be discarded by
@@ -626,6 +797,7 @@ extern "C" void cv_gpu_host_free(u32* p) { cudaFreeHost(p); }
 extern "C" int cv_gpu_set_tail_capacity(void* ctx, u32 capacity) {
     Ctx* c = (Ctx*)ctx;
     if (!c || (size_t)capacity > SIZE_MAX / sizeof(TailContinuation)) return -1;
+    CV_CTX_CHECK(c);
     for (int i = 0; i < c->nslots; i++)
         if (c->slots[i].busy || c->slots[i].tail_ready) return -1;
     if (capacity == c->tail_cap) return 0;
@@ -675,6 +847,7 @@ extern "C" int cv_gpu_set_tail_capacity(void* ctx, u32 capacity) {
 extern "C" int cv_gpu_enable_experimental(void* ctx, size_t cap) {
     Ctx* c = (Ctx*)ctx;
     if (!c || cap == 0 || cap > UINT32_MAX || cap > SIZE_MAX / 64) return -1;
+    CV_CTX_CHECK(c);
     for (int i = 0; i < c->nslots; i++) if (c->slots[i].busy) return -1;
     u32* inputs[8] = {};
     u32* outputs[8] = {};
@@ -759,6 +932,7 @@ static int cv_screen_reserve(Slot& s, size_t endpoints, u32 words32) {
 extern "C" int cv_gpu_prepare_screen(void* ctx, u32 words32) {
     Ctx* c = (Ctx*)ctx;
     if (!c || words32 == 0 || words32 > c->mod9_words / 9) return -1;
+    CV_CTX_CHECK(c);
     for (int i = 0; i < c->nslots; i++)
         if (c->slots[i].busy || c->slots[i].tail_ready) return -1;
     for (int i = 0; i < c->nslots; i++)
@@ -771,6 +945,7 @@ extern "C" int cv_gpu_upload_terminal(void* ctx, const u32* records, size_t reco
     Ctx* c = (Ctx*)ctx;
     if (!c || !records || record_count == 0 || record_count > UINT32_MAX || record_count > SIZE_MAX / 32)
         return -1;
+    CV_CTX_CHECK(c);
     for (int i = 0; i < c->nslots; i++) if (c->slots[i].busy) return -1;
     u32* uploaded = nullptr;
     CK(cudaMalloc(&uploaded, record_count * 32));
@@ -810,6 +985,7 @@ extern "C" int cv_gpu_upload_chain(void* ctx,
         program_count > SIZE_MAX / sizeof(ChainProgramGpu) ||
         leaf_count > SIZE_MAX / sizeof(ChainLeafGpu) || word_count > SIZE_MAX / 32)
         return -1;
+    CV_CTX_CHECK(c);
     for (int i = 0; i < c->nslots; i++) if (c->slots[i].busy) return -1;
     const auto* host_programs = reinterpret_cast<const ChainProgramGpu*>(programs);
     const auto* host_leaves = reinterpret_cast<const ChainLeafGpu*>(leaves);
@@ -873,6 +1049,7 @@ extern "C" int cv_gpu_upload_chain(void* ctx,
 extern "C" int cv_gpu_set_tail_jump(void* ctx, u32 width) {
     Ctx* c = (Ctx*)ctx;
     if (!c) return -1;
+    CV_CTX_CHECK(c);
     if (width == 0) return 0;
     const int slot = tail_jump_slot(width);
     if (slot < 0) return -1;
@@ -906,23 +1083,174 @@ extern "C" int cv_gpu_set_tail_jump(void* ctx, u32 width) {
 // descriptors to dense affine32 records before the unchanged verifier.
 // n is always the number of logical endpoints; n_records counts input records.
 // The pinned input remains owned by this slot until cv_gpu_wait returns.
+static int cv_gpu_launch_impl(void* ctx, int slot, const u32* h_pairs, u32 n, u32 n_records, u32 mode,
+                              size_t bv_offset, u64 magic, const u32* tp, const KParams* params,
+                              const ScreenSpec* spec);
+
 extern "C" int cv_gpu_launch_ex(void* ctx, int slot, const u32* h_pairs, u32 n, u32 n_records, u32 mode,
                                 size_t bv_offset, u64 magic, const u32* tp, const KParams* params) {
+    return cv_gpu_launch_impl(ctx, slot, h_pairs, n, n_records, mode, bv_offset, magic, tp, params, nullptr);
+}
+
+// c-screen: the same launch with explicit completion screening (cuda/screen.cuh).
+// spec == nullptr or {0, 0, 0, 0} is the ordinary launch.  spec->diag carries
+// the diagnostic / scan-option bits (SCR_LOAD, SCR_SCAN, SCR_SETUP, SCR_M9PF,
+// SCR_LAZY); combinations outside xs_scr_valid are rejected.  Any screening
+// requires an exact-iterate transport (mode 2, 3 or 4), one of the jump codes
+// 49..53 in pad bits 24..31 with tuning bits 5, no deferral, and (for rows)
+// an uploaded row table built for this A.  Unsupported requests return -1
+// before anything is enqueued.
+extern "C" int cv_gpu_launch_scr(void* ctx, int slot, const u32* h_pairs, u32 n, u32 n_records, u32 mode,
+                                 size_t bv_offset, u64 magic, const u32* tp, const KParams* params,
+                                 const ScreenSpec* spec) {
+    return cv_gpu_launch_impl(ctx, slot, h_pairs, n, n_records, mode, bv_offset, magic, tp, params, spec);
+}
+
+// Upload the row table: nrows * row_words u32 words (row 0 must keep
+// everything), a 2^kbits-entry u16 row map, and the phase constants.  The
+// table is validated against its own invariants before it replaces any
+// previous one; no slot may be in flight.
+extern "C" int cv_gpu_upload_rows(void* ctx, const u32* bits, size_t nwords, const u16* rowmap, u32 kbits,
+                                  u32 row_words, u32 d, u32 minv, const u32* limb_c, u32 a) {
+    Ctx* c = (Ctx*)ctx;
+    if (!c || !bits || !rowmap || !limb_c || kbits < 2 || kbits > 16 || a < 6 || a > 16 || d < 3 || d >= 65536 ||
+        row_words == 0 || nwords == 0 || nwords % row_words != 0 || nwords / row_words > 65535)
+        return -1;
+    CV_CTX_CHECK(c);
+    const u32 words32 = (1u << a) / 32;
+    if (row_words < (d + 31) / 32 + words32 + 2 || minv != (u32)((1ull << 32) / d)) return -1;
+    for (int i = 0; i < 4; i++) if (limb_c[i] >= d) return -1;
+    const size_t nrows = nwords / row_words;
+    for (u32 i = 0; i < (1u << kbits); i++) if (rowmap[i] >= nrows) return -1;
+    for (u32 i = 0; i < row_words; i++) if (bits[i] != 0xFFFFFFFFu) return -1;  // row 0 keeps everything
+    for (int i = 0; i < c->nslots; i++) if (c->slots[i].busy) return -1;
+    u32* d_bits = nullptr;
+    u16* d_map = nullptr;
+    cudaError_t error = cudaMalloc(&d_bits, nwords * 4);
+    if (error == cudaSuccess) error = cudaMalloc(&d_map, (size_t)2 << kbits);
+    if (error == cudaSuccess) error = cudaMemcpy(d_bits, bits, nwords * 4, cudaMemcpyHostToDevice);
+    if (error == cudaSuccess) error = cudaMemcpy(d_map, rowmap, (size_t)2 << kbits, cudaMemcpyHostToDevice);
+    if (error != cudaSuccess) {
+        cudaFree(d_bits);
+        cudaFree(d_map);
+        fprintf(stderr, "CUDA row table upload: %s\n", cudaGetErrorString(error));
+        return -1;
+    }
+    cudaFree((void*)c->rows_params.rows);
+    cudaFree((void*)c->rows_params.rowmap);
+    ScreenParams sp = {};
+    sp.rows = d_bits;
+    sp.rowmap = d_map;
+    sp.row_words = row_words;
+    sp.kmask = (1u << kbits) - 1;
+    sp.d = d;
+    sp.minv = minv;
+    sp.c0 = limb_c[0]; sp.c1 = limb_c[1]; sp.c2 = limb_c[2]; sp.c3 = limb_c[3];
+    c->rows_params = sp;
+    c->rows_words32 = words32;
+    return 0;
+}
+
+// c-screen test/reference of the cooperative per-lane-word routine: completion
+// words of n MODE 2 endpoints (one warp each), synchronously into out_host
+// (n * words32 u32).  Uses slot `slot`'s buffers; the slot must be idle.
+extern "C" int cv_gpu_screen_words(void* ctx, int slot, const u32* h_pairs, u32 n, size_t bv_offset, u64 magic,
+                                   const u32* tp, const KParams* params, const ScreenSpec* spec, u32* out_host) {
+    Ctx* c = (Ctx*)ctx;
+    if (!c || slot < 0 || slot >= c->nslots || !h_pairs || !tp || !params || !spec || !out_host || n == 0) return -1;
+    CV_CTX_CHECK(c);
+    Slot& s = c->slots[slot];
+    const KParams p = *params;
+    const u32 w_end = spec->w_end ? spec->w_end : p.words32;
+    if (s.busy || n > s.cap || (size_t)n * 32 > s.input_bytes || !s.d_affine ||
+        (size_t)n * p.words32 * 4 > s.affine_bytes || spec->w_first >= w_end || w_end > p.words32) return -1;
+    ScreenParams sp = {};
+    if (spec->rows) {
+        if (!c->rows_params.rows || c->rows_words32 != p.words32) return -1;
+        sp = c->rows_params;
+    }
+    CK(cudaMemcpyAsync(s.d_pairs, h_pairs, (size_t)n * 32, cudaMemcpyHostToDevice, s.stream));
+    const u32 blocks = (u32)(((u64)n * 32 + 255) / 256);
+    if (spec->rows)
+        cv_screen_words<true><<<blocks, 256, 0, s.stream>>>(c->d_bv + bv_offset, c->d_mod9, s.d_pairs, n, magic, tp[0], p, sp,
+                                                           spec->w_first, w_end, s.d_affine);
+    else
+        cv_screen_words<false><<<blocks, 256, 0, s.stream>>>(c->d_bv + bv_offset, c->d_mod9, s.d_pairs, n, magic, tp[0], p, sp,
+                                                            spec->w_first, w_end, s.d_affine);
+    CK(cudaGetLastError());
+    CK(cudaMemcpyAsync(out_host, s.d_affine, (size_t)n * p.words32 * 4, cudaMemcpyDeviceToHost, s.stream));
+    CK(cudaStreamSynchronize(s.stream));
+    return 0;
+}
+
+static int cv_gpu_launch_impl(void* ctx, int slot, const u32* h_pairs, u32 n, u32 n_records, u32 mode,
+                              size_t bv_offset, u64 magic, const u32* tp, const KParams* params,
+                              const ScreenSpec* spec) {
     Ctx* c = (Ctx*)ctx;
     if (!c || slot < 0 || slot >= c->nslots || !h_pairs || !tp || !params || n == 0 || mode > 4)
         return -1;
+    CV_CTX_CHECK(c);   // c3-hyg: never launch with another (or a reset) context's tables
     Slot& s = c->slots[slot];
     if (s.busy || s.tail_ready || n > s.cap || bv_offset >= c->bv_words) return -1;
     KParams p = *params;
-    if ((p.pad & ~0x1F0307u) != 0 || ((p.pad >> 8) & 3u) == 3u) return -1;
-    const u32 tail_width = (p.pad >> 16) & 31u;
+    // pad bit 22: warp-queue scheduler (cuda/wq_jump.cuh); its own pad layout.
+    const bool warp_queue = (p.pad >> 22) & 1u;
+    // c3-2ph: pad bit 21 without bit 22: two-phase kernel (cuda/twophase.cuh).  Its
+    // fields are removed (pad_core) before the ordinary jd checks below.
+    const bool two_phase = !warp_queue && ((p.pad >> 21) & 1u);
+    const u32 pad_core = two_phase ? (p.pad & ~TP_FIELD_MASK) : p.pad;
+    if (two_phase) {
+        if (!tp_pad_valid(p.pad) || mode == 1 || p.words32 == 0 || p.words32 > 256) return -1;
+        if (mode == 0 && (!s.d_affine || s.affine_bytes < (size_t)n * 32)) {
+            cudaFree(s.d_affine);
+            s.d_affine = nullptr;
+            s.affine_bytes = 0;
+            CK(cudaMalloc(&s.d_affine, s.cap * 32));
+            s.affine_bytes = s.cap * 32;
+        }
+    } else if (warp_queue) {
+        if (!wq_pad_valid(p.pad, p.cutoff_hi, p.words32, p.m_limb) || mode == 1) return -1;
+        // tail_budget belongs to the tail family (jump tails: capped test tail only).
+        if (!wq_tail_budget_ok(p.pad, p.tail_budget)) return -1;
+        if (mode == 0 && (!s.d_affine || s.affine_bytes < (size_t)n * 32)) {
+            cudaFree(s.d_affine);
+            s.d_affine = nullptr;
+            s.affine_bytes = 0;
+            CK(cudaMalloc(&s.d_affine, s.cap * 32));
+            s.affine_bytes = s.cap * 32;
+        }
+    } else {
+        if ((p.pad & ~0xFF9F0307u) != 0 || ((p.pad >> 8) & 3u) == 3u) return -1;
+    }
+    const u32 xv = warp_queue ? 0u : pad_core >> 24;
+    if (xv && xv < 64 && (!x_variant_valid(xv) || (pad_core & 0x1F0007u) != 5u || !x_cutoff_ok(xv, p.cutoff_hi))) return -1;
+    // c-tail jd tails (codes >= 64): tail_budget carries H0 = 485 F - 306 M (not deferral).
+    if (xv >= 64 && (!jd_variant_valid(xv) || (pad_core & 0x1F0007u) != 5u ||
+                     (p.cutoff_hi >> x_growth_bits(jd_variant_width(xv))) == 0)) return -1;
+    if (!xv && !warp_queue && (pad_core & 0x800000u)) return -1;
+    if (two_phase && xv < 64) return -1;
+    // c3-hyg: measurement-only launches report cases without certificates
+    // (floor codes count cases and skip the tail; diagnostics skip tails or
+    // screening; the capped test tail stops cases after a fixed number of
+    // jumps).  Refused unless this context opted in (benchmarks only).
+    {
+        const bool floor = xv >= 64 && jd_variant_floor(xv);
+        const bool capped = warp_queue && ((p.pad >> 21) & 1u);
+        const bool diag = spec && (spec->diag & (u32)(SCR_LOAD | SCR_SCAN | SCR_SETUP));
+        if ((floor || capped || diag) && !c->measurement_ok) {
+            fprintf(stderr, "cv: measurement-only launch refused (%s); not a verification\n",
+                    floor ? "jd floor code" : capped ? "capped test tail" : "screen diagnostic");
+            return -1;
+        }
+    }
+    const u32 tail_width = warp_queue ? 0u : (pad_core >> 16) & 31u;
     const TailJumpEntry* jump_table = nullptr;
     if (tail_width) {
         const int jump_slot = tail_jump_slot(tail_width);
         if (jump_slot < 0 || (p.pad & 7u) != 5u || !c->d_tail_jump[jump_slot]) return -1;
         jump_table = c->d_tail_jump[jump_slot];
     }
-    if (p.tail_budget) {
+    if (p.tail_budget && !xv && !warp_queue) {
         // Only the measured affine/parent no-vote, constant-powers, early-OEE
         // specialization supports deferral. Bound enqueue attempts so its
         // u32 counter cannot wrap, even if every completion reaches budget.
@@ -932,6 +1260,39 @@ extern "C" int cv_gpu_launch_ex(void* ctx, int slot, const u32* h_pairs, u32 n, 
     }
     p.flag_cap = c->flag_cap;
     p.tail_cap = c->tail_cap;
+    // c-screen: explicit screening request (never silently ignored).
+    u32 scr = 0;
+    ScreenParams sp = {};
+    if (spec && (spec->rows || spec->w_first || (spec->w_end && spec->w_end != p.words32) || spec->diag)) {
+        const u32 w_end = spec->w_end ? spec->w_end : p.words32;
+        // c-final: jd codes (H0 in tail_budget) take the jds kernels (cuda/jdscreen.cuh);
+        // the warp queue screens jd codes WQS_JD (cuda/wq_jd.cuh), without diagnostics.
+        const u32 tcode = p.pad >> 24;
+        const bool jd = tcode >= 64;
+        if (warp_queue) {
+            if (mode < 2 || !wq_scr_code(tcode) || spec->diag) return -1;
+        } else if (two_phase) {
+            if (mode < 2 || !tp_code_valid(xv) || spec->diag) return -1;
+        } else if (mode < 2 || !(jd ? jds_code_valid(xv) : xs_code_valid(xv)) || (p.pad & 0x9F0007u) != 5u ||
+                   (p.tail_budget && !jd) || jump_table) {
+            return -1;
+        }
+        if (spec->rows > 1 || spec->w_first >= w_end || w_end > p.words32 ||
+            (spec->diag & ~(u32)(SCR_LOAD | SCR_SCAN | SCR_SETUP | SCR_M9PF | SCR_LAZY | SCR_LB5)) != 0)
+            return -1;
+        if (spec->rows) {
+            if (!c->rows_params.rows || c->rows_words32 != p.words32) return -1;
+            sp = c->rows_params;
+            scr |= SCR_ROWS;
+        }
+        if (spec->w_first || w_end != p.words32) {
+            sp.w_first = spec->w_first;
+            sp.w_end = w_end;
+            scr |= SCR_RANGE;
+        }
+        scr |= spec->diag;
+        if ((warp_queue || two_phase) ? (scr == 0 || scr > 3) : jd ? !jds_scr_valid(scr) : !xs_scr_valid(scr)) return -1;
+    }
     const size_t record_bytes = mode == 0 ? 16 : mode == 1 ? 8 : mode == 2 ? 32 : 64;
     const size_t input_bytes = (size_t)n_records * record_bytes;
     if (input_bytes > s.input_bytes) return -1;
@@ -976,7 +1337,7 @@ extern "C" int cv_gpu_launch_ex(void* ctx, int slot, const u32* h_pairs, u32 n, 
     }
     CK(cudaMemcpyAsync(s.d_pairs, h_pairs, input_bytes, cudaMemcpyHostToDevice, s.stream));
     CK(cudaMemsetAsync(s.d_out, 0, sizeof(KOut), s.stream));
-    if (p.tail_budget) CK(cudaMemsetAsync(s.d_deferred_count, 0, sizeof(u32), s.stream));
+    if (p.tail_budget && !xv && !warp_queue) CK(cudaMemsetAsync(s.d_deferred_count, 0, sizeof(u32), s.stream));
     const u32 block_choice = (p.pad >> 8) & 3u;
     const u32 threads = block_choice == 1 ? 128 : block_choice == 2 ? 512 : 256;
     const u32 blocks = (n - 1) / threads + 1;
@@ -993,25 +1354,56 @@ extern "C" int cv_gpu_launch_ex(void* ctx, int slot, const u32* h_pairs, u32 n, 
         CK(cudaGetLastError());
         input = s.d_affine;
     }
-    if (mode == 0) {
-        cv_launch_tuned<0>(c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
+    bool launched;
+    if (two_phase) {
+        if (mode == 0) {
+            cv_wq_replay_affine<<<blocks, threads, 0, s.stream>>>(input, n, p.m, s.d_affine);
+            CK(cudaGetLastError());
+            input = s.d_affine;
+        }
+        launched = tp_launch(*c->tables, scr, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p, s.d_out, s.d_flags, s.stream, sp);
+    } else if (warp_queue) {
+        if (mode == 0) {
+            cv_wq_replay_affine<<<blocks, threads, 0, s.stream>>>(input, n, p.m, s.d_affine);
+            CK(cudaGetLastError());
+            input = s.d_affine;
+        }
+        if (scr)
+            launched = wq_launch_scr(*c->wq, scr, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
+                                     s.d_out, s.d_flags, s.stream, sp) == 0;
+        else
+            launched = wq_launch(*c->wq, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p, s.d_out, s.d_flags, s.stream) == 0;
+    } else if (scr) {
+        // Exact iterates after any expansion: the screen kernels are MODE 2 only.
+        if (xv >= 64)
+            launched = jds_launch(*c->tables, xv, scr, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
+                                  s.d_out, s.d_flags, blocks, threads, s.stream, sp);
+        else
+            launched = xs_launch(*c->tables, xv, scr, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
+                                 s.d_out, s.d_flags, blocks, threads, s.stream, sp);
+    } else if (mode == 0) {
+        launched = cv_launch_tuned<0>(*c->tables, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
                            s.d_out, s.d_flags, blocks, threads, s.stream, jump_table,
                            s.d_deferred, s.d_deferred_count);
     } else if (mode == 1) {
-        cv_launch_tuned<1>(c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
+        launched = cv_launch_tuned<1>(*c->tables, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
                            s.d_out, s.d_flags, blocks, threads, s.stream, jump_table,
                            s.d_deferred, s.d_deferred_count);
     } else {
-        cv_launch_tuned<2>(c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
+        launched = cv_launch_tuned<2>(*c->tables, c->d_bv + bv_offset, c->d_mod9, input, n, magic, tp, p,
                            s.d_out, s.d_flags, blocks, threads, s.stream, jump_table,
                            s.d_deferred, s.d_deferred_count);
+    }
+    if (!launched) {
+        cudaStreamSynchronize(s.stream);  // the input copy may still read the pinned buffer
+        return -1;
     }
     CK(cudaGetLastError());
     CK(cudaEventRecord(s.stop, s.stream));
     CK(cudaMemcpyAsync(s.h_out, s.d_out, sizeof(KOut), cudaMemcpyDeviceToHost, s.stream));
-    if (p.tail_budget)
+    if (p.tail_budget && !xv && !warp_queue)
         CK(cudaMemcpyAsync(s.h_deferred_count, s.d_deferred_count, sizeof(u32), cudaMemcpyDeviceToHost, s.stream));
-    s.tail_active = p.tail_budget != 0;
+    s.tail_active = p.tail_budget != 0 && !xv && !warp_queue;
     s.busy = 1;
     return 0;
 }
@@ -1026,6 +1418,7 @@ extern "C" int cv_gpu_launch_screen_ex(void* ctx, int slot, const u32* h_pairs,
     Ctx* c = (Ctx*)ctx;
     if (!c || slot < 0 || slot >= c->nslots || !h_pairs || !tp || !params ||
         n == 0 || mode < 2 || mode > 4) return -1;
+    CV_CTX_CHECK(c);
     Slot& s = c->slots[slot];
     if (s.busy || s.tail_ready || n > s.cap || bv_offset >= c->bv_words) return -1;
     const KParams p = *params;
@@ -1146,12 +1539,22 @@ extern "C" int cv_gpu_launch(void* ctx, int slot, const u32* h_pairs, u32 n, siz
     return cv_gpu_launch_ex(ctx, slot, h_pairs, n, n, 0, bv_offset, magic, tp, params);
 }
 
+// Instrumentation counters of the most recent completed launch on `slot`
+// (warp-queue instrumented layouts; zero otherwise).
+extern "C" int cv_gpu_last_dbg(void* ctx, int slot, unsigned long long* out6) {
+    Ctx* c = (Ctx*)ctx;
+    if (!c || slot < 0 || slot >= c->nslots || !out6) return -1;
+    for (int i = 0; i < 6; i++) out6[i] = c->slots[slot].h_out->dbg[i];
+    return 0;
+}
+
 // Wait for `slot`; returns kernel milliseconds, fills totals and flags.
 extern "C" int cv_gpu_wait(void* ctx, int slot, float* ms, unsigned long long* cases, unsigned long long* iters,
                            u32* hash, u32* nflags, u32* flags_out, u32 flags_out_cap) {
     Ctx* c = (Ctx*)ctx;
     if (!c || slot < 0 || slot >= c->nslots || !ms || !cases || !iters || !hash || !nflags ||
         (flags_out_cap && !flags_out)) return -1;
+    if (c->slots[slot].busy) CV_CTX_CHECK(c);
     Slot& s = c->slots[slot];
     if (s.busy == 2) return -1; // screen exports have a separate result ABI
     if (!s.busy) { *ms = 0; *cases = 0; *iters = 0; *hash = 0; *nflags = 0; return 0; }
@@ -1207,22 +1610,37 @@ extern "C" int cv_gpu_wait_deferred(void* ctx, int slot, u32* attempts,
 }
 
 // Upload the flat mixed-word tables (u64 entries; offsets[j] = start of 3^j table).
+// c3-hyg: MIX_OFF / POW3U32 are module-global __constant__ symbols shared by
+// every context of the process.  Each context keeps its own copy of the
+// offsets; cv_gpu_build_array re-installs them under a process-wide lock
+// right before its build, so two contexts with different tables cannot see
+// each other's offsets.
+static std::mutex cv_build_lock;
+static u32 cv_mix_jmax(const unsigned long long* offsets) {
+    u32 j = 0;
+    for (u32 i = 1; i < 17; i++) if (offsets[i] != 0) j = i;
+    return j;
+}
 extern "C" int cv_gpu_upload_mix(void* ctx, const unsigned long long* flat, size_t words, const unsigned long long* offsets) {
     Ctx* c = (Ctx*)ctx;
+    if (!c || !flat || !offsets || words == 0) return -1;
+    CV_CTX_CHECK(c);
+    for (u32 i = 1; i < 17; i++) if (offsets[i] != 0 && offsets[i] >= words) return -1;
     if (c->d_mix) cudaFree(c->d_mix);
+    c->d_mix = nullptr;
+    c->mix_j_max = 0;
     CK(cudaMalloc(&c->d_mix, words * 8));
     CK(cudaMemcpy(c->d_mix, flat, words * 8, cudaMemcpyHostToDevice));
-    CK(cudaMemcpyToSymbol(MIX_OFF, offsets, 17 * 8));
-    u32 p3[17];
-    p3[0] = 1;
-    for (int j = 1; j < 17; j++) p3[j] = p3[j - 1] * 3;
-    CK(cudaMemcpyToSymbol(POW3U32, p3, sizeof(p3)));
+    for (int j = 0; j < 17; j++) c->mix_off[j] = offsets[j];
+    c->mix_j_max = cv_mix_jmax(offsets);
     return 0;
 }
 
 // (Re)allocate `words` zeroed u32 words of array memory.
 extern "C" int cv_gpu_alloc_bv(void* ctx, size_t words) {
     Ctx* c = (Ctx*)ctx;
+    if (!c) return -1;
+    CV_CTX_CHECK(c);
     if (c->d_bv) cudaFree(c->d_bv);
     c->d_bv = nullptr;
     c->bv_words = words;
@@ -1235,6 +1653,16 @@ extern "C" int cv_gpu_alloc_bv(void* ctx, size_t words) {
 extern "C" int cv_gpu_build_array(void* ctx, size_t offset, u32 b, u32 a, u64 magic, int cutoff, u32 start_evens,
                                   u32 pm_inf, u32 mix_j, float* ms) {
     Ctx* c = (Ctx*)ctx;
+    if (!c || !ms || b > 39 || a > b) return -1;
+    CV_CTX_CHECK(c);
+    // c3-hyg: a requested mixed-word credit needs this context's tables for
+    // that modulus.  (It used to be dropped silently, building arrays with
+    // fewer exclusions than the window rules the run records.)
+    if (mix_j > 0 && (!c->d_mix || mix_j > c->mix_j_max)) {
+        fprintf(stderr, "cv_gpu_build_array: mix(3^%u) requested but this context's mixed-word tables cover 3^%u\n",
+                mix_j, c->mix_j_max);
+        return -1;
+    }
     BuildParams p;
     p.nbits = 1ull << b;
     p.magic = magic;
@@ -1243,13 +1671,20 @@ extern "C" int cv_gpu_build_array(void* ctx, size_t offset, u32 b, u32 a, u64 ma
     p.cutoff = cutoff;
     p.start_evens = start_evens;
     p.pm_inf = pm_inf;
-    p.mix_j = c->d_mix ? mix_j : 0;
+    p.mix_j = mix_j;
+    std::lock_guard<std::mutex> guard(cv_build_lock);   // MIX_OFF / POW3U32 are process-global
+    if (mix_j > 0) {
+        u32 p3[17];
+        p3[0] = 1;
+        for (int j = 1; j < 17; j++) p3[j] = p3[j - 1] * 3;
+        CK(cudaMemcpyToSymbol(MIX_OFF, c->mix_off, 17 * 8));
+        CK(cudaMemcpyToSymbol(POW3U32, p3, sizeof(p3)));
+    }
     cudaEvent_t e0, e1;
     cudaEventCreate(&e0);
     cudaEventCreate(&e1);
     cudaEventRecord(e0);
-    int sms = 0;
-    cudaDeviceGetAttribute(&sms, cudaDevAttrMultiProcessorCount, 0);
+    const int sms = c->tables->sms > 0 ? c->tables->sms : 1;   // c3-hyg: this context's device
     cv_build_kernel<<<sms * 32, 256>>>(c->d_bv + offset, p, (const u64*)c->d_mix);
     CK(cudaGetLastError());
     cudaEventRecord(e1);
@@ -1263,6 +1698,8 @@ extern "C" int cv_gpu_build_array(void* ctx, size_t offset, u32 b, u32 a, u64 ma
 // Copy `words` u32 words of array memory (from word `start`) back to the host.
 extern "C" int cv_gpu_download_bv(void* ctx, size_t start, u32* host, size_t words) {
     Ctx* c = (Ctx*)ctx;
+    if (!c || !host || start > c->bv_words || words > c->bv_words - start) return -1;
+    CV_CTX_CHECK(c);
     CK(cudaMemcpy(host, c->d_bv + start, words * 4, cudaMemcpyDeviceToHost));
     return 0;
 }
@@ -1273,6 +1710,18 @@ extern "C" int cv_gpu_mem_info(size_t* free_bytes, size_t* total_bytes) {
 
 extern "C" void cv_gpu_free(void* ctx) {
     Ctx* c = (Ctx*)ctx;
+    if (!c) return;
+    if (!cv_ctx_current(c)) {
+        // c3-hyg: the CUDA context this Ctx was created in is gone (device
+        // reset) or not current here.  Its device resources went with it;
+        // freeing the stale handles could release another context's memory
+        // at a reused address, so only the host bookkeeping is released.
+        fprintf(stderr, "cv_gpu_free: context %p is stale; releasing host state only\n", (const void*)c);
+        delete c->tables;
+        delete c->wq;
+        delete c;
+        return;
+    }
     for (int i = 0; i < c->nslots; i++) {
         Slot& s = c->slots[i];
         if (s.busy == 2) cudaStreamSynchronize(s.stream);
@@ -1302,6 +1751,16 @@ extern "C" void cv_gpu_free(void* ctx) {
     cudaFree(c->d_chain_leaves);
     cudaFree(c->d_chain_words);
     for (auto* table : c->d_tail_jump) cudaFree(table);
+    cudaFree((void*)c->rows_params.rows);
+    cudaFree((void*)c->rows_params.rowmap);
     cudaFree(c->d_mod9);
+    if (c->wq) {
+        for (auto& kv : c->wq->tables) cudaFree(kv.second);
+        delete c->wq;
+    }
+    if (c->tables) {
+        devtables_free(*c->tables);   // c3-hyg: this context's jump/dip tables
+        delete c->tables;
+    }
     delete c;
 }
