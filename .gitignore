@@ -1,0 +1,8 @@
+# Nsight captures may include process environment variables.
+*.nsys-rep
+*.sqlite
+
+# Generated Rust build output and Python bytecode.
+/target/
+__pycache__/
+*.py[cod]

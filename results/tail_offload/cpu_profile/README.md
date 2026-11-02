@@ -95,13 +95,12 @@ kernel; the subsequent GPU internal-stage diagnostic is a separate build.
 ## Artifacts and regeneration
 
 - [Raw benchmark JSONL](pipeline.jsonl), [command](command.sh), and [metadata](metadata.json)
-- [Before report](cpu_trace.1.nsys-rep) / [SQLite](cpu_trace.1.sqlite)
-- [After report](cpu_trace.2.nsys-rep) / [SQLite](cpu_trace.2.sqlite)
+- Raw Nsight reports and SQLite exports are excluded because they can contain environment variables.
 - [Before folded stacks](before.folded) / [after folded stacks](after.folded)
 - [Cached DWARF inline resolution](inline_frames.json) and [original addr2line output](addr2line.stdout.txt)
 - [Executable mapping ranges](process_maps.txt), build logs, and capture source snapshots under `source/`
 
-Regenerate the audited trees using the saved inline cache and traces:
+If you have the original local traces, regenerate the audited trees using them and the saved inline cache:
 
 ```bash
 python3 scripts/expansion_bench/summarize_cpu_profile.py
@@ -120,4 +119,5 @@ cargo build --release --offline --features cuda \
 Use the saved profiling command with a fresh output destination. Save the
 launched executable's mapping ranges before it exits if generating new inline
 resolution: sampled absolute addresses need the process's load base. The
-saved cache allows regeneration of this capture without the temporary binary.
+saved cache allows regeneration of this capture without the temporary binary,
+provided the original local traces are available.
