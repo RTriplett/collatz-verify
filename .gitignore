@@ -1,0 +1,3 @@
+# Nsight captures may include process environment variables.
+*.nsys-rep
+*.sqlite

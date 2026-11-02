@@ -60,8 +60,7 @@ match the saved confirmation exactly. Trace launch counts and transfer bytes
 are checked against the corresponding benchmark reports.
 
 - [Raw benchmark JSONL](pipeline.jsonl)
-- [Before Nsight report](direct_trace.1.nsys-rep) and [SQLite export](direct_trace.1.sqlite)
-- [After Nsight report](direct_trace.2.nsys-rep) and [SQLite export](direct_trace.2.sqlite)
+- Raw Nsight reports and SQLite exports are excluded because they can contain environment variables.
 - [Metadata, sources and binary hash](metadata.json), with snapshots under `source/`
 - [Capture command](command.sh)
 
@@ -76,7 +75,7 @@ Two sandbox startup attempts failed before launching the workload with
 A single approved process-scoped capture then succeeded with CPU sampling
 and context-switch tracing disabled. No system or driver settings changed.
 
-Regenerate the audited stage trees from the saved data:
+If you have the original local traces, regenerate the audited stage trees from them:
 
 ```bash
 python3 scripts/expansion_bench/summarize_flame_profile.py
